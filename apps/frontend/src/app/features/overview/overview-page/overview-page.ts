@@ -9,7 +9,7 @@ import { InvoiceStatusChart } from '../invoice-status-chart/invoice-status-chart
 import { RecentInvoicesTable } from '../recent-invoices-table/recent-invoices-table';
 import { AttentionQueue } from '../attention-queue/attention-queue';
 
-const NEXT_REVIEW_QUERY = { status: 'needs_review', page_size: 1, sort: '-id' } as const;
+const NEXT_REVIEW_QUERY = { status: 'needs_review', pageSize: 1, sort: '-id' } as const;
 
 @Component({
   selector: 'app-overview-page',

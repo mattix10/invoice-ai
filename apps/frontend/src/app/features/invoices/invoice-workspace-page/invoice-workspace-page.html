@@ -44,7 +44,7 @@
           <h2>Invoice fields</h2>
           <p>Status: {{ statusLabels[invoice.status] }}</p>
           <p>Due: {{ invoice.due }}</p>
-          <p>Purchase order: {{ invoice.purchase_order || 'Unavailable' }}</p>
+          <p>Purchase order: {{ invoice.purchaseOrder || 'Unavailable' }}</p>
           <p>Comparison unavailable / Awaiting PO.</p>
           @if (invoice.items.length === 0) {
             <p>Line items unavailable.</p>

@@ -3,13 +3,14 @@ from enum import StrEnum
 from typing import Annotated, Literal
 
 from pydantic import (
-    BaseModel,
     ConfigDict,
     Field,
     StringConstraints,
     field_validator,
     model_validator,
 )
+
+from invoiceflow.core.api_schema import ApiSchema
 
 Money = Annotated[str, StringConstraints(pattern=r"^-?\d+\.\d{2}$")]
 InvoiceId = Annotated[str, StringConstraints(max_length=64, pattern=r"^INV-\d{4}-\d{4,}$")]
@@ -21,7 +22,7 @@ class InvoiceStatus(StrEnum):
     processing = "processing"
 
 
-class InvoiceQuery(BaseModel):
+class InvoiceQuery(ApiSchema):
     model_config = ConfigDict(extra="forbid")
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=20, ge=1, le=100)
@@ -43,7 +44,7 @@ class InvoiceQuery(BaseModel):
         return self
 
 
-class InvoiceSummary(BaseModel):
+class InvoiceSummary(ApiSchema):
     id: InvoiceId
     vendor: str
     due: date
@@ -52,7 +53,7 @@ class InvoiceSummary(BaseModel):
     gross_amount: Money
 
 
-class InvoiceItem(BaseModel):
+class InvoiceItem(ApiSchema):
     position: int = Field(ge=1)
     name: str
     quantity: int = Field(gt=0)
@@ -60,7 +61,7 @@ class InvoiceItem(BaseModel):
     net: Money
 
 
-class InvoiceTotals(BaseModel):
+class InvoiceTotals(ApiSchema):
     net: Money
     vat: Money
     gross: Money
@@ -74,14 +75,14 @@ class InvoiceDetail(InvoiceSummary):
     totals: InvoiceTotals | None
 
 
-class InvoicePage(BaseModel):
+class InvoicePage(ApiSchema):
     items: list[InvoiceSummary]
     page: int
     page_size: int
     total: int
 
 
-class ComparisonItem(BaseModel):
+class ComparisonItem(ApiSchema):
     position: int = Field(ge=1)
     name: str
     quantity: int = Field(gt=0)
@@ -91,7 +92,7 @@ class ComparisonItem(BaseModel):
     po_net: Money
 
 
-class InvoiceComparison(BaseModel):
+class InvoiceComparison(ApiSchema):
     invoice_id: InvoiceId
     purchase_order: str
     delivery_receipt_id: str | None
@@ -104,22 +105,22 @@ class InvoiceComparison(BaseModel):
     difference_percent: str | None
 
 
-class ErrorDetail(BaseModel):
+class ErrorDetail(ApiSchema):
     code: str
     message: str
     current_revision: int | None = None
     existing_document_id: str | None = None
 
 
-class ApiError(BaseModel):
+class ApiError(ApiSchema):
     error: ErrorDetail
 
 
-class ReconciliationRequest(BaseModel):
+class ReconciliationRequest(ApiSchema):
     model_config = ConfigDict(extra="forbid")
 
 
-class ReconciliationLine(BaseModel):
+class ReconciliationLine(ApiSchema):
     position: int
     name: str
     invoice_quantity: int
@@ -131,7 +132,7 @@ class ReconciliationLine(BaseModel):
     difference_net: Money
 
 
-class ReconciliationInputLine(BaseModel):
+class ReconciliationInputLine(ApiSchema):
     position: int
     name: str
     invoice_quantity: int
@@ -140,7 +141,7 @@ class ReconciliationInputLine(BaseModel):
     po_unit_net: Money
 
 
-class ReconciliationInputs(BaseModel):
+class ReconciliationInputs(ApiSchema):
     invoice_id: InvoiceId
     purchase_order: str
     delivery_receipt_id: str | None
@@ -150,7 +151,7 @@ class ReconciliationInputs(BaseModel):
     stored_invoice_totals: InvoiceTotals
 
 
-class ReconciliationResult(BaseModel):
+class ReconciliationResult(ApiSchema):
     invoice_id: InvoiceId
     revision: int
     state: Literal["completed"]

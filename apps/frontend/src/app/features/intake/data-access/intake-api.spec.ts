@@ -28,8 +28,8 @@ describe('IntakeApi', () => {
     const upload = http.expectOne('/api/v1/intake/documents');
     expect(upload.request.method).toBe('POST');
     expect(upload.request.body.get('file')).toBe(invoicePdf);
-    expect(upload.request.body.get('allow_duplicate')).toBe('true');
-    upload.flush({ document_id: 'document-1' });
+    expect(upload.request.body.get('allowDuplicate')).toBe('true');
+    upload.flush({ documentId: 'document-1' });
   });
 
   it('should submit the expected revision when confirming an invoice', () => {
@@ -43,7 +43,7 @@ describe('IntakeApi', () => {
     // Assert
     const confirmation = http.expectOne('/api/v1/intake/documents/document%2F1/confirm');
     expect(confirmation.request.method).toBe('POST');
-    expect(confirmation.request.body).toEqual({ expected_revision: expectedRevision });
-    confirmation.flush({ invoice_id: 'INV-2026-1000', status: 'confirmed' });
+    expect(confirmation.request.body).toEqual({ expectedRevision: expectedRevision });
+    confirmation.flush({ invoiceId: 'INV-2026-1000', status: 'confirmed' });
   });
 });

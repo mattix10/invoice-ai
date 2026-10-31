@@ -27,7 +27,7 @@ describe('invoice adapter', () => {
       due: '2026-11-21',
       currency: 'PLN',
       status: 'needs_review' as const,
-      gross_amount: '100000000000000.01',
+      grossAmount: '100000000000000.01',
     };
 
     // Act
@@ -45,7 +45,7 @@ describe('invoice adapter', () => {
         due: '2026-11-21',
         currency: 'PLN',
         status: 'needs_review',
-        gross_amount: '12915.00',
+        grossAmount: '12915.00',
       }),
     ).toEqual({
       id: 'INV-2026-1042',
@@ -64,28 +64,28 @@ describe('invoice adapter', () => {
       due: '2026-11-21',
       currency: 'PLN',
       status: 'needs_review' as const,
-      gross_amount: '12915.00',
+      grossAmount: '12915.00',
     };
     const detail = {
       ...summary,
       issued: '2026-10-22',
-      purchase_order: 'PO-2026-0871',
-      vat_rate: '0.2300',
+      purchaseOrder: 'PO-2026-0871',
+      vatRate: '0.2300',
       items: [],
       totals: null,
     };
     const totals = { net: '10500.00', vat: '2415.00', gross: '12915.00' };
     const comparison = {
-      invoice_id: summary.id,
-      purchase_order: 'PO-2026-0871',
-      delivery_receipt_id: null,
+      invoiceId: summary.id,
+      purchaseOrder: 'PO-2026-0871',
+      deliveryReceiptId: null,
       currency: 'PLN',
-      vat_rate: '0.2300',
+      vatRate: '0.2300',
       items: [],
-      invoice_totals: totals,
-      po_totals: { net: '10000.00', vat: '2300.00', gross: '12300.00' },
+      invoiceTotals: totals,
+      poTotals: { net: '10000.00', vat: '2300.00', gross: '12300.00' },
       difference: { net: '500.00', vat: '115.00', gross: '615.00' },
-      difference_percent: '5.0',
+      differencePercent: '5.0',
     };
     const result = detailView(detail, comparison);
     expect(result.invoice.vatRate).toBe(23);

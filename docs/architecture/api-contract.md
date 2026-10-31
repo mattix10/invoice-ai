@@ -16,7 +16,7 @@ Health, invoice reads and deterministic reconciliation are implemented. `/openap
 
 ## Implemented: read-only invoice API
 
-Prefix `/api/v1`. No invoice create/update/delete/status transition/upload/approval/payment endpoints. All routes return JSON, with snake_case fields. Dates are ISO `YYYY-MM-DD`; future event timestamps are RFC 3339 UTC. Monetary values are decimal strings with two fractional digits, never JSON floats; currency is an explicit three-letter ISO code (the demo uses PLN). Quantity is a positive integer for the current demonstration; fractional quantities require a later contract change.
+Prefix `/api/v1`. Public JSON fields, query parameters and multipart form fields use camelCase; Python attributes and persisted data use snake_case. The field lists below use Python names: for example `gross_amount` is `grossAmount` on the wire. Enum and sort values remain unchanged. Dates are ISO `YYYY-MM-DD`; future event timestamps are RFC 3339 UTC. Monetary values are decimal strings with two fractional digits, never JSON floats; currency is an explicit three-letter ISO code (the demo uses PLN). Quantity is a positive integer for the current demonstration; fractional quantities require a later contract change. This is a breaking change from the previous snake_case wire contract.
 
 ### Operations
 

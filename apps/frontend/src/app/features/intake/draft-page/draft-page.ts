@@ -132,7 +132,7 @@ export class DraftPage {
           if (this.routeVisit() !== visit) return;
           this.busy.set(false);
           this.pendingConfirmation.set(null);
-          void this.router.navigate(['/invoices', confirmation.invoice_id]);
+          void this.router.navigate(['/invoices', confirmation.invoiceId]);
         },
         error: (error: unknown) => {
           if (this.routeVisit() !== visit) return;
@@ -179,13 +179,13 @@ function normalizeDraft(draft: Draft): Draft {
     issued: draft.issued || null,
     due: draft.due || null,
     currency: draft.currency || null,
-    vat_rate: draft.vat_rate || null,
-    items: draft.items.map((item) => ({ ...item, unit_net: item.unit_net || null })),
-    declared_totals: draft.declared_totals
+    vatRate: draft.vatRate || null,
+    items: draft.items.map((item) => ({ ...item, unitNet: item.unitNet || null })),
+    declaredTotals: draft.declaredTotals
       ? {
-          net: draft.declared_totals.net || null,
-          vat: draft.declared_totals.vat || null,
-          gross: draft.declared_totals.gross || null,
+          net: draft.declaredTotals.net || null,
+          vat: draft.declaredTotals.vat || null,
+          gross: draft.declaredTotals.gross || null,
         }
       : null,
   };

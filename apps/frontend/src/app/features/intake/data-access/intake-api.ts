@@ -33,21 +33,21 @@ export class IntakeApi {
   uploadDocument(file: File, allowDuplicate = false): Observable<UploadResponse> {
     const uploadForm = new FormData();
     uploadForm.append('file', file);
-    if (allowDuplicate) uploadForm.append('allow_duplicate', 'true');
+    if (allowDuplicate) uploadForm.append('allowDuplicate', 'true');
 
     return this.http.post<UploadResponse>(INTAKE_DOCUMENTS_URL, uploadForm);
   }
 
   saveDraft(documentId: string, expectedRevision: number, draft: Draft): Observable<DraftResponse> {
     return this.http.put<DraftResponse>(`${this.documentUrl(documentId)}/draft`, {
-      expected_revision: expectedRevision,
+      expectedRevision: expectedRevision,
       draft,
     });
   }
 
   confirmInvoice(documentId: string, expectedRevision: number): Observable<ConfirmResponse> {
     return this.http.post<ConfirmResponse>(`${this.documentUrl(documentId)}/confirm`, {
-      expected_revision: expectedRevision,
+      expectedRevision: expectedRevision,
     });
   }
 

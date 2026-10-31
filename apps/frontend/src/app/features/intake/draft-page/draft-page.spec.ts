@@ -25,20 +25,20 @@ describe('DraftPage', () => {
     const http = TestBed.inject(HttpTestingController);
     const draft = {
       vendor: 'Original',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
+      vatRate: null,
       items: [],
-      declared_totals: null,
+      declaredTotals: null,
     };
     const validation = { complete: false, errors: [] };
     fixture.detectChanges();
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'a.pdf',
+      originalName: 'a.pdf',
       revision: 2,
       draft,
       validation,
@@ -90,20 +90,20 @@ describe('DraftPage', () => {
     const http = TestBed.inject(HttpTestingController);
     const draft = {
       vendor: 'Example',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
+      vatRate: null,
       items: [],
-      declared_totals: null,
+      declaredTotals: null,
     };
     const validation = { complete: false, errors: [] };
     fixture.detectChanges();
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'a.pdf',
+      originalName: 'a.pdf',
       revision: 2,
       draft,
       validation,
@@ -127,9 +127,9 @@ describe('DraftPage', () => {
     http.expectNone('/api/v1/intake/documents/doc-2/confirm');
     http.expectNone('/api/v1/intake/documents/doc-1/confirm');
     http.expectOne('/api/v1/intake/documents/doc-2').flush({
-      document_id: 'doc-2',
+      documentId: 'doc-2',
       status: 'draft',
-      original_name: 'b.pdf',
+      originalName: 'b.pdf',
       revision: 1,
       draft,
       validation,
@@ -159,20 +159,20 @@ describe('DraftPage', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const draft = {
       vendor: 'Example',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
+      vatRate: null,
       items: [],
-      declared_totals: null,
+      declaredTotals: null,
     };
     const validation = { complete: false, errors: [] };
     fixture.detectChanges();
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'a.pdf',
+      originalName: 'a.pdf',
       revision: 2,
       draft,
       validation,
@@ -198,7 +198,7 @@ describe('DraftPage', () => {
     retry.click();
     http
       .expectOne('/api/v1/intake/documents/doc-1/confirm')
-      .flush({ invoice_id: 'INV-1', status: 'confirmed' });
+      .flush({ invoiceId: 'INV-1', status: 'confirmed' });
 
     // Assert
     http.expectNone('/api/v1/intake/documents/doc-1/draft');
@@ -226,21 +226,21 @@ describe('DraftPage', () => {
 
     // Act
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'new.pdf',
-      size_bytes: 1,
-      created_at: '2026-01-01',
+      originalName: 'new.pdf',
+      sizeBytes: 1,
+      createdAt: '2026-01-01',
       revision: 2,
       draft: {
         vendor: 'Example',
-        supplier_invoice_number: null,
+        supplierInvoiceNumber: null,
         issued: null,
         due: null,
         currency: null,
-        vat_rate: null,
+        vatRate: null,
         items: [],
-        declared_totals: null,
+        declaredTotals: null,
       },
       validation: { complete: false, errors: [] },
     });
@@ -274,18 +274,18 @@ describe('DraftPage', () => {
     fixture.detectChanges();
     const draft = {
       vendor: 'Example',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
+      vatRate: null,
       items: [],
-      declared_totals: null,
+      declaredTotals: null,
     };
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'new.pdf',
+      originalName: 'new.pdf',
       revision: 2,
       draft,
       validation: { complete: false, errors: [] },
@@ -305,7 +305,7 @@ describe('DraftPage', () => {
 
     // Assert
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body.expected_revision).toBe(2);
+    expect(request.request.body.expectedRevision).toBe(2);
     expect(request.request.body.draft.vendor).toBe('Updated');
     request.flush({
       draft: { ...draft, vendor: 'Updated' },
@@ -336,18 +336,18 @@ describe('DraftPage', () => {
     fixture.detectChanges();
     const draft = {
       vendor: 'Example',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
+      vatRate: null,
       items: [],
-      declared_totals: null,
+      declaredTotals: null,
     };
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'new.pdf',
+      originalName: 'new.pdf',
       revision: 2,
       draft,
       validation: { complete: false, errors: [] },
@@ -362,7 +362,7 @@ describe('DraftPage', () => {
     http
       .expectOne('/api/v1/intake/documents/doc-1/draft')
       .flush(
-        { error: { code: 'draft_revision_conflict', message: 'Conflict', current_revision: 3 } },
+        { error: { code: 'draft_revision_conflict', message: 'Conflict', currentRevision: 3 } },
         { status: 409, statusText: 'Conflict' },
       );
     await fixture.whenStable();
@@ -393,18 +393,18 @@ describe('DraftPage', () => {
     fixture.detectChanges();
     const draft = {
       vendor: 'Example',
-      supplier_invoice_number: 'A',
+      supplierInvoiceNumber: 'A',
       issued: null,
       due: '2026-11-30',
       currency: 'PLN',
-      vat_rate: '0.23',
-      items: [{ position: 1, name: 'Work', quantity: 1, unit_net: '1.00' }],
-      declared_totals: null,
+      vatRate: '0.23',
+      items: [{ position: 1, name: 'Work', quantity: 1, unitNet: '1.00' }],
+      declaredTotals: null,
     };
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'new.pdf',
+      originalName: 'new.pdf',
       revision: 2,
       draft,
       validation: { complete: true, errors: [] },
@@ -426,8 +426,8 @@ describe('DraftPage', () => {
     const confirm = http.expectOne('/api/v1/intake/documents/doc-1/confirm');
 
     // Assert
-    expect(confirm.request.body).toEqual({ expected_revision: 3 });
-    confirm.flush({ invoice_id: 'INV-2026-9999', status: 'confirmed' });
+    expect(confirm.request.body).toEqual({ expectedRevision: 3 });
+    confirm.flush({ invoiceId: 'INV-2026-9999', status: 'confirmed' });
     expect(navigate).toHaveBeenCalledWith(['/invoices', 'INV-2026-9999']);
     http.verify();
   });
@@ -451,18 +451,18 @@ describe('DraftPage', () => {
     fixture.detectChanges();
     const draft = {
       vendor: 'Example',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
+      vatRate: null,
       items: [],
-      declared_totals: null,
+      declaredTotals: null,
     };
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
-      document_id: 'doc-1',
+      documentId: 'doc-1',
       status: 'draft',
-      original_name: 'new.pdf',
+      originalName: 'new.pdf',
       revision: 2,
       draft,
       validation: { complete: false, errors: [] },
