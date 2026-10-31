@@ -211,11 +211,22 @@ class ReconciliationService:
             is_current = (result.algorithm, record.input_hash) == (algorithm, input_hash)
         except ValueError:
             is_current = False
+        snapshot = self.repository.historical_snapshot(invoice, record.source_snapshot_id)
+        invoice_positions = {item.position for item in invoice.items}
+        po_positions = {item.position for item in snapshot.items} if snapshot else set()
+        refs = evidence_references(result, record.source_snapshot_id)
+        refs = [
+            ref
+            for ref in refs
+            if (ref.kind not in {"po_snapshot", "po_line"} or snapshot is not None)
+            and (ref.kind != "invoice_line" or ref.line_position in invoice_positions)
+            and (ref.kind != "po_line" or ref.line_position in po_positions)
+        ]
         return ReconciliationRead(
             revision=record.revision,
             input_hash=record.input_hash,
             algorithm_version=result.algorithm,
             result=result,
-            evidence_refs=evidence_references(result, record.source_snapshot_id),
+            evidence_refs=refs,
             is_current=is_current,
         )

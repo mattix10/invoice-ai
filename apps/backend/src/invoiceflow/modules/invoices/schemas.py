@@ -175,7 +175,48 @@ class EvidenceReference(ApiSchema):
     reconciliation_revision: int | None
     line_position: int | None
     evidence_id: str
-    label: str
+    label: str = Field(min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def validate_reference(self):
+        prefix = f"invoice:{self.invoice_id}"
+        line_kinds = {"invoice_line", "po_line", "discrepancy_line"}
+        if self.kind in line_kinds:
+            if self.line_position is None or self.line_position < 1:
+                raise ValueError("Line position required")
+        elif self.line_position is not None:
+            raise ValueError("Unexpected line position")
+        if self.reconciliation_revision is not None and self.reconciliation_revision < 1:
+            raise ValueError("Invalid revision")
+        if (
+            self.kind in {"reconciliation", "discrepancy_line"}
+            and self.reconciliation_revision is None
+        ):
+            raise ValueError("Revision required")
+        if self.kind == "invoice":
+            valid = self.evidence_id == prefix
+        elif self.kind == "invoice_line":
+            valid = self.evidence_id == f"{prefix}:line:{self.line_position}"
+        elif self.kind in {"reconciliation", "discrepancy_line"}:
+            expected = f"{prefix}:reconciliation:{self.reconciliation_revision}"
+            if self.kind == "discrepancy_line":
+                expected += f":line:{self.line_position}"
+            valid = self.evidence_id == expected
+        else:
+            import re
+
+            suffix = f":line:{self.line_position}" if self.kind == "po_line" else ""
+            valid = bool(
+                re.fullmatch(
+                    re.escape(prefix)
+                    + r":po-snapshot:(?:legacy|[0-9a-f-]{36})"
+                    + re.escape(suffix),
+                    self.evidence_id,
+                )
+            )
+        if not valid:
+            raise ValueError("Invalid evidence ID")
+        return self
 
 
 class ReconciliationRead(ApiSchema):

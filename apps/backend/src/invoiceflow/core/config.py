@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
 
     database_url: SecretStr
-    ai_provider: str = "disabled"
+    ai_provider: str = "demo"
     intake_storage_dir: str = ".invoiceflow-storage"
     intake_ocr_spool_dir: str | None = None
 

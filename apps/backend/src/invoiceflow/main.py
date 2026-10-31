@@ -7,6 +7,8 @@ from sqlalchemy.orm import sessionmaker
 from invoiceflow.core.config import Settings
 from invoiceflow.core.database import create_database_engine
 from invoiceflow.health import router as health_router
+from invoiceflow.modules.copilot.router import register_copilot_handlers
+from invoiceflow.modules.copilot.router import router as copilot_router
 from invoiceflow.modules.intake.request_limit import IntakeBodyLimit
 from invoiceflow.modules.intake.router import register_intake_handlers
 from invoiceflow.modules.intake.router import router as intake_router
@@ -32,8 +34,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(IntakeBodyLimit)
     app.include_router(health_router)
     app.include_router(invoices_router)
+    app.include_router(copilot_router)
     app.include_router(intake_router)
     app.include_router(purchase_orders_router)
+    register_copilot_handlers(app)
     register_purchase_order_handlers(app)
     register_intake_handlers(app)
     register_exception_handlers(app)
