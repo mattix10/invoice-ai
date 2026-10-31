@@ -24,3 +24,4 @@ htmlcov/
 apps/backend/dist/
 apps/backend/build/
 .local-tools/
+/docs/PROGRESS.md
