@@ -9,9 +9,12 @@ describe('OverviewPage', () => {
   let fixture: ComponentFixture<OverviewPage>;
   let http: HttpTestingController;
 
-  const emptyPage = { items: [], page: 1, page_size: 20, total: 0 };
-  const emptyReview = { items: [], page: 1, page_size: 1, total: 0 };
-  const reviewRequest = (request: { url: string; params: { get(key: string): string | null } }) =>
+  const emptyPage = { items: [], page: 1, pageSize: 20, total: 0 };
+  const emptyReview = { items: [], page: 1, pageSize: 1, total: 0 };
+  const reviewRequest = (request: {
+    url: string;
+    params: { get(key: string): string | null };
+  }): boolean =>
     request.url === '/api/v1/invoices' && request.params.get('status') === 'needs_review';
 
   beforeEach(() => {
@@ -65,17 +68,17 @@ describe('OverviewPage', () => {
           due: '2026-11-19',
           currency: 'PLN',
           status: 'needs_review',
-          gross_amount: '1.00',
+          grossAmount: '1.00',
         },
       ],
       page: 1,
-      page_size: 1,
+      pageSize: 1,
       total: 1,
     });
     await fixture.whenStable();
 
     // Assert
-    expect(request.request.params.get('page_size')).toBe('1');
+    expect(request.request.params.get('pageSize')).toBe('1');
     expect(request.request.params.get('sort')).toBe('-id');
     expect(fixture.nativeElement.querySelector('a[href="/invoices/INV-2026-1099"]')).toBeTruthy();
   });
@@ -164,11 +167,11 @@ describe('OverviewPage', () => {
           due: '2026-11-19',
           currency: 'PLN',
           status: 'approved',
-          gross_amount: '3444.00',
+          grossAmount: '3444.00',
         },
       ],
       page: 1,
-      page_size: 20,
+      pageSize: 20,
       total: 1,
     });
     await fixture.whenStable();

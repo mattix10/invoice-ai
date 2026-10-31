@@ -16,8 +16,10 @@ export class Topbar {
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
     ),
   );
+
   protected readonly title = computed(() => {
     const url = this.navigation()?.urlAfterRedirects ?? this.router.url;
+
     return url.includes('/investigation')
       ? 'AI investigation'
       : url.startsWith('/invoices/')

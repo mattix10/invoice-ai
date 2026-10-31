@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { UploadForm } from './upload-form';
+
 describe('UploadForm', () => {
   it('should show the selected filename', async () => {
     // Arrange
@@ -26,12 +27,15 @@ describe('UploadForm', () => {
     await fixture.whenStable();
     const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
     Object.defineProperty(input, 'files', { value: [new File(['text'], 'invoice.txt')] });
+
     // Act
     input.dispatchEvent(new Event('change'));
     await fixture.whenStable();
+
     // Assert
     expect(fixture.nativeElement.textContent).toContain('Select a non-empty PDF');
   });
+
   it('should emit the selected PDF', async () => {
     // Arrange
     const fixture = TestBed.createComponent(UploadForm);
@@ -41,8 +45,10 @@ describe('UploadForm', () => {
     await fixture.whenStable();
     const input = fixture.nativeElement.querySelector('input');
     Object.defineProperty(input, 'files', { value: [file] });
+
     // Act
     input.dispatchEvent(new Event('change'));
+
     // Assert
     expect(emit).toHaveBeenCalledWith(file);
   });

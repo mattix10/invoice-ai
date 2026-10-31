@@ -19,6 +19,7 @@ export class UploadForm {
   readonly upload = output<File>();
   protected readonly selectedFile = signal<File | null>(null);
   protected readonly validation = signal('');
+
   protected selectFile(event: Event): void {
     if (this.busy()) return;
     this.selectedFile.set((event.target as HTMLInputElement).files?.[0] ?? null);
@@ -26,14 +27,17 @@ export class UploadForm {
     this.selectionChanged.emit();
     if (this.selectedFile()) this.submitUpload();
   }
+
   protected uploadSeparateDocument(): void {
     const file = this.selectedFile();
     if (file) this.uploadDuplicate.emit(file);
   }
+
   protected submitUpload(): void {
     const file = this.selectedFile();
     if (!file || !this.isSupportedPdf(file)) {
       this.validation.set('Select a non-empty PDF no larger than 10 MiB.');
+
       return;
     }
     this.validation.set('');

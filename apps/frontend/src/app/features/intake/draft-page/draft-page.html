@@ -9,8 +9,8 @@
   @if (document.value(); as doc) {
     @if (doc.status === 'confirmed') {
       <p>This document has already been confirmed.</p>
-      @if (doc.invoice_id) {
-        <a [routerLink]="['/invoices', doc.invoice_id]">Open invoice</a>
+      @if (doc.invoiceId) {
+        <a [routerLink]="['/invoices', doc.invoiceId]">Open invoice</a>
       }
     } @else {
       <div class="layout">
@@ -22,7 +22,7 @@
               Could not load the PDF. <button type="button" (click)="file.reload()">Retry</button>
             </p>
           } @else if (file.hasValue()) {
-            <app-document-preview [file]="file.value()" [name]="doc.original_name" />
+            <app-document-preview [file]="file.value()" [name]="doc.originalName" />
           }
         </div>
         <div>

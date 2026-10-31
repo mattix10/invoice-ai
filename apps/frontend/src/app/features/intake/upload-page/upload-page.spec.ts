@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { UploadPage } from './upload-page';
+
 describe('UploadPage', () => {
   it('should send the selected PDF as multipart and navigate after upload', async () => {
     // Arrange
@@ -16,16 +17,19 @@ describe('UploadPage', () => {
     const input = fixture.nativeElement.querySelector('input');
     const file = new File(['pdf'], 'invoice.pdf', { type: 'application/pdf' });
     Object.defineProperty(input, 'files', { value: [file] });
+
     // Act
     input.dispatchEvent(new Event('change'));
     const request = http.expectOne('/api/v1/intake/documents');
+
     // Assert
     expect(request.request.method).toBe('POST');
     expect(request.request.body.get('file')).toBe(file);
-    request.flush({ document_id: 'doc-1' });
+    request.flush({ documentId: 'doc-1' });
     expect(navigate).toHaveBeenCalledWith(['/intake', 'doc-1']);
     http.verify();
   });
+
   it('should show an upload failure and allow retry', async () => {
     // Arrange
     TestBed.configureTestingModule({
@@ -38,17 +42,20 @@ describe('UploadPage', () => {
     Object.defineProperty(input, 'files', {
       value: [new File(['pdf'], 'a.pdf', { type: 'application/pdf' })],
     });
+
     // Act
     input.dispatchEvent(new Event('change'));
     http
       .expectOne('/api/v1/intake/documents')
       .flush({}, { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+
     // Assert
     expect(fixture.nativeElement.textContent).toContain('Upload failed');
     expect(fixture.nativeElement.querySelector('button').disabled).toBe(false);
     http.verify();
   });
+
   it('should request explicit consent before uploading duplicate content', async () => {
     // Arrange
     TestBed.configureTestingModule({
@@ -62,6 +69,7 @@ describe('UploadPage', () => {
     Object.defineProperty(input, 'files', {
       value: [new File(['pdf'], 'a.pdf', { type: 'application/pdf' })],
     });
+
     // Act
     input.dispatchEvent(new Event('change'));
     http.expectOne('/api/v1/intake/documents').flush(
@@ -69,7 +77,7 @@ describe('UploadPage', () => {
         error: {
           code: 'duplicate_document',
           message: 'Duplicate',
-          existing_document_id: 'doc-1',
+          existingDocumentId: 'doc-1',
         },
       },
       { status: 409, statusText: 'Conflict' },
@@ -80,9 +88,10 @@ describe('UploadPage', () => {
     ) as HTMLButtonElement;
     button.click();
     const request = http.expectOne('/api/v1/intake/documents');
+
     // Assert
-    expect(request.request.body.get('allow_duplicate')).toBe('true');
-    request.flush({ document_id: 'doc-2' });
+    expect(request.request.body.get('allowDuplicate')).toBe('true');
+    request.flush({ documentId: 'doc-2' });
     http.verify();
   });
 });

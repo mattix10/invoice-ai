@@ -34,7 +34,7 @@ Service = Annotated[IntakeService, Depends(get_service)]
 def upload_document(
     file: Annotated[UploadFile, File()],
     service: Service,
-    allow_duplicate: Annotated[bool, Form()] = False,
+    allow_duplicate: Annotated[bool, Form(alias="allowDuplicate")] = False,
 ):
     doc = service.upload(file, allow_duplicate)
     return {
@@ -78,7 +78,7 @@ def register_intake_handlers(app):
     async def intake_error(request, exc):
         error = {"code": exc.code, "message": exc.message}
         if exc.current_revision is not None:
-            error["current_revision"] = exc.current_revision
+            error["currentRevision"] = exc.current_revision
         if exc.existing_document_id is not None:
-            error["existing_document_id"] = exc.existing_document_id
+            error["existingDocumentId"] = exc.existing_document_id
         return JSONResponse(status_code=exc.status, content={"error": error})

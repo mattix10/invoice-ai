@@ -204,10 +204,10 @@ export interface components {
       /** File */
       file: string;
       /**
-       * Allow Duplicate
+       * Allowduplicate
        * @default false
        */
-      allow_duplicate: boolean;
+      allowDuplicate: boolean;
     };
     /** ComparisonItem */
     ComparisonItem: {
@@ -217,24 +217,24 @@ export interface components {
       name: string;
       /** Quantity */
       quantity: number;
-      /** Invoice Unit Net */
-      invoice_unit_net: string;
-      /** Po Unit Net */
-      po_unit_net: string;
-      /** Invoice Net */
-      invoice_net: string;
-      /** Po Net */
-      po_net: string;
+      /** Invoiceunitnet */
+      invoiceUnitNet: string;
+      /** Pounitnet */
+      poUnitNet: string;
+      /** Invoicenet */
+      invoiceNet: string;
+      /** Ponet */
+      poNet: string;
     };
     /** ConfirmRequest */
     ConfirmRequest: {
-      /** Expected Revision */
-      expected_revision: number;
+      /** Expectedrevision */
+      expectedRevision: number;
     };
     /** ConfirmResponse */
     ConfirmResponse: {
-      /** Invoice Id */
-      invoice_id: string;
+      /** Invoiceid */
+      invoiceId: string;
       /**
        * Status
        * @constant
@@ -256,42 +256,42 @@ export interface components {
       /** Revision */
       revision: number;
       validation: components['schemas']['Validation'];
-      /** Document Id */
-      document_id: string;
-      /** Invoice Id */
-      invoice_id: string | null;
+      /** Documentid */
+      documentId: string;
+      /** Invoiceid */
+      invoiceId: string | null;
       /**
        * Status
        * @enum {string}
        */
       status: 'uploaded' | 'draft' | 'confirmed';
-      /** Original Name */
-      original_name: string;
-      /** Size Bytes */
-      size_bytes: number;
+      /** Originalname */
+      originalName: string;
+      /** Sizebytes */
+      sizeBytes: number;
       /**
-       * Created At
+       * Createdat
        * Format: date-time
        */
-      created_at: string;
+      createdAt: string;
     };
     /** Draft */
     Draft: {
       /** Vendor */
       vendor: string | null;
-      /** Supplier Invoice Number */
-      supplier_invoice_number: string | null;
+      /** Supplierinvoicenumber */
+      supplierInvoiceNumber: string | null;
       /** Issued */
       issued: string | null;
       /** Due */
       due: string | null;
       /** Currency */
       currency: string | null;
-      /** Vat Rate */
-      vat_rate: string | null;
+      /** Vatrate */
+      vatRate: string | null;
       /** Items */
       items: components['schemas']['DraftItem'][];
-      declared_totals?: components['schemas']['DeclaredTotals'] | null;
+      declaredTotals?: components['schemas']['DeclaredTotals'] | null;
     };
     /** DraftItem */
     DraftItem: {
@@ -301,13 +301,13 @@ export interface components {
       name: string | null;
       /** Quantity */
       quantity: number | null;
-      /** Unit Net */
-      unit_net: string | null;
+      /** Unitnet */
+      unitNet: string | null;
     };
     /** DraftRequest */
     DraftRequest: {
-      /** Expected Revision */
-      expected_revision: number;
+      /** Expectedrevision */
+      expectedRevision: number;
       draft: components['schemas']['Draft'];
     };
     /** DraftResponse */
@@ -323,10 +323,10 @@ export interface components {
       code: string;
       /** Message */
       message: string;
-      /** Current Revision */
-      current_revision?: number | null;
-      /** Existing Document Id */
-      existing_document_id?: string | null;
+      /** Currentrevision */
+      currentRevision?: number | null;
+      /** Existingdocumentid */
+      existingDocumentId?: string | null;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -343,23 +343,23 @@ export interface components {
     };
     /** InvoiceComparison */
     InvoiceComparison: {
-      /** Invoice Id */
-      invoice_id: string;
-      /** Purchase Order */
-      purchase_order: string;
-      /** Delivery Receipt Id */
-      delivery_receipt_id: string | null;
+      /** Invoiceid */
+      invoiceId: string;
+      /** Purchaseorder */
+      purchaseOrder: string;
+      /** Deliveryreceiptid */
+      deliveryReceiptId: string | null;
       /** Currency */
       currency: string;
-      /** Vat Rate */
-      vat_rate: string;
+      /** Vatrate */
+      vatRate: string;
       /** Items */
       items: components['schemas']['ComparisonItem'][];
-      invoice_totals: components['schemas']['InvoiceTotals'];
-      po_totals: components['schemas']['InvoiceTotals'];
+      invoiceTotals: components['schemas']['InvoiceTotals'];
+      poTotals: components['schemas']['InvoiceTotals'];
       difference: components['schemas']['InvoiceTotals'];
-      /** Difference Percent */
-      difference_percent: string | null;
+      /** Differencepercent */
+      differencePercent: string | null;
     };
     /** InvoiceDetail */
     InvoiceDetail: {
@@ -375,14 +375,14 @@ export interface components {
       /** Currency */
       currency: string;
       status: components['schemas']['InvoiceStatus'];
-      /** Gross Amount */
-      gross_amount: string;
+      /** Grossamount */
+      grossAmount: string;
       /** Issued */
       issued: string | null;
-      /** Purchase Order */
-      purchase_order: string | null;
-      /** Vat Rate */
-      vat_rate: string | null;
+      /** Purchaseorder */
+      purchaseOrder: string | null;
+      /** Vatrate */
+      vatRate: string | null;
       /** Items */
       items: components['schemas']['InvoiceItem'][];
       totals: components['schemas']['InvoiceTotals'] | null;
@@ -395,8 +395,8 @@ export interface components {
       name: string;
       /** Quantity */
       quantity: number;
-      /** Unit Net */
-      unit_net: string;
+      /** Unitnet */
+      unitNet: string;
       /** Net */
       net: string;
     };
@@ -406,8 +406,8 @@ export interface components {
       items: components['schemas']['InvoiceSummary'][];
       /** Page */
       page: number;
-      /** Page Size */
-      page_size: number;
+      /** Pagesize */
+      pageSize: number;
       /** Total */
       total: number;
     };
@@ -430,8 +430,8 @@ export interface components {
       /** Currency */
       currency: string;
       status: components['schemas']['InvoiceStatus'];
-      /** Gross Amount */
-      gross_amount: string;
+      /** Grossamount */
+      grossAmount: string;
     };
     /** InvoiceTotals */
     InvoiceTotals: {
@@ -448,30 +448,30 @@ export interface components {
       position: number;
       /** Name */
       name: string;
-      /** Invoice Quantity */
-      invoice_quantity: number;
-      /** Po Quantity */
-      po_quantity: number;
-      /** Invoice Unit Net */
-      invoice_unit_net: string;
-      /** Po Unit Net */
-      po_unit_net: string;
+      /** Invoicequantity */
+      invoiceQuantity: number;
+      /** Poquantity */
+      poQuantity: number;
+      /** Invoiceunitnet */
+      invoiceUnitNet: string;
+      /** Pounitnet */
+      poUnitNet: string;
     };
     /** ReconciliationInputs */
     ReconciliationInputs: {
-      /** Invoice Id */
-      invoice_id: string;
-      /** Purchase Order */
-      purchase_order: string;
-      /** Delivery Receipt Id */
-      delivery_receipt_id: string | null;
+      /** Invoiceid */
+      invoiceId: string;
+      /** Purchaseorder */
+      purchaseOrder: string;
+      /** Deliveryreceiptid */
+      deliveryReceiptId: string | null;
       /** Currency */
       currency: string;
-      /** Vat Rate */
-      vat_rate: string;
+      /** Vatrate */
+      vatRate: string;
       /** Lines */
       lines: components['schemas']['ReconciliationInputLine'][];
-      stored_invoice_totals: components['schemas']['InvoiceTotals'];
+      storedInvoiceTotals: components['schemas']['InvoiceTotals'];
     };
     /** ReconciliationLine */
     ReconciliationLine: {
@@ -479,27 +479,27 @@ export interface components {
       position: number;
       /** Name */
       name: string;
-      /** Invoice Quantity */
-      invoice_quantity: number;
-      /** Po Quantity */
-      po_quantity: number;
-      /** Invoice Unit Net */
-      invoice_unit_net: string;
-      /** Po Unit Net */
-      po_unit_net: string;
-      /** Invoice Net */
-      invoice_net: string;
-      /** Po Net */
-      po_net: string;
-      /** Difference Net */
-      difference_net: string;
+      /** Invoicequantity */
+      invoiceQuantity: number;
+      /** Poquantity */
+      poQuantity: number;
+      /** Invoiceunitnet */
+      invoiceUnitNet: string;
+      /** Pounitnet */
+      poUnitNet: string;
+      /** Invoicenet */
+      invoiceNet: string;
+      /** Ponet */
+      poNet: string;
+      /** Differencenet */
+      differenceNet: string;
     };
     /** ReconciliationRequest */
     ReconciliationRequest: Record<string, never>;
     /** ReconciliationResult */
     ReconciliationResult: {
-      /** Invoice Id */
-      invoice_id: string;
+      /** Invoiceid */
+      invoiceId: string;
       /** Revision */
       revision: number;
       /**
@@ -512,16 +512,16 @@ export interface components {
        * @constant
        */
       algorithm: 'deterministic-v1';
-      /** Input Hash */
-      input_hash: string;
+      /** Inputhash */
+      inputHash: string;
       inputs: components['schemas']['ReconciliationInputs'];
       /** Lines */
       lines: components['schemas']['ReconciliationLine'][];
-      invoice_totals: components['schemas']['InvoiceTotals'];
-      po_totals: components['schemas']['InvoiceTotals'];
+      invoiceTotals: components['schemas']['InvoiceTotals'];
+      poTotals: components['schemas']['InvoiceTotals'];
       difference: components['schemas']['InvoiceTotals'];
-      /** Difference Percent */
-      difference_percent: string | null;
+      /** Differencepercent */
+      differencePercent: string | null;
     };
     /** RequestValidationDetail */
     RequestValidationDetail: {
@@ -539,22 +539,22 @@ export interface components {
     };
     /** UploadResponse */
     UploadResponse: {
-      /** Document Id */
-      document_id: string;
+      /** Documentid */
+      documentId: string;
       /**
        * Status
        * @constant
        */
       status: 'uploaded';
-      /** Original Name */
-      original_name: string;
-      /** Size Bytes */
-      size_bytes: number;
+      /** Originalname */
+      originalName: string;
+      /** Sizebytes */
+      sizeBytes: number;
       /**
-       * Created At
+       * Createdat
        * Format: date-time
        */
-      created_at: string;
+      createdAt: string;
     };
     /** Validation */
     Validation: {
@@ -583,6 +583,38 @@ export interface components {
   headers: never;
   pathItems: never;
 }
+export type ApiError = components['schemas']['ApiError'];
+export type BodyUploadDocumentApiV1IntakeDocumentsPost =
+  components['schemas']['Body_upload_document_api_v1_intake_documents_post'];
+export type ComparisonItem = components['schemas']['ComparisonItem'];
+export type ConfirmRequest = components['schemas']['ConfirmRequest'];
+export type ConfirmResponse = components['schemas']['ConfirmResponse'];
+export type DeclaredTotals = components['schemas']['DeclaredTotals'];
+export type DocumentResponse = components['schemas']['DocumentResponse'];
+export type Draft = components['schemas']['Draft'];
+export type DraftItem = components['schemas']['DraftItem'];
+export type DraftRequest = components['schemas']['DraftRequest'];
+export type DraftResponse = components['schemas']['DraftResponse'];
+export type ErrorDetail = components['schemas']['ErrorDetail'];
+export type HttpValidationError = components['schemas']['HTTPValidationError'];
+export type HealthResponse = components['schemas']['HealthResponse'];
+export type InvoiceComparison = components['schemas']['InvoiceComparison'];
+export type InvoiceDetail = components['schemas']['InvoiceDetail'];
+export type InvoiceItem = components['schemas']['InvoiceItem'];
+export type InvoicePage = components['schemas']['InvoicePage'];
+export type InvoiceStatus = components['schemas']['InvoiceStatus'];
+export type InvoiceSummary = components['schemas']['InvoiceSummary'];
+export type InvoiceTotals = components['schemas']['InvoiceTotals'];
+export type ReconciliationInputLine = components['schemas']['ReconciliationInputLine'];
+export type ReconciliationInputs = components['schemas']['ReconciliationInputs'];
+export type ReconciliationLine = components['schemas']['ReconciliationLine'];
+export type ReconciliationRequest = components['schemas']['ReconciliationRequest'];
+export type ReconciliationResult = components['schemas']['ReconciliationResult'];
+export type RequestValidationDetail = components['schemas']['RequestValidationDetail'];
+export type RequestValidationError = components['schemas']['RequestValidationError'];
+export type UploadResponse = components['schemas']['UploadResponse'];
+export type Validation = components['schemas']['Validation'];
+export type ValidationError = components['schemas']['ValidationError'];
 export type $defs = Record<string, never>;
 export interface operations {
   getHealth: {
@@ -632,11 +664,11 @@ export interface operations {
     parameters: {
       query?: {
         page?: number;
-        page_size?: number;
+        pageSize?: number;
         status?: components['schemas']['InvoiceStatus'] | null;
         q?: string | null;
-        due_from?: string | null;
-        due_to?: string | null;
+        dueFrom?: string | null;
+        dueTo?: string | null;
         sort?: 'id' | '-id' | 'due' | '-due' | 'gross_amount' | '-gross_amount';
       };
       header?: never;

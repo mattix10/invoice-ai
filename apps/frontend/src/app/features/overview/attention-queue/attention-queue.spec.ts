@@ -1,10 +1,10 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { OVERVIEW_DEMO_DATA } from '../overview-demo.data';
 import { AttentionQueue } from './attention-queue';
 
 describe('AttentionQueue', () => {
-  async function create(mode: 'banner' | 'list') {
+  async function create(mode: 'banner' | 'list'): Promise<ComponentFixture<AttentionQueue>> {
     await TestBed.configureTestingModule({
       imports: [AttentionQueue],
       providers: [provideRouter([])],
@@ -25,6 +25,7 @@ describe('AttentionQueue', () => {
 
     return fixture;
   }
+
   it('should show the exact discrepancy and an investigation link in the warning', async () => {
     // Arrange
     const fixture = await create('banner');
@@ -41,6 +42,7 @@ describe('AttentionQueue', () => {
       '/invoices/INV-2026-1042/investigation',
     );
   });
+
   it('should show the remaining review count in the attention list', async () => {
     // Arrange
     const fixture = await create('list');

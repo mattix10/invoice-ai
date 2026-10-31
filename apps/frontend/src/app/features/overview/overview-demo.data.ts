@@ -72,6 +72,7 @@ const statusLabels = [
 ] as const;
 const invoiceStatuses: readonly InvoiceStatus[] = statusLabels.map(({ label, style }) => {
   const count = recentInvoices.filter((invoice) => invoice.status === label).length;
+
   return { label, count, sharePercent: (count / recentInvoices.length) * 100, style };
 });
 

@@ -2,7 +2,6 @@ from datetime import date, datetime
 from typing import Annotated, Literal
 
 from pydantic import (
-    BaseModel,
     ConfigDict,
     Field,
     StringConstraints,
@@ -10,11 +9,13 @@ from pydantic import (
     model_validator,
 )
 
+from invoiceflow.core.api_schema import ApiSchema
+
 MoneyInput = Annotated[str, StringConstraints(pattern=r"^\d{1,16}\.\d{2}$")]
 VatInput = Annotated[str, StringConstraints(pattern=r"^(0(?:\.\d{1,4})?|1(?:\.0{1,4})?)$")]
 
 
-class NullableDraftModel(BaseModel):
+class NullableDraftModel(ApiSchema):
     model_config = ConfigDict(extra="forbid")
 
     @field_validator("*", mode="before")
@@ -57,23 +58,23 @@ class Draft(NullableDraftModel):
         return self
 
 
-class DraftRequest(BaseModel):
+class DraftRequest(ApiSchema):
     model_config = ConfigDict(extra="forbid")
     expected_revision: int = Field(ge=0, strict=True)
     draft: Draft
 
 
-class ConfirmRequest(BaseModel):
+class ConfirmRequest(ApiSchema):
     model_config = ConfigDict(extra="forbid")
     expected_revision: int = Field(ge=0, strict=True)
 
 
-class Validation(BaseModel):
+class Validation(ApiSchema):
     complete: bool
     errors: list[str]
 
 
-class DraftResponse(BaseModel):
+class DraftResponse(ApiSchema):
     draft: Draft
     revision: int
     validation: Validation
@@ -88,7 +89,7 @@ class DocumentResponse(DraftResponse):
     created_at: datetime
 
 
-class UploadResponse(BaseModel):
+class UploadResponse(ApiSchema):
     document_id: str
     status: Literal["uploaded"]
     original_name: str
@@ -96,16 +97,16 @@ class UploadResponse(BaseModel):
     created_at: datetime
 
 
-class ConfirmResponse(BaseModel):
+class ConfirmResponse(ApiSchema):
     invoice_id: str
     status: Literal["confirmed"]
 
 
-class RequestValidationDetail(BaseModel):
+class RequestValidationDetail(ApiSchema):
     loc: list[str | int]
     msg: str
     type: str
 
 
-class RequestValidationError(BaseModel):
+class RequestValidationError(ApiSchema):
     detail: list[RequestValidationDetail]

@@ -9,7 +9,7 @@ import { InvoiceStatusChart } from '../invoice-status-chart/invoice-status-chart
 import { RecentInvoicesTable } from '../recent-invoices-table/recent-invoices-table';
 import { AttentionQueue } from '../attention-queue/attention-queue';
 
-const NEXT_REVIEW_QUERY = { status: 'needs_review', page_size: 1, sort: '-id' } as const;
+const NEXT_REVIEW_QUERY = { status: 'needs_review', pageSize: 1, sort: '-id' } as const;
 
 @Component({
   selector: 'app-overview-page',
@@ -30,10 +30,12 @@ export class OverviewPage {
   protected readonly recentInvoices = this.invoiceApi.invoiceListResource({}, (invoicePage) =>
     invoicePage.items.map(summaryView),
   );
+
   protected readonly nextInvoiceForReview = this.invoiceApi.invoiceListResource(
     NEXT_REVIEW_QUERY,
     (invoicePage) => invoicePage.items[0]?.id ?? null,
   );
+
   protected readonly demoOverview = OVERVIEW_DEMO_DATA;
   protected readonly investigationLink = [
     '/invoices',

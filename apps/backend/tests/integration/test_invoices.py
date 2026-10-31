@@ -34,16 +34,16 @@ def test_real_repository_list_filters_and_pagination(invoice_client):
         params={
             "status": "needs_review",
             "q": "north",
-            "due_from": "2026-11-21",
-            "due_to": "2026-11-21",
+            "dueFrom": "2026-11-21",
+            "dueTo": "2026-11-21",
             "sort": "due",
-            "page_size": 1,
+            "pageSize": 1,
         },
     )
     assert response.status_code == 200
     assert response.json()["total"] == 1
     assert response.json()["items"][0]["id"] == "INV-2026-1042"
-    page = invoice_client.get("/api/v1/invoices", params={"page": 5, "page_size": 1}).json()
+    page = invoice_client.get("/api/v1/invoices", params={"page": 5, "pageSize": 1}).json()
     assert page["items"] == []
     assert page["total"] == 4
     for literal in ("%", "_"):
@@ -55,11 +55,11 @@ def test_real_repository_detail_comparison_and_missing(invoice_client):
     assert detail["totals"] == {"net": "10500.00", "vat": "2415.00", "gross": "12915.00"}
     assert len(detail["items"]) == 3
     summary = invoice_client.get("/api/v1/invoices/INV-2026-1041").json()
-    assert summary["issued"] is None and summary["purchase_order"] is None
+    assert summary["issued"] is None and summary["purchaseOrder"] is None
     assert summary["items"] == [] and summary["totals"] is None
     comparison = invoice_client.get("/api/v1/invoices/INV-2026-1042/comparison").json()
     assert comparison["difference"]["gross"] == "615.00"
-    assert comparison["difference_percent"] == "5.0"
+    assert comparison["differencePercent"] == "5.0"
     for suffix, code in [
         ("INV-2026-9999", "invoice_not_found"),
         ("INV-2026-9999/comparison", "invoice_not_found"),
@@ -151,8 +151,8 @@ def test_reconciliation_records_evidence_and_is_idempotent(invoice_client, sessi
     result = first.json()
     assert result["state"] == "completed" and result["revision"] == 1
     assert result["difference"] == {"net": "500.00", "vat": "115.00", "gross": "615.00"}
-    assert result["difference_percent"] == "5.0"
-    assert [line["difference_net"] for line in result["lines"]] == ["500.00", "0.00", "0.00"]
+    assert result["differencePercent"] == "5.0"
+    assert [line["differenceNet"] for line in result["lines"]] == ["500.00", "0.00", "0.00"]
     assert invoice_client.post(url, json={}).json() == result
     assert session.execute(text("SELECT count(*) FROM invoice_reconciliations")).scalar_one() == 1
     session.execute(
@@ -165,7 +165,7 @@ def test_reconciliation_records_evidence_and_is_idempotent(invoice_client, sessi
     session.expire_all()
     changed = invoice_client.post(url, json={}).json()
     assert changed["revision"] == 2
-    assert changed["lines"][0]["po_quantity"] == 9
+    assert changed["lines"][0]["poQuantity"] == 9
     assert (
         invoice_client.post("/api/v1/invoices/INV-2026-1041/reconciliation", json={}).status_code
         == 409

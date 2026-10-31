@@ -23,6 +23,7 @@ describe('Sidebar', () => {
       'Invoice workspace',
     );
   });
+
   it('should show the InvoiceAI brand and navigation links', async () => {
     // Arrange
     await TestBed.configureTestingModule({

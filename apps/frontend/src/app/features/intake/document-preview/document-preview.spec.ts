@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { DocumentPreview } from './document-preview';
+
 describe('DocumentPreview', () => {
   it('should display the uploaded filename', async () => {
     // Arrange
@@ -8,8 +9,10 @@ describe('DocumentPreview', () => {
     const fixture = TestBed.createComponent(DocumentPreview);
     fixture.componentRef.setInput('file', new Blob(['pdf']));
     fixture.componentRef.setInput('name', 'new.pdf');
+
     // Act
     await fixture.whenStable();
+
     // Assert
     expect(fixture.nativeElement.textContent).toContain('new.pdf');
     expect(fixture.nativeElement.querySelector('iframe').getAttribute('src')).toBe('blob:invoice');
