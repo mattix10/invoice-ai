@@ -39,6 +39,22 @@ def test_demo_parser_does_not_propose_invalid_dates_currency_or_vat():
     assert proposals == []
 
 
+@pytest.mark.parametrize(("count", "offered"), [(1000, True), (1001, False)])
+def test_demo_parser_obeys_draft_item_limit(count, offered):
+    page = SimpleNamespace(
+        text="\n".join(f"Item: {i} | Paper | 1 | 12.00" for i in range(1, count + 1)),
+        page_number=1,
+        extraction_method="pdf_text",
+    )
+
+    proposals = parse_suggestions([page], 1)
+
+    items = [proposal for proposal in proposals if proposal.field == "items"]
+    assert bool(items) is offered
+    if offered:
+        assert len(items[0].value) == count
+
+
 def test_suggestion_schema_rejects_unsupported_fields():
     proposal = {
         "field": "paymentApproved",

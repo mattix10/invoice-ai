@@ -13,6 +13,7 @@ from invoiceflow.core.api_schema import ApiSchema
 
 MoneyInput = Annotated[str, StringConstraints(pattern=r"^\d{1,16}\.\d{2}$")]
 VatInput = Annotated[str, StringConstraints(pattern=r"^(0(?:\.\d{1,4})?|1(?:\.0{1,4})?)$")]
+MAX_DRAFT_ITEMS = 1000
 
 
 class NullableDraftModel(ApiSchema):
@@ -47,7 +48,7 @@ class Draft(NullableDraftModel):
     due: date | None
     currency: Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")] | None
     vat_rate: VatInput | None
-    items: list[DraftItem] = Field(max_length=1000)
+    items: list[DraftItem] = Field(max_length=MAX_DRAFT_ITEMS)
     declared_totals: DeclaredTotals | None = None
 
     @model_validator(mode="after")

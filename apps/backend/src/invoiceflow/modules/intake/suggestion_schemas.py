@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import ConfigDict, Field, model_validator
 
 from invoiceflow.core.api_schema import ApiSchema
-from invoiceflow.modules.intake.schemas import DeclaredTotals, DraftItem
+from invoiceflow.modules.intake.schemas import MAX_DRAFT_ITEMS, DeclaredTotals, DraftItem
 
 
 class SuggestionSource(ApiSchema):
@@ -46,7 +46,7 @@ class FieldProposal(ApiSchema):
         if value is None:
             return self
         if self.field == "items":
-            if not isinstance(value, list) or not value:
+            if not isinstance(value, list) or not value or len(value) > MAX_DRAFT_ITEMS:
                 raise ValueError("Invalid items")
             if len({item.position for item in value}) != len(value):
                 raise ValueError("Duplicate item positions")
