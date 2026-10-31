@@ -41,4 +41,32 @@ describe('InvoiceComparison', () => {
     );
     expect(section?.querySelector('p')?.textContent).toContain('PLN750.00 net');
   });
+
+  it('shows invoice and PO quantities separately when they differ', async () => {
+    const fixture = TestBed.createComponent(InvoiceComparison);
+    fixture.componentRef.setInput('data', {
+      ...INVOICE_WORKSPACE_DATA,
+      items: [{ ...INVOICE_WORKSPACE_DATA.items[0], quantity: 10, poQuantity: 5, poNet: 4100 }],
+    });
+
+    await fixture.whenStable();
+
+    const table = (fixture.nativeElement as HTMLElement).querySelector(
+      '[aria-label="Line items and purchase order comparison"]',
+    ) as HTMLTableElement;
+    expect(
+      Array.from(table.querySelectorAll('thead th'), (cell) => cell.textContent?.trim()),
+    ).toContain('PO qty');
+    expect(
+      Array.from(table.querySelectorAll('tbody td'), (cell) => cell.textContent?.trim()),
+    ).toEqual([
+      '27-inch monitor',
+      '10',
+      '5',
+      'PLN820.00',
+      'PLN770.00',
+      'PLN8,200.00',
+      'PLN4,100.00',
+    ]);
+  });
 });

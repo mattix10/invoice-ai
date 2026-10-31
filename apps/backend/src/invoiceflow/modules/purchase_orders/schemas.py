@@ -12,9 +12,9 @@ Rate = Annotated[str, StringConstraints(pattern=r"^(?:0(?:\.\d{1,4})?|1(?:\.0{1,
 
 class POItem(ApiSchema):
     model_config = ConfigDict(extra="forbid")
-    position: int = Field(gt=0, strict=True)
+    position: int = Field(gt=0, le=2147483647, strict=True)
     description: Text255
-    quantity: int = Field(gt=0, strict=True)
+    quantity: int = Field(gt=0, le=2147483647, strict=True)
     unit_net: Amount
 
 

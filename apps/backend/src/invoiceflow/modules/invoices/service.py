@@ -160,6 +160,7 @@ class InvoiceService:
                     position=item.position,
                     name=item.name,
                     quantity=item.quantity,
+                    po_quantity=other.quantity,
                     invoice_unit_net=money(item.unit_net),
                     po_unit_net=money(other.unit_net),
                     invoice_net=money(line_net(item.quantity, item.unit_net)),

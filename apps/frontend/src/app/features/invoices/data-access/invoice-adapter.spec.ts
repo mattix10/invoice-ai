@@ -93,4 +93,48 @@ describe('invoice adapter', () => {
     expect(result.differenceGross).toBe(615);
     expect(result.differencePercent).toBe('5.0');
   });
+
+  it('preserves both quantities from a linked comparison', () => {
+    const totals = { net: '8200.00', vat: '1886.00', gross: '10086.00' };
+    const view = detailView(
+      {
+        id: 'INV-2026-1042',
+        vendor: 'Vendor',
+        due: '2026-11-21',
+        currency: 'PLN',
+        status: 'needs_review',
+        grossAmount: totals.gross,
+        issued: null,
+        purchaseOrder: 'PO-1',
+        vatRate: '0.23',
+        items: [],
+        totals,
+      },
+      {
+        invoiceId: 'INV-2026-1042',
+        purchaseOrder: 'PO-1',
+        deliveryReceiptId: null,
+        currency: 'PLN',
+        vatRate: '0.23',
+        items: [
+          {
+            position: 1,
+            name: 'Monitor',
+            quantity: 10,
+            poQuantity: 5,
+            invoiceUnitNet: '820.00',
+            poUnitNet: '820.00',
+            invoiceNet: '8200.00',
+            poNet: '4100.00',
+          },
+        ],
+        invoiceTotals: totals,
+        poTotals: { net: '4100.00', vat: '943.00', gross: '5043.00' },
+        difference: { net: '4100.00', vat: '943.00', gross: '5043.00' },
+        differencePercent: '100.0',
+      },
+    );
+
+    expect(view.items[0]).toEqual(expect.objectContaining({ quantity: 10, poQuantity: 5 }));
+  });
 });

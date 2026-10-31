@@ -138,4 +138,57 @@ describe('PurchaseOrderLinkComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('PO-UPDATED');
     http.verify();
   });
+
+  it('closes the editor when the selected PO changes', async () => {
+    TestBed.configureTestingModule({
+      imports: [PurchaseOrderLinkComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    const fixture = TestBed.createComponent(PurchaseOrderLinkComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('invoice', invoice);
+    fixture.detectChanges();
+    http
+      .expectOne('/api/v1/purchase-orders')
+      .flush([order, { ...order, id: 'po-2', externalReference: 'PO-2' }]);
+    http
+      .expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    const selector = fixture.nativeElement.querySelector('#po-select') as HTMLSelectElement;
+    selector.value = 'po-1';
+    selector.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    const edit = [...fixture.nativeElement.querySelectorAll('button')].find(
+      (button) => (button as HTMLElement).textContent?.trim() === 'Edit PO',
+    ) as HTMLButtonElement;
+    edit.click();
+    await fixture.whenStable();
+    expect(
+      (fixture.nativeElement.querySelector('input[name="reference"]') as HTMLInputElement).value,
+    ).toBe('PO-1');
+
+    selector.value = 'po-2';
+    selector.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+
+    (
+      [...fixture.nativeElement.querySelectorAll('button')].find(
+        (button) => (button as HTMLElement).textContent?.trim() === 'Edit PO',
+      ) as HTMLButtonElement
+    ).click();
+    await fixture.whenStable();
+    expect(
+      (fixture.nativeElement.querySelector('input[name="reference"]') as HTMLInputElement).value,
+    ).toBe('PO-2');
+
+    selector.value = '';
+    selector.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    http.expectNone('/api/v1/purchase-orders/po-1');
+    http.expectNone('/api/v1/purchase-orders/po-2');
+    http.verify();
+  });
 });

@@ -337,6 +337,53 @@ def test_explicit_link_pins_po_version_and_reconciliation_history(
     session.rollback()
 
 
+def test_linked_comparison_exposes_invoice_and_po_quantities(invoice_client, monkeypatch):
+    monkeypatch.setenv("INVOICEFLOW_ENV", "local")
+    created = invoice_client.post(
+        "/api/v1/purchase-orders",
+        json={
+            "externalReference": "PO-QUANTITY-DIFFERENCE",
+            "supplier": "Fictional supplier",
+            "currency": "PLN",
+            "vatRate": "0.23",
+            "items": [
+                {"position": 10, "description": "Monitor", "quantity": 5, "unitNet": "820.00"},
+                {"position": 20, "description": "Keyboard", "quantity": 10, "unitNet": "110.00"},
+                {"position": 30, "description": "Dock", "quantity": 5, "unitNet": "240.00"},
+            ],
+        },
+    ).json()
+    linked = invoice_client.put(
+        "/api/v1/invoices/INV-2026-1042/purchase-order-link",
+        json={
+            "poId": created["id"],
+            "poVersion": created["version"],
+            "expectedLinkRevision": 0,
+            "mappings": [
+                {"invoiceLinePosition": 1, "poLinePosition": 10},
+                {"invoiceLinePosition": 2, "poLinePosition": 20},
+                {"invoiceLinePosition": 3, "poLinePosition": 30},
+            ],
+        },
+    )
+    assert linked.status_code == 200
+
+    comparison = invoice_client.get("/api/v1/invoices/INV-2026-1042/comparison")
+
+    assert comparison.status_code == 200
+    assert comparison.json()["items"][0] == {
+        "position": 1,
+        "name": "27-inch monitor",
+        "quantity": 10,
+        "poQuantity": 5,
+        "invoiceUnitNet": "820.00",
+        "poUnitNet": "820.00",
+        "invoiceNet": "8200.00",
+        "poNet": "4100.00",
+    }
+    assert comparison.json()["difference"]["net"] == "4100.00"
+
+
 def test_link_rejects_missing_mapping_without_partial_write(invoice_client, session, monkeypatch):
     monkeypatch.setenv("INVOICEFLOW_ENV", "local")
     created = invoice_client.post(

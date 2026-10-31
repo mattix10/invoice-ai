@@ -70,6 +70,7 @@ export function detailView(
     items: comparison.items.map((item) => ({
       name: item.name,
       quantity: item.quantity,
+      poQuantity: item.poQuantity,
       invoiceUnitNet: amount(item.invoiceUnitNet),
       poUnitNet: amount(item.poUnitNet),
       invoiceNet: amount(item.invoiceNet),
@@ -102,6 +103,7 @@ export interface InvoiceWorkspaceView {
   items: {
     name: string;
     quantity: number;
+    poQuantity: number;
     invoiceUnitNet: number;
     poUnitNet: number;
     invoiceNet: number;

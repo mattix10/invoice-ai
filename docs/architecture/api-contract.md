@@ -40,7 +40,7 @@ No request body. `page`: integer >=1, default 1. `page_size`: integer 1â€“1
 - `InvoiceItem`: `position: integer >=1`, `name: string`, `quantity: integer >0`, `unit_net: Money`, `net: Money`.
 - `InvoiceTotals`: `net: Money`, `vat: Money`, `gross: Money`. `gross = net + vat`; enforce consistency with item calculations for complete invoices.
 - `InvoiceComparison`: `invoice_id: string`, `purchase_order: string`, `delivery_receipt_id: string | null`, `currency: string`, `vat_rate: decimal-string`, `items: ComparisonItem[]`, `invoice_totals: InvoiceTotals`, `po_totals: InvoiceTotals`, `difference: InvoiceTotals`, `difference_percent: decimal-string | null` (null if PO gross is zero).
-- `ComparisonItem`: `position`, `name`, `quantity`, `invoice_unit_net`, `po_unit_net`, `invoice_net`, `po_net`; money fields are `Money`, quantity is a positive integer. Quantities match in the current demo; do not invent general receipt-matching behavior.
+- `ComparisonItem`: `position`, `name`, `quantity` (invoice quantity), `po_quantity`, `invoice_unit_net`, `po_unit_net`, `invoice_net`, `po_net`; money fields are `Money`, quantities are positive integers. Quantities match in the canonical demo but may differ for a newly linked PO; do not invent receipt-matching behavior.
 
 ### Errors
 

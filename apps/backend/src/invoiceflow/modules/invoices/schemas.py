@@ -86,6 +86,7 @@ class ComparisonItem(ApiSchema):
     position: int = Field(ge=1)
     name: str
     quantity: int = Field(gt=0)
+    po_quantity: int = Field(gt=0)
     invoice_unit_net: Money
     po_unit_net: Money
     invoice_net: Money

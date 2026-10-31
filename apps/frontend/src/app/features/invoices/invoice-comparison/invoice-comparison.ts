@@ -16,7 +16,8 @@ export class InvoiceComparison {
   readonly data = input.required<InvoiceWorkspaceView>();
   protected readonly itemHeaders = [
     'Item',
-    'Qty',
+    'Invoice qty',
+    'PO qty',
     'Invoice unit',
     'PO unit',
     'Invoice net',
@@ -35,6 +36,7 @@ export class InvoiceComparison {
     this.data().items.map((item) => [
       item.name,
       String(item.quantity),
+      String(item.poQuantity),
       this.money(item.invoiceUnitNet),
       this.money(item.poUnitNet),
       this.money(item.invoiceNet),

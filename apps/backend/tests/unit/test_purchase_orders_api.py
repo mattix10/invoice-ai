@@ -8,6 +8,16 @@ import pytest
         {"items": [{"position": 1, "description": "Item", "quantity": 0, "unitNet": "1.00"}]},
         {"items": [{"position": 1, "description": "Item", "quantity": 1, "unitNet": "-1.00"}]},
         {"items": [{"position": 0, "description": "Item", "quantity": 1, "unitNet": "1.00"}]},
+        {
+            "items": [
+                {"position": 2147483648, "description": "Item", "quantity": 1, "unitNet": "1.00"}
+            ]
+        },
+        {
+            "items": [
+                {"position": 1, "description": "Item", "quantity": 2147483648, "unitNet": "0.00"}
+            ]
+        },
     ],
 )
 def test_purchase_order_rejects_invalid_items(client, changes):

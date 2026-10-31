@@ -407,6 +407,8 @@ export interface components {
       name: string;
       /** Quantity */
       quantity: number;
+      /** Poquantity */
+      poQuantity: number;
       /** Invoiceunitnet */
       invoiceUnitNet: string;
       /** Pounitnet */
@@ -702,6 +704,12 @@ export interface components {
     };
     /** LinkRead */
     LinkRead: {
+      /**
+       * Status
+       * @default linked
+       * @constant
+       */
+      status: 'linked';
       /** Poid */
       poId: string;
       /** Poversion */

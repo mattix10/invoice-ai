@@ -93,6 +93,7 @@ export class PurchaseOrderLinkComponent implements OnInit {
 
   protected selectOrder(id: string): void {
     this.selected.set(this.orders().find((order) => order.id === id) ?? null);
+    this.editor.set(null);
     this.mappings = {};
     this.result.set(null);
   }
