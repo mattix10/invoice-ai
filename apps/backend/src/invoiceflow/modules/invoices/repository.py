@@ -62,6 +62,14 @@ class InvoiceRepository:
         link = repository.link(invoice.id)
         return repository.snapshot(link.snapshot_id) if link else invoice.po_snapshot
 
+    def historical_snapshot(self, invoice, snapshot_id):
+        if snapshot_id is None:
+            return invoice.po_snapshot
+        from invoiceflow.modules.purchase_orders.repository import PurchaseOrderRepository
+
+        snapshot = PurchaseOrderRepository(self.session).snapshot(snapshot_id)
+        return snapshot if snapshot and snapshot.invoice_id == invoice.id else None
+
     def reconciliation(self, invoice_id: str, input_hash: str) -> Reconciliation | None:
         return self.session.scalar(
             select(Reconciliation).where(
