@@ -18,6 +18,12 @@ For UI work, read ONLY: `docs/design/TOKENS.md`, `docs/design/UI-CONTRACT.md`, `
 - Validate relevant changes via available build / unit tests / lint and report factual results.
 - Stop after the single assigned task. Do not move to another task automatically.
 
+## Code Review Rules
+
+- Preserve correctness, security, financial integrity and compatibility. Flag only concrete bugs or important regressions introduced by the diff; explain a reproducible trigger and impact, and propose the smallest safe correction with a relevant regression test when warranted.
+- Preserve established API contracts and documented architecture/ADR decisions. Flag changes that break callers, data invariants or ownership boundaries; follow the existing contract and responsible layer, or require an explicit compatible migration rather than an incidental redesign.
+- Preserve high-signal review: report only high-confidence, actionable findings supported by changed code and relevant callers. Omit formatting, naming preferences, deterministic lint output and speculative or unrelated issues; prefer no findings when evidence is insufficient.
+
 ## Handoff for each task
 
 Briefly return: changed files, test commands/results, architecture deviations (if any), remaining limitations, next suggested task. Do not dump full source code or long reasoning into chat.

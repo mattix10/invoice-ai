@@ -27,6 +27,8 @@ Open [http://localhost:4200](http://localhost:4200). The development server relo
 
 ## Verify
 
+For native Codex PR review setup and repository review rules, see [Code review](docs/engineering/CODE_REVIEW.md). Existing CI remains the deterministic quality gate.
+
 From `apps/frontend`, run:
 
 ```bash
