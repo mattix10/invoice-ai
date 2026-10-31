@@ -1,15 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, forkJoin, map, of, Subject, switchMap, startWith, throwError } from 'rxjs';
-import { InvoiceApi, InvoiceDetailDto } from '../data-access/invoice-api';
-import {
-  detailView,
-  formatInvoiceAmount,
-  statusLabels,
-  InvoiceWorkspaceView,
-} from '../data-access/invoice-adapter';
+import { catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { InvoiceApi } from '../data-access/invoice-api';
+import { detailView, formatInvoiceAmount, statusLabels } from '../data-access/invoice-adapter';
 import { InvoiceDocument } from '../invoice-document/invoice-document';
 import { InvoiceFields } from '../invoice-fields/invoice-fields';
 import { InvoiceComparison } from '../invoice-comparison/invoice-comparison';
@@ -33,71 +28,44 @@ import { PurchaseOrderLinkComponent } from '../purchase-order-link/purchase-orde
 export class InvoiceWorkspacePage {
   private readonly api = inject(InvoiceApi);
   private readonly route = inject(ActivatedRoute);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly retry = new Subject<void>();
-  protected readonly state = signal<'loading' | 'ready' | 'not-found' | 'error'>('loading');
-  protected readonly invoice = signal<InvoiceDetailDto | null>(null);
-  protected readonly view = signal<InvoiceWorkspaceView | null>(null);
-  protected readonly gross = signal('');
+  private readonly routeParams = toSignal(this.route.paramMap);
+  protected readonly workspace = rxResource({
+    params: () => this.routeParams()?.get('id') ?? '',
+    stream: ({ params: invoiceId }) =>
+      forkJoin({
+        invoice: this.api.detail(invoiceId),
+        comparison: this.api
+          .comparison(invoiceId)
+          .pipe(
+            catchError((error: unknown) =>
+              error instanceof HttpErrorResponse && error.status === 404
+                ? of(null)
+                : throwError(() => error),
+            ),
+          ),
+      }).pipe(
+        map(({ invoice, comparison }) => ({
+          invoice,
+          view: comparison ? detailView(invoice, comparison) : null,
+          gross: formatInvoiceAmount(invoice.grossAmount, invoice.currency),
+        })),
+      ),
+  });
+
+  protected readonly invoiceNotFound = computed(() => {
+    const error = this.workspace.error();
+
+    return error instanceof HttpErrorResponse && error.status === 404;
+  });
+  private readonly workspaceData = computed(() =>
+    this.workspace.hasValue() ? this.workspace.value() : null,
+  );
+  protected readonly invoice = computed(() => this.workspaceData()?.invoice ?? null);
+  protected readonly view = computed(() => this.workspaceData()?.view ?? null);
+  protected readonly gross = computed(() => this.workspaceData()?.gross ?? '');
   protected readonly statusLabels = statusLabels;
 
-  constructor() {
-    this.route.paramMap
-      .pipe(
-        switchMap((params) =>
-          this.retry.pipe(
-            startWith(undefined),
-            switchMap(() => {
-              this.state.set('loading');
-              this.invoice.set(null);
-              this.view.set(null);
-              const id = params.get('id') ?? '';
-
-              return forkJoin({
-                invoice: this.api.detail(id),
-                comparison: this.api
-                  .comparison(id)
-                  .pipe(
-                    catchError((error) =>
-                      error instanceof HttpErrorResponse && error.status === 404
-                        ? of(null)
-                        : throwError(() => error),
-                    ),
-                  ),
-              }).pipe(
-                map((result) => ({ result, error: null })),
-                catchError((error) => of({ result: null, error })),
-              );
-            }),
-          ),
-        ),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(({ result, error }) => {
-        if (error) {
-          this.state.set(
-            error instanceof HttpErrorResponse && error.status === 404 ? 'not-found' : 'error',
-          );
-
-          return;
-        }
-        if (!result) {
-          this.state.set('error');
-
-          return;
-        }
-        try {
-          this.gross.set(formatInvoiceAmount(result.invoice.grossAmount, result.invoice.currency));
-          this.invoice.set(result.invoice);
-          this.view.set(result.comparison ? detailView(result.invoice, result.comparison) : null);
-          this.state.set('ready');
-        } catch {
-          this.state.set('error');
-        }
-      });
-  }
-
   protected load(): void {
-    this.retry.next();
+    this.workspace.reload();
   }
 }
