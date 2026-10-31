@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
     Date,
     ForeignKey,
@@ -107,3 +108,20 @@ class InvoicePoItem(Base):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_net: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
     snapshot: Mapped[InvoicePoSnapshot] = relationship(back_populates="items")
+
+
+class Reconciliation(Base):
+    __tablename__ = "invoice_reconciliations"
+    __table_args__ = (
+        UniqueConstraint("invoice_id", "input_hash"),
+        CheckConstraint("revision > 0", name="revision_positive"),
+        CheckConstraint("state IN ('processing', 'completed')", name="state"),
+    )
+
+    invoice_id: Mapped[str] = mapped_column(
+        ForeignKey("invoices.id", ondelete="CASCADE"), primary_key=True
+    )
+    revision: Mapped[int] = mapped_column(Integer, primary_key=True)
+    input_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False)

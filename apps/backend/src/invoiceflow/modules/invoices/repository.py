@@ -1,7 +1,7 @@
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from invoiceflow.modules.invoices.models import Invoice, InvoicePoSnapshot
+from invoiceflow.modules.invoices.models import Invoice, InvoicePoSnapshot, Reconciliation
 from invoiceflow.modules.invoices.schemas import InvoiceQuery
 
 
@@ -49,3 +49,34 @@ class InvoiceRepository:
                 selectinload(Invoice.po_snapshot).selectinload(InvoicePoSnapshot.items),
             )
         )
+
+    def lock_invoice(self, invoice_id: str) -> Invoice | None:
+        return self.session.scalar(
+            select(Invoice).where(Invoice.id == invoice_id).with_for_update()
+        )
+
+    def reconciliation(self, invoice_id: str, input_hash: str) -> Reconciliation | None:
+        return self.session.scalar(
+            select(Reconciliation).where(
+                Reconciliation.invoice_id == invoice_id, Reconciliation.input_hash == input_hash
+            )
+        )
+
+    def next_revision(self, invoice_id: str) -> int:
+        return (
+            self.session.scalar(
+                select(func.max(Reconciliation.revision)).where(
+                    Reconciliation.invoice_id == invoice_id
+                )
+            )
+            or 0
+        ) + 1
+
+    def save_reconciliation(self, result: Reconciliation) -> None:
+        self.session.add(result)
+
+    def commit(self) -> None:
+        self.session.commit()
+
+    def rollback(self) -> None:
+        self.session.rollback()

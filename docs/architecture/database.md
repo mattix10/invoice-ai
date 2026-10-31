@@ -31,3 +31,7 @@ uv run python -m invoiceflow.modules.invoices.seed
 ```
 
 There is no startup or production seeding. See [local development](local-development.md) for safe database lifecycle commands.
+
+## Reconciliation results
+
+`invoice_reconciliations` stores the algorithm version, canonical input snapshot, SHA-256 input hash and calculated evidence in JSON, with an invoice foreign key, positive revision and a unique invoice/hash pair. Revisions are allocated while holding the invoice row lock. The processing-to-completed transition is atomic; failures leave no result. Future writers must acquire that same lock before changing invoice or PO inputs. Historical results remain available after inputs change.

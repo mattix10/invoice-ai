@@ -5,6 +5,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from invoiceflow.core.database import DatabaseSession
+from invoiceflow.modules.invoices.reconciliation import (
+    ReconciliationConflict,
+    ReconciliationService,
+)
 from invoiceflow.modules.invoices.repository import InvoiceRepository
 from invoiceflow.modules.invoices.schemas import (
     ApiError,
@@ -12,6 +16,8 @@ from invoiceflow.modules.invoices.schemas import (
     InvoiceDetail,
     InvoicePage,
     InvoiceQuery,
+    ReconciliationRequest,
+    ReconciliationResult,
 )
 from invoiceflow.modules.invoices.service import ComparisonNotFound, InvoiceNotFound, InvoiceService
 
@@ -48,7 +54,30 @@ def get_comparison(invoice_id: Id, service: Service) -> InvoiceComparison:
     return service.get_comparison(invoice_id)
 
 
+@router.post(
+    "/{invoice_id}/reconciliation",
+    operation_id="reconcileInvoice",
+    responses={**errors, 409: {"model": ApiError, "description": "Incomplete or invalid inputs"}},
+)
+def reconcile_invoice(
+    invoice_id: Id, body: ReconciliationRequest, session: DatabaseSession
+) -> ReconciliationResult:
+    return ReconciliationService(InvoiceRepository(session)).reconcile(invoice_id)
+
+
 def register_exception_handlers(app):
+    @app.exception_handler(ReconciliationConflict)
+    async def reconciliation_conflict(request, exc):
+        return JSONResponse(
+            status_code=409,
+            content={
+                "error": {
+                    "code": "reconciliation_conflict",
+                    "message": "Invoice cannot be reconciled",
+                }
+            },
+        )
+
     @app.exception_handler(InvoiceNotFound)
     async def invoice_not_found(request, exc):
         return JSONResponse(
