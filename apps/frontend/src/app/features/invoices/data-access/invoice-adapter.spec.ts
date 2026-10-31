@@ -18,6 +18,7 @@ describe('invoice adapter', () => {
     expect(() => minorUnits('90071992547409.92')).toThrow();
     expect(() => minorUnits('1.001')).toThrow();
   });
+
   it('should map a large invoice amount without losing precision', () => {
     // Arrange
     const invoice = {
@@ -55,6 +56,7 @@ describe('invoice adapter', () => {
       amount: 'PLN12,915.00',
     });
   });
+
   it('maps canonical totals and the fractional VAT rate', () => {
     const summary = {
       id: 'INV-2026-1042',

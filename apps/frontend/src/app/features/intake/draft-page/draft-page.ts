@@ -39,23 +39,31 @@ export class DraftPage {
     ),
     { initialValue: { documentId: this.route.snapshot.paramMap.get('documentId') ?? '' } },
   );
+
   protected readonly documentId = computed(() => this.routeVisit().documentId);
   protected readonly document = this.api.documentResource(this.documentId);
   protected readonly file = this.api.documentFileResource(this.documentId);
   protected readonly busy = linkedSignal(() => {
     this.routeVisit();
+
     return false;
   });
+
   protected readonly message = linkedSignal(() => {
     this.routeVisit();
+
     return '';
   });
+
   protected readonly conflict = linkedSignal(() => {
     this.routeVisit();
+
     return false;
   });
+
   protected readonly pendingConfirmation = linkedSignal(() => {
     this.routeVisit();
+
     return null as PendingConfirmation | null;
   });
 
@@ -148,6 +156,7 @@ export class DraftPage {
       this.message.set(
         'The document changed elsewhere. Reload the latest version before trying again. Your unsaved changes remain visible until you reload.',
       );
+
       return;
     }
     const detail = error instanceof HttpErrorResponse ? error.error?.error?.message : null;

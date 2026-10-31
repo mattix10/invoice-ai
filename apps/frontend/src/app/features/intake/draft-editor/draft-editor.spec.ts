@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { DraftEditor } from './draft-editor';
+
 describe('DraftEditor', () => {
   it('should show saved draft values', async () => {
     // Arrange
@@ -15,12 +16,15 @@ describe('DraftEditor', () => {
       declared_totals: null,
     });
     fixture.componentRef.setInput('validation', { complete: false, errors: ['due'] });
+
     // Act
     await fixture.whenStable();
+
     // Assert
     expect(fixture.nativeElement.querySelector('[name="vendor"]').value).toBe('Example');
     expect(fixture.nativeElement.textContent).toContain('due');
   });
+
   it('should disable the entire editor while a request is pending', async () => {
     // Arrange
     const fixture = TestBed.createComponent(DraftEditor);
@@ -36,8 +40,10 @@ describe('DraftEditor', () => {
     });
     fixture.componentRef.setInput('validation', { complete: false, errors: [] });
     fixture.componentRef.setInput('busy', true);
+
     // Act
     await fixture.whenStable();
+
     // Assert
     const editor = fixture.nativeElement.querySelector('form > fieldset') as HTMLFieldSetElement;
     expect(editor.disabled).toBe(true);

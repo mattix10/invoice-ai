@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Draft, Validation } from '../data-access/intake-api';
+
 @Component({
   selector: 'app-draft-editor',
   imports: [FormsModule],
@@ -15,16 +16,19 @@ export class DraftEditor {
   readonly save = output<Draft>();
   readonly confirm = output<Draft>();
   protected readonly form = linkedSignal(() => structuredClone(this.draft()));
-  protected addTotals() {
+
+  protected addTotals(): void {
     this.form.update((draft) => ({
       ...draft,
       declared_totals: { net: null, vat: null, gross: null },
     }));
   }
-  protected removeTotals() {
+
+  protected removeTotals(): void {
     this.form.update((draft) => ({ ...draft, declared_totals: null }));
   }
-  protected addItem() {
+
+  protected addItem(): void {
     this.form.update((draft) => ({
       ...draft,
       items: [
@@ -33,7 +37,8 @@ export class DraftEditor {
       ],
     }));
   }
-  protected removeItem(index: number) {
+
+  protected removeItem(index: number): void {
     this.form.update((draft) => ({
       ...draft,
       items: draft.items

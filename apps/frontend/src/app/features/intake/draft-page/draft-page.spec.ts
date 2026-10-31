@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { DraftPage } from './draft-page';
+
 describe('DraftPage', () => {
   it('should ignore a save from an earlier visit after returning to the same document', async () => {
     // Arrange
@@ -69,6 +70,7 @@ describe('DraftPage', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Old response');
     http.verify();
   });
+
   it('should not confirm another document when the route changes during saving', async () => {
     // Arrange
     const firstDocument = convertToParamMap({ documentId: 'doc-1' });
@@ -137,6 +139,7 @@ describe('DraftPage', () => {
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     http.verify();
   });
+
   it('should retry confirmation without saving again when the response is lost', async () => {
     // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
@@ -202,6 +205,7 @@ describe('DraftPage', () => {
     expect(navigate).toHaveBeenCalledWith(['/invoices', 'INV-1']);
     http.verify();
   });
+
   it('should load the saved draft and report a PDF failure separately', async () => {
     // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
@@ -219,6 +223,7 @@ describe('DraftPage', () => {
     const fixture = TestBed.createComponent(DraftPage);
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
     // Act
     http.expectOne('/api/v1/intake/documents/doc-1').flush({
       document_id: 'doc-1',
@@ -243,11 +248,13 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/file')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+
     // Assert
     expect(fixture.nativeElement.querySelector('[name="vendor"]').value).toBe('Example');
     expect(fixture.nativeElement.textContent).toContain('Could not load the PDF');
     http.verify();
   });
+
   it('should save edited values with the current revision', async () => {
     // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
@@ -291,9 +298,11 @@ describe('DraftPage', () => {
     vendor.value = 'Updated';
     vendor.dispatchEvent(new Event('input'));
     await fixture.whenStable();
+
     // Act
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     const request = http.expectOne('/api/v1/intake/documents/doc-1/draft');
+
     // Assert
     expect(request.request.method).toBe('PUT');
     expect(request.request.body.expected_revision).toBe(2);
@@ -307,6 +316,7 @@ describe('DraftPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Draft saved');
     http.verify();
   });
+
   it('should preserve local changes when another user saved a newer revision', async () => {
     // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
@@ -346,6 +356,7 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/file')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+
     // Act
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     http
@@ -355,11 +366,13 @@ describe('DraftPage', () => {
         { status: 409, statusText: 'Conflict' },
       );
     await fixture.whenStable();
+
     // Assert
     expect(fixture.nativeElement.textContent).toContain('Your unsaved changes remain visible');
     expect(fixture.nativeElement.textContent).toContain('Discard local changes');
     http.verify();
   });
+
   it('should confirm only once and navigate to the new invoice', async () => {
     // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
@@ -400,6 +413,7 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/file')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+
     // Act
     const button = [...fixture.nativeElement.querySelectorAll('button')].find((element: Element) =>
       element.textContent.includes('Confirm invoice'),
@@ -410,12 +424,14 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/draft')
       .flush({ draft, revision: 3, validation: { complete: true, errors: [] } });
     const confirm = http.expectOne('/api/v1/intake/documents/doc-1/confirm');
+
     // Assert
     expect(confirm.request.body).toEqual({ expected_revision: 3 });
     confirm.flush({ invoice_id: 'INV-2026-9999', status: 'confirmed' });
     expect(navigate).toHaveBeenCalledWith(['/invoices', 'INV-2026-9999']);
     http.verify();
   });
+
   it('should identify a confirmation failure after a successful save', async () => {
     // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
@@ -455,6 +471,7 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/file')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+
     // Act
     const button = [...fixture.nativeElement.querySelectorAll('button')].find((element: Element) =>
       element.textContent?.includes('Confirm invoice'),
@@ -470,6 +487,7 @@ describe('DraftPage', () => {
         { status: 422, statusText: 'Unprocessable' },
       );
     await fixture.whenStable();
+
     // Assert
     expect(fixture.nativeElement.textContent).toContain(
       'Could not confirm the invoice. Draft is incomplete',

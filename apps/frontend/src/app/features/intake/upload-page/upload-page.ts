@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { IntakeApi } from '../data-access/intake-api';
 import { UploadForm } from '../upload-form/upload-form';
+
 @Component({
   selector: 'app-upload-page',
   imports: [UploadForm],
@@ -18,7 +19,8 @@ export class UploadPage {
   protected readonly busy = signal(false);
   protected readonly error = signal('');
   protected readonly duplicate = signal('');
-  protected upload(file: File, allowDuplicate = false) {
+
+  protected upload(file: File, allowDuplicate = false): void {
     if (this.busy()) return;
     this.busy.set(true);
     this.error.set('');

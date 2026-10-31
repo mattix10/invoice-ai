@@ -11,7 +11,10 @@ describe('OverviewPage', () => {
 
   const emptyPage = { items: [], page: 1, page_size: 20, total: 0 };
   const emptyReview = { items: [], page: 1, page_size: 1, total: 0 };
-  const reviewRequest = (request: { url: string; params: { get(key: string): string | null } }) =>
+  const reviewRequest = (request: {
+    url: string;
+    params: { get(key: string): string | null };
+  }): boolean =>
     request.url === '/api/v1/invoices' && request.params.get('status') === 'needs_review';
 
   beforeEach(() => {

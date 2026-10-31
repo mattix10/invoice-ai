@@ -583,6 +583,38 @@ export interface components {
   headers: never;
   pathItems: never;
 }
+export type ApiError = components['schemas']['ApiError'];
+export type BodyUploadDocumentApiV1IntakeDocumentsPost =
+  components['schemas']['Body_upload_document_api_v1_intake_documents_post'];
+export type ComparisonItem = components['schemas']['ComparisonItem'];
+export type ConfirmRequest = components['schemas']['ConfirmRequest'];
+export type ConfirmResponse = components['schemas']['ConfirmResponse'];
+export type DeclaredTotals = components['schemas']['DeclaredTotals'];
+export type DocumentResponse = components['schemas']['DocumentResponse'];
+export type Draft = components['schemas']['Draft'];
+export type DraftItem = components['schemas']['DraftItem'];
+export type DraftRequest = components['schemas']['DraftRequest'];
+export type DraftResponse = components['schemas']['DraftResponse'];
+export type ErrorDetail = components['schemas']['ErrorDetail'];
+export type HttpValidationError = components['schemas']['HTTPValidationError'];
+export type HealthResponse = components['schemas']['HealthResponse'];
+export type InvoiceComparison = components['schemas']['InvoiceComparison'];
+export type InvoiceDetail = components['schemas']['InvoiceDetail'];
+export type InvoiceItem = components['schemas']['InvoiceItem'];
+export type InvoicePage = components['schemas']['InvoicePage'];
+export type InvoiceStatus = components['schemas']['InvoiceStatus'];
+export type InvoiceSummary = components['schemas']['InvoiceSummary'];
+export type InvoiceTotals = components['schemas']['InvoiceTotals'];
+export type ReconciliationInputLine = components['schemas']['ReconciliationInputLine'];
+export type ReconciliationInputs = components['schemas']['ReconciliationInputs'];
+export type ReconciliationLine = components['schemas']['ReconciliationLine'];
+export type ReconciliationRequest = components['schemas']['ReconciliationRequest'];
+export type ReconciliationResult = components['schemas']['ReconciliationResult'];
+export type RequestValidationDetail = components['schemas']['RequestValidationDetail'];
+export type RequestValidationError = components['schemas']['RequestValidationError'];
+export type UploadResponse = components['schemas']['UploadResponse'];
+export type Validation = components['schemas']['Validation'];
+export type ValidationError = components['schemas']['ValidationError'];
 export type $defs = Record<string, never>;
 export interface operations {
   getHealth: {

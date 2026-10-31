@@ -1,18 +1,28 @@
-import { HttpClient, HttpParams, httpResource } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResourceRef, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { components, operations } from '../../../core/api/schema';
+import { Observable } from 'rxjs';
+import type {
+  InvoiceComparison as InvoiceComparisonDto,
+  InvoiceDetail as InvoiceDetailDto,
+  InvoicePage as InvoicePageDto,
+  operations,
+} from '../../../core/api/schema';
 
-export type InvoiceDetailDto = components['schemas']['InvoiceDetail'];
-export type InvoiceComparisonDto = components['schemas']['InvoiceComparison'];
-export type InvoiceSummaryDto = components['schemas']['InvoiceSummary'];
+export type {
+  InvoiceComparison as InvoiceComparisonDto,
+  InvoiceDetail as InvoiceDetailDto,
+  InvoiceSummary as InvoiceSummaryDto,
+  InvoicePage as InvoicePageDto,
+} from '../../../core/api/schema';
+
 export type InvoiceListQuery = NonNullable<operations['listInvoices']['parameters']['query']>;
-export type InvoicePageDto = components['schemas']['InvoicePage'];
 
 function invoiceListParams(query: InvoiceListQuery): HttpParams {
   let params = new HttpParams();
   for (const [parameter, value] of Object.entries(query)) {
     if (value !== undefined && value !== null) params = params.set(parameter, String(value));
   }
+
   return params;
 }
 
@@ -20,23 +30,26 @@ function invoiceListParams(query: InvoiceListQuery): HttpParams {
 export class InvoiceApi {
   private readonly http = inject(HttpClient);
 
-  invoiceListResource<T>(query: InvoiceListQuery, parsePage: (page: InvoicePageDto) => T) {
+  invoiceListResource<T>(
+    query: InvoiceListQuery,
+    parsePage: (page: InvoicePageDto) => T,
+  ): HttpResourceRef<T | undefined> {
     return httpResource(() => ({ url: '/api/v1/invoices', params: invoiceListParams(query) }), {
       parse: (response) => parsePage(response as InvoicePageDto),
     });
   }
 
-  list(query: InvoiceListQuery = {}) {
-    return this.http.get<components['schemas']['InvoicePage']>('/api/v1/invoices', {
+  list(query: InvoiceListQuery = {}): Observable<InvoicePageDto> {
+    return this.http.get<InvoicePageDto>('/api/v1/invoices', {
       params: invoiceListParams(query),
     });
   }
 
-  detail(id: string) {
+  detail(id: string): Observable<InvoiceDetailDto> {
     return this.http.get<InvoiceDetailDto>(`/api/v1/invoices/${encodeURIComponent(id)}`);
   }
 
-  comparison(id: string) {
+  comparison(id: string): Observable<InvoiceComparisonDto> {
     return this.http.get<InvoiceComparisonDto>(
       `/api/v1/invoices/${encodeURIComponent(id)}/comparison`,
     );

@@ -30,10 +30,12 @@ export class OverviewPage {
   protected readonly recentInvoices = this.invoiceApi.invoiceListResource({}, (invoicePage) =>
     invoicePage.items.map(summaryView),
   );
+
   protected readonly nextInvoiceForReview = this.invoiceApi.invoiceListResource(
     NEXT_REVIEW_QUERY,
     (invoicePage) => invoicePage.items[0]?.id ?? null,
   );
+
   protected readonly demoOverview = OVERVIEW_DEMO_DATA;
   protected readonly investigationLink = [
     '/invoices',

@@ -22,12 +22,15 @@ export class InvoiceComparison {
     'Invoice net',
     'PO net',
   ];
+
   protected readonly totalHeaders = ['Totals', 'Invoice', 'Purchase order'];
 
   private money(value: number): string {
     const currency = this.data().invoice.currency;
+
     return formatCurrency(value, 'en-US', currency, currency);
   }
+
   protected readonly itemRows = computed(() =>
     this.data().items.map((item) => [
       item.name,
@@ -38,8 +41,10 @@ export class InvoiceComparison {
       this.money(item.poNet),
     ]),
   );
+
   protected readonly totalRows = computed(() => {
     const data = this.data();
+
     return [
       ['Net', this.money(data.invoiceNet), this.money(data.poNet)],
       [`VAT ${data.invoice.vatRate}%`, this.money(data.invoiceVat), this.money(data.poVat)],

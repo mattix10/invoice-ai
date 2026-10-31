@@ -5,6 +5,7 @@ import { AppShell } from './core/layout/app-shell/app-shell';
 import { OverviewPage } from './features/overview/overview-page/overview-page';
 import { InvestigationPage } from './features/invoices/investigation-page/investigation-page';
 import { InvoiceWorkspacePage } from './features/invoices/invoice-workspace-page/invoice-workspace-page';
+
 export const routes: Routes = [
   {
     path: '',

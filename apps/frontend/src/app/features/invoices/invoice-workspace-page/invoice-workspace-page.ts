@@ -43,6 +43,7 @@ export class InvoiceWorkspacePage {
               this.invoice.set(null);
               this.view.set(null);
               const id = params.get('id') ?? '';
+
               return forkJoin({
                 invoice: this.api.detail(id),
                 comparison: this.api
@@ -68,10 +69,12 @@ export class InvoiceWorkspacePage {
           this.state.set(
             error instanceof HttpErrorResponse && error.status === 404 ? 'not-found' : 'error',
           );
+
           return;
         }
         if (!result) {
           this.state.set('error');
+
           return;
         }
         try {
@@ -84,7 +87,8 @@ export class InvoiceWorkspacePage {
         }
       });
   }
-  protected load() {
+
+  protected load(): void {
     this.retry.next();
   }
 }
