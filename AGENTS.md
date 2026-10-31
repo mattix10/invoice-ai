@@ -1,6 +1,6 @@
 # InvoiceAI — repository instructions for Codex
 
-Goal: build a coherent, accessible, testable Angular/FastAPI portfolio application. **Current phase: Angular UI prototype only.** Keep tasks small and do not implement backend/AI/deployment unless a later task explicitly requests it.
+Goal: build a coherent, accessible, testable Angular/FastAPI portfolio application. **Current phase: backend foundation (Task 01), alongside the existing Angular UI prototype.** Keep tasks small and implement only the assigned task; invoice APIs, AI and deployment require later tasks.
 
 ## Read narrowly
 

@@ -1,0 +1,2 @@
+# Preserve the pinned upstream FastAPI skill verbatim.
+.agents/skills/fastapi/**

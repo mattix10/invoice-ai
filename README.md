@@ -1,6 +1,6 @@
 # InvoiceAI
 
-InvoiceAI is an Angular UI prototype for reviewing invoices and investigating purchase order discrepancies. It uses fictional sample data and requires a human to make financial decisions.
+InvoiceAI is an Angular UI prototype with a FastAPI/PostgreSQL backend foundation for invoice review. It uses fictional sample data and requires a human to make financial decisions.
 
 ## Current application
 
@@ -9,7 +9,9 @@ InvoiceAI is an Angular UI prototype for reviewing invoices and investigating pu
 - **AI investigation:** a prepared explanation, three evidence records, an illustrative application-event trail and a recommendation to request supplier confirmation.
 - **Shared interface:** responsive navigation and reusable panels across the application.
 
-The investigation is prepared demonstration content, not a live AI response. The prototype does not perform OCR, contact suppliers, approve invoices or make payments, and has no backend.
+The investigation is prepared demonstration content, not a live AI response. The prototype does not perform OCR, contact suppliers, approve invoices or make payments. The backend currently exposes health/readiness only; Angular still uses its existing fixtures. Invoice APIs and frontend integration are future tasks.
+
+Backend architecture, setup, tests and safe database lifecycle commands are in [local development](docs/architecture/local-development.md). See [project progress](docs/PROGRESS.md) for actual verification results and [backend architecture](docs/architecture/backend.md) for task boundaries.
 
 ## Run locally
 

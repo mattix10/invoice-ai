@@ -13,7 +13,10 @@ let failed = false;
 for (const name of names) {
   const filename = path.join(root, name);
   const info = await prettier.getFileInfo(filename, {
-    ignorePath: path.join(root, 'apps/frontend/.prettierignore'),
+    ignorePath: [
+      path.join(root, '.prettierignore'),
+      path.join(root, 'apps/frontend/.prettierignore'),
+    ],
   });
   if (info.ignored || !info.inferredParser) continue;
   const content = execFileSync('git', ['show', `:${name}`], { cwd: root, encoding: 'utf8' });
