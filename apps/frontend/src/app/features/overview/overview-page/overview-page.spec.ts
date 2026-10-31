@@ -103,7 +103,7 @@ describe('OverviewPage', () => {
 
     // Act
     (fixture.nativeElement as HTMLElement)
-      .querySelector<HTMLButtonElement>('[role="alert"] button')!
+      .querySelector<HTMLButtonElement>('app-load-error button')!
       .click();
     fixture.detectChanges();
     http.expectOne(reviewRequest).flush(emptyReview);
@@ -121,7 +121,7 @@ describe('OverviewPage', () => {
 
     // Act
     (fixture.nativeElement as HTMLElement)
-      .querySelector<HTMLButtonElement>('[role="alert"] button')!
+      .querySelector<HTMLButtonElement>('app-load-error button')!
       .click();
     fixture.detectChanges();
     const request = http.expectOne(reviewRequest);
@@ -156,7 +156,7 @@ describe('OverviewPage', () => {
 
     // Act
     (fixture.nativeElement as HTMLElement)
-      .querySelector<HTMLButtonElement>('[role="alert"] button')!
+      .querySelector<HTMLButtonElement>('app-load-error button')!
       .click();
     fixture.detectChanges();
     http.expectOne('/api/v1/invoices').flush({

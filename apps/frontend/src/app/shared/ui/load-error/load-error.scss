@@ -1,0 +1,25 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  min-width: 0;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--danger);
+  background: rgb(255, 150, 150);
+  border-radius: 12px;
+  background: var(--danger-bg);
+  color: var(--text-2);
+}
+
+.btn {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn:hover {
+  background: var(--danger);
+  color: var(--surface);
+}

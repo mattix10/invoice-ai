@@ -8,6 +8,7 @@ import { ProcessingVolumeChart } from '../processing-volume-chart/processing-vol
 import { InvoiceStatusChart } from '../invoice-status-chart/invoice-status-chart';
 import { RecentInvoicesTable } from '../recent-invoices-table/recent-invoices-table';
 import { AttentionQueue } from '../attention-queue/attention-queue';
+import { LoadError } from '../../../shared/ui/load-error/load-error';
 
 const NEXT_REVIEW_QUERY = { status: 'needs_review', pageSize: 1, sort: '-id' } as const;
 
@@ -20,6 +21,7 @@ const NEXT_REVIEW_QUERY = { status: 'needs_review', pageSize: 1, sort: '-id' } a
     InvoiceStatusChart,
     RecentInvoicesTable,
     AttentionQueue,
+    LoadError,
   ],
   templateUrl: './overview-page.html',
   styleUrl: './overview-page.scss',

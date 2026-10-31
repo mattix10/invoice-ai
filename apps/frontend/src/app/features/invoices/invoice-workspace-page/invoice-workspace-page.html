@@ -6,9 +6,7 @@
   <p role="alert">Invoice not found.</p>
 } @else if (state() === 'error') {
   <h1>Invoice workspace</h1>
-  <p role="alert">
-    Invoice could not be loaded. <button type="button" (click)="load()">Retry</button>
-  </p>
+  <app-load-error class="workspace-error" message="Invoice could not be loaded." (retry)="load()" />
 } @else if (invoice(); as invoice) {
   <header class="page-header">
     <div>

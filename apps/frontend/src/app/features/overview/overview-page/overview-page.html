@@ -4,26 +4,30 @@
     <h1>Overview</h1>
     <p class="subtitle">Your priority today: resolve the exceptions that need human review.</p>
   </div>
-  <a class="btn" routerLink="/invoices/new">Upload invoice</a>
-  @if (nextInvoiceForReview.isLoading()) {
-    <p role="status">Loading review queue…</p>
-  } @else if (nextInvoiceForReview.error()) {
-    <p role="alert">
-      Review queue could not be loaded.
-      <button type="button" (click)="nextInvoiceForReview.reload()">Retry</button>
-    </p>
-  } @else if (nextInvoiceForReview.hasValue()) {
-    @if (nextInvoiceForReview.value(); as id) {
-      <a class="btn btn-primary" [routerLink]="['/invoices', id]"
-        >Review next invoice <span aria-hidden="true">→</span></a
-      >
-    } @else {
-      <p>No invoices need review.</p>
+  <div class="heading-actions">
+    <a class="btn" routerLink="/invoices/new">Upload invoice</a>
+    @if (nextInvoiceForReview.isLoading()) {
+      <p role="status">Loading review queue…</p>
+    } @else if (nextInvoiceForReview.hasValue()) {
+      @if (nextInvoiceForReview.value(); as id) {
+        <a class="btn btn-primary" [routerLink]="['/invoices', id]"
+          >Review next invoice <span aria-hidden="true">→</span></a
+        >
+      } @else {
+        <p>No invoices need review.</p>
+      }
+    } @else if (!nextInvoiceForReview.error()) {
+      <p role="status">Loading review queue…</p>
     }
-  } @else {
-    <p role="status">Loading review queue…</p>
-  }
+  </div>
 </div>
+@if (nextInvoiceForReview.error()) {
+  <app-load-error
+    class="queue-error"
+    message="Review queue could not be loaded."
+    (retry)="nextInvoiceForReview.reload()"
+  />
+}
 <app-overview-kpis [kpis]="demoOverview.kpis" />
 <p>Historical metrics and the highlighted investigation below are synthetic demo content.</p>
 <app-attention-queue
@@ -38,10 +42,7 @@
   @if (recentInvoices.isLoading()) {
     <p role="status">Loading invoices…</p>
   } @else if (recentInvoices.error()) {
-    <p role="alert">
-      Invoices could not be loaded.
-      <button type="button" (click)="recentInvoices.reload()">Retry</button>
-    </p>
+    <app-load-error message="Invoices could not be loaded." (retry)="recentInvoices.reload()" />
   } @else if (recentInvoices.hasValue()) {
     @if (recentInvoices.value().length === 0) {
       <p>No invoices found.</p>
