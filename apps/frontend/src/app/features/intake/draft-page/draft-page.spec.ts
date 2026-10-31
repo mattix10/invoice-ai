@@ -58,7 +58,7 @@ describe('DraftPage', () => {
     fixture.detectChanges();
     routeParams.next(firstDocument);
     fixture.detectChanges();
-    oldSave.flush({ draft: { ...draft, vendor: 'Old response' }, revision: 3, validation });
+    expect(oldSave.cancelled).toBe(true);
     http
       .match(() => true)
       .filter((request) => !request.cancelled)
@@ -68,7 +68,7 @@ describe('DraftPage', () => {
     // Assert
     http.expectNone('/api/v1/intake/documents/doc-1/confirm');
     expect(fixture.nativeElement.textContent).not.toContain('Old response');
-    http.verify();
+    http.verify({ ignoreCancelled: true });
   });
 
   it('should not confirm another document when the route changes during saving', async () => {
@@ -121,7 +121,7 @@ describe('DraftPage', () => {
     // Act
     routeParams.next(convertToParamMap({ documentId: 'doc-2' }));
     fixture.detectChanges();
-    save.flush({ draft, revision: 3, validation });
+    expect(save.cancelled).toBe(true);
 
     // Assert
     http.expectNone('/api/v1/intake/documents/doc-2/confirm');
@@ -137,7 +137,7 @@ describe('DraftPage', () => {
     http
       .expectOne('/api/v1/intake/documents/doc-2/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
-    http.verify();
+    http.verify({ ignoreCancelled: true });
   });
 
   it('should retry confirmation without saving again when the response is lost', async () => {

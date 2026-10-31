@@ -106,6 +106,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/invoices/{invoice_id}/reconciliations/latest': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Latest Reconciliation */
+    get: operations['getLatestReconciliation'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/invoices/{invoice_id}/reconciliations/{revision}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Reconciliation Revision */
+    get: operations['getReconciliationRevision'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/intake/documents': {
     parameters: {
       query?: never;
@@ -276,6 +310,77 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/purchase-orders': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Purchase Orders */
+    get: operations['listPurchaseOrders'];
+    put?: never;
+    /** Create Purchase Order */
+    post: operations['createPurchaseOrder'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/purchase-orders/{po_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Purchase Order */
+    get: operations['getPurchaseOrder'];
+    /** Update Purchase Order */
+    put: operations['updatePurchaseOrder'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/invoices/{invoice_id}/purchase-order-link': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Link */
+    get: operations['getInvoicePurchaseOrderLink'];
+    /** Put Link */
+    put: operations['linkInvoicePurchaseOrder'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/invoices/{invoice_id}/purchase-order-snapshots/{snapshot_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Snapshot */
+    get: operations['getInvoicePurchaseOrderSnapshot'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -302,6 +407,8 @@ export interface components {
       name: string;
       /** Quantity */
       quantity: number;
+      /** Poquantity */
+      poQuantity: number;
       /** Invoiceunitnet */
       invoiceUnitNet: string;
       /** Pounitnet */
@@ -415,6 +522,30 @@ export interface components {
       currentRevision?: number | null;
       /** Existingdocumentid */
       existingDocumentId?: string | null;
+    };
+    /** EvidenceReference */
+    EvidenceReference: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind:
+        | 'invoice'
+        | 'invoice_line'
+        | 'po_snapshot'
+        | 'po_line'
+        | 'reconciliation'
+        | 'discrepancy_line';
+      /** Invoiceid */
+      invoiceId: string;
+      /** Reconciliationrevision */
+      reconciliationRevision: number | null;
+      /** Lineposition */
+      linePosition: number | null;
+      /** Evidenceid */
+      evidenceId: string;
+      /** Label */
+      label: string;
     };
     /** ExtractedPageResponse */
     ExtractedPageResponse: {
@@ -571,6 +702,111 @@ export interface components {
       /** Gross */
       gross: string;
     };
+    /** LinkRead */
+    LinkRead: {
+      /**
+       * Status
+       * @default linked
+       * @constant
+       */
+      status: 'linked';
+      /** Poid */
+      poId: string;
+      /** Poversion */
+      poVersion: number;
+      /** Revision */
+      revision: number;
+      /** Snapshotid */
+      snapshotId: string;
+      /** Sourcechanged */
+      sourceChanged: boolean;
+      /**
+       * Provenance
+       * @enum {string}
+       */
+      provenance: 'existing' | 'human_entered_demo';
+      /** Mappings */
+      mappings: components['schemas']['Mapping'][];
+    };
+    /** LinkRequest */
+    LinkRequest: {
+      /** Poid */
+      poId: string;
+      /** Poversion */
+      poVersion: number;
+      /** Expectedlinkrevision */
+      expectedLinkRevision: number;
+      /** Mappings */
+      mappings: components['schemas']['Mapping'][];
+    };
+    /** Mapping */
+    Mapping: {
+      /** Invoicelineposition */
+      invoiceLinePosition: number;
+      /** Polineposition */
+      poLinePosition: number;
+    };
+    /** POFields */
+    POFields: {
+      /** Externalreference */
+      externalReference: string;
+      /** Supplier */
+      supplier: string;
+      /** Currency */
+      currency: string;
+      /** Vatrate */
+      vatRate: string;
+      /** Items */
+      items: components['schemas']['POItem'][];
+    };
+    /** POItem */
+    POItem: {
+      /** Position */
+      position: number;
+      /** Description */
+      description: string;
+      /** Quantity */
+      quantity: number;
+      /** Unitnet */
+      unitNet: string;
+    };
+    /** PORead */
+    PORead: {
+      /** Externalreference */
+      externalReference: string;
+      /** Supplier */
+      supplier: string;
+      /** Currency */
+      currency: string;
+      /** Vatrate */
+      vatRate: string;
+      /** Items */
+      items: components['schemas']['POItem'][];
+      /** Id */
+      id: string;
+      /** Version */
+      version: number;
+      /**
+       * Sourcetype
+       * @enum {string}
+       */
+      sourceType: 'existing' | 'human_entered_demo';
+    };
+    /** POUpdate */
+    POUpdate: {
+      /** Externalreference */
+      externalReference: string;
+      /** Supplier */
+      supplier: string;
+      /** Currency */
+      currency: string;
+      /** Vatrate */
+      vatRate: string;
+      /** Items */
+      items: components['schemas']['POItem'][];
+      /** Expectedversion */
+      expectedVersion: number;
+    };
     /** ReconciliationInputLine */
     ReconciliationInputLine: {
       /** Position */
@@ -588,6 +824,8 @@ export interface components {
     };
     /** ReconciliationInputs */
     ReconciliationInputs: {
+      /** Sourcesnapshotid */
+      sourceSnapshotId?: string | null;
       /** Invoiceid */
       invoiceId: string;
       /** Purchaseorder */
@@ -623,6 +861,23 @@ export interface components {
       /** Differencenet */
       differenceNet: string;
     };
+    /** ReconciliationRead */
+    ReconciliationRead: {
+      /** Revision */
+      revision: number;
+      /** Inputhash */
+      inputHash: string;
+      /**
+       * Algorithmversion
+       * @enum {string}
+       */
+      algorithmVersion: 'deterministic-v1' | 'deterministic-v2';
+      result: components['schemas']['ReconciliationResult'];
+      /** Evidencerefs */
+      evidenceRefs: components['schemas']['EvidenceReference'][];
+      /** Iscurrent */
+      isCurrent: boolean;
+    };
     /** ReconciliationRequest */
     ReconciliationRequest: Record<string, never>;
     /** ReconciliationResult */
@@ -638,9 +893,9 @@ export interface components {
       state: 'completed';
       /**
        * Algorithm
-       * @constant
+       * @enum {string}
        */
-      algorithm: 'deterministic-v1';
+      algorithm: 'deterministic-v1' | 'deterministic-v2';
       /** Inputhash */
       inputHash: string;
       inputs: components['schemas']['ReconciliationInputs'];
@@ -665,6 +920,38 @@ export interface components {
     RequestValidationError: {
       /** Detail */
       detail: components['schemas']['RequestValidationDetail'][];
+    };
+    /** SnapshotLine */
+    SnapshotLine: {
+      /** Invoicelineposition */
+      invoiceLinePosition: number;
+      /** Polineposition */
+      poLinePosition: number;
+      /** Quantity */
+      quantity: number;
+      /** Unitnet */
+      unitNet: string;
+    };
+    /** SnapshotRead */
+    SnapshotRead: {
+      /** Snapshotid */
+      snapshotId: string;
+      /** Invoiceid */
+      invoiceId: string;
+      /** Poid */
+      poId: string | null;
+      /** Poversion */
+      poVersion: number | null;
+      /** Purchaseorder */
+      purchaseOrder: string;
+      /** Deliveryreceiptid */
+      deliveryReceiptId: string | null;
+      /** Currency */
+      currency: string;
+      /** Vatrate */
+      vatRate: string;
+      /** Items */
+      items: components['schemas']['SnapshotLine'][];
     };
     /** SuggestionDecision */
     SuggestionDecision: {
@@ -801,6 +1088,7 @@ export type DraftItem = components['schemas']['DraftItem'];
 export type DraftRequest = components['schemas']['DraftRequest'];
 export type DraftResponse = components['schemas']['DraftResponse'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
+export type EvidenceReference = components['schemas']['EvidenceReference'];
 export type ExtractedPageResponse = components['schemas']['ExtractedPageResponse'];
 export type FieldProposal = components['schemas']['FieldProposal'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
@@ -812,13 +1100,23 @@ export type InvoicePage = components['schemas']['InvoicePage'];
 export type InvoiceStatus = components['schemas']['InvoiceStatus'];
 export type InvoiceSummary = components['schemas']['InvoiceSummary'];
 export type InvoiceTotals = components['schemas']['InvoiceTotals'];
+export type LinkRead = components['schemas']['LinkRead'];
+export type LinkRequest = components['schemas']['LinkRequest'];
+export type Mapping = components['schemas']['Mapping'];
+export type PoFields = components['schemas']['POFields'];
+export type PoItem = components['schemas']['POItem'];
+export type PoRead = components['schemas']['PORead'];
+export type PoUpdate = components['schemas']['POUpdate'];
 export type ReconciliationInputLine = components['schemas']['ReconciliationInputLine'];
 export type ReconciliationInputs = components['schemas']['ReconciliationInputs'];
 export type ReconciliationLine = components['schemas']['ReconciliationLine'];
+export type ReconciliationRead = components['schemas']['ReconciliationRead'];
 export type ReconciliationRequest = components['schemas']['ReconciliationRequest'];
 export type ReconciliationResult = components['schemas']['ReconciliationResult'];
 export type RequestValidationDetail = components['schemas']['RequestValidationDetail'];
 export type RequestValidationError = components['schemas']['RequestValidationError'];
+export type SnapshotLine = components['schemas']['SnapshotLine'];
+export type SnapshotRead = components['schemas']['SnapshotRead'];
 export type SuggestionDecision = components['schemas']['SuggestionDecision'];
 export type SuggestionDecisions = components['schemas']['SuggestionDecisions'];
 export type SuggestionSource = components['schemas']['SuggestionSource'];
@@ -1046,6 +1344,103 @@ export interface operations {
       };
       /** @description Incomplete or invalid inputs */
       409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Internal error */
+      500: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Database unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getLatestReconciliation: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        invoice_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ReconciliationRead'];
+        };
+      };
+      /** @description Invoice or comparison not found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Internal error */
+      500: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Database unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getReconciliationRevision: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        invoice_id: string;
+        revision: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ReconciliationRead'];
+        };
+      };
+      /** @description Invoice or comparison not found */
+      404: {
         headers: Record<string, unknown>;
         content: {
           'application/json': components['schemas']['ApiError'];
@@ -1703,6 +2098,358 @@ export interface operations {
         content: {
           'application/json':
             components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  listPurchaseOrders: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['PORead'][];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  createPurchaseOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['POFields'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['PORead'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getPurchaseOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        po_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['PORead'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  updatePurchaseOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        po_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['POUpdate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['PORead'];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getInvoicePurchaseOrderLink: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        invoice_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['LinkRead'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  linkInvoicePurchaseOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        invoice_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LinkRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['LinkRead'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  getInvoicePurchaseOrderSnapshot: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        invoice_id: string;
+        snapshot_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['SnapshotRead'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
       /** @description Service Unavailable */

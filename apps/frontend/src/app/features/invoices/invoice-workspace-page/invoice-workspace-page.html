@@ -1,10 +1,10 @@
-@if (state() === 'loading') {
+@if (workspace.isLoading() || workspace.status() === 'idle') {
   <h1>Invoice workspace</h1>
   <p role="status">Loading invoice…</p>
-} @else if (state() === 'not-found') {
+} @else if (invoiceNotFound()) {
   <h1>Invoice workspace</h1>
   <p role="alert">Invoice not found.</p>
-} @else if (state() === 'error') {
+} @else if (workspace.error()) {
   <h1>Invoice workspace</h1>
   <app-load-error class="workspace-error" message="Invoice could not be loaded." (retry)="load()" />
 } @else if (invoice(); as invoice) {
@@ -19,9 +19,9 @@
         {{ gross() }}
       </p>
     </div>
-    @if (invoice.id === 'INV-2026-1042') {
+    @if (view()) {
       <a class="btn btn-primary" [routerLink]="['/invoices', invoice.id, 'investigation']"
-        >View demo investigation</a
+        >Investigate</a
       >
     }
   </header>
@@ -35,6 +35,11 @@
       <p>Document preview unavailable for this invoice.</p>
     }
     <div class="details">
+      <app-purchase-order-link
+        [invoice]="invoice"
+        [comparisonAvailable]="!!view()"
+        (linked)="load()"
+      />
       @if (view(); as data) {
         <app-invoice-fields [data]="data" /><app-invoice-comparison [data]="data" />
       } @else {

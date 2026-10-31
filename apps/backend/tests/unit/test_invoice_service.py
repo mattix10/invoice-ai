@@ -16,6 +16,7 @@ def test_missing_invoice_and_comparison():
         service.get_invoice("INV-2026-9999")
     with pytest.raises(InvoiceNotFound):
         service.get_comparison("INV-2026-9999")
+    repository.active_snapshot.return_value = None
     repository.get.return_value = Invoice(
         id="INV-2026-1041",
         vendor="Vendor",

@@ -249,3 +249,314 @@ def test_reconciliation_openapi_contract(invoice_client):
     assert {"200", "404", "409", "422", "503"} <= operation["responses"].keys()
     assert operation["requestBody"]["required"] is True
     assert "ReconciliationInputs" in schema["components"]["schemas"]
+
+
+def test_explicit_link_pins_po_version_and_reconciliation_history(
+    invoice_client, session, monkeypatch
+):
+    monkeypatch.setenv("INVOICEFLOW_ENV", "local")
+    reconciliation_url = "/api/v1/invoices/INV-2026-1042/reconciliation"
+    history_url = "/api/v1/invoices/INV-2026-1042/reconciliations"
+    legacy = invoice_client.post(reconciliation_url, json={}).json()
+    assert legacy["algorithm"] == "deterministic-v1"
+    assert invoice_client.get(f"{history_url}/latest").json()["isCurrent"] is True
+    po_fields = {
+        "externalReference": "PO-FICTIONAL",
+        "supplier": "Fictional supplier",
+        "currency": "PLN",
+        "vatRate": "0.23",
+        "items": [
+            {"position": 30, "description": "First", "quantity": 10, "unitNet": "820.00"},
+            {"position": 10, "description": "Second", "quantity": 10, "unitNet": "110.00"},
+            {"position": 20, "description": "Third", "quantity": 5, "unitNet": "240.00"},
+        ],
+    }
+    created = invoice_client.post("/api/v1/purchase-orders", json=po_fields)
+    assert created.status_code == 200 or created.status_code == 201
+    po = created.json()
+    link_body = {
+        "poId": po["id"],
+        "poVersion": po["version"],
+        "expectedLinkRevision": 0,
+        "mappings": [
+            {"invoiceLinePosition": 1, "poLinePosition": 30},
+            {"invoiceLinePosition": 2, "poLinePosition": 10},
+            {"invoiceLinePosition": 3, "poLinePosition": 20},
+        ],
+    }
+    link_url = "/api/v1/invoices/INV-2026-1042/purchase-order-link"
+    first = invoice_client.put(link_url, json=link_body)
+    assert first.status_code == 200
+    link = first.json()
+    assert link["revision"] == 1
+    assert invoice_client.put(link_url, json=link_body).json() == link
+
+    assert invoice_client.get(f"{history_url}/1").json()["isCurrent"] is False
+    result = invoice_client.post(reconciliation_url, json={})
+    assert result.status_code == 200
+    assert result.json()["algorithm"] == "deterministic-v2"
+    assert result.json()["difference"] == {"net": "0.00", "vat": "0.00", "gross": "0.00"}
+    assert invoice_client.post(reconciliation_url, json={}).json() == result.json()
+    assert invoice_client.get(f"{history_url}/latest").json()["isCurrent"] is True
+
+    po_fields["items"][0]["unitNet"] = "720.00"
+    updated = invoice_client.put(
+        f"/api/v1/purchase-orders/{po['id']}",
+        json={**po_fields, "expectedVersion": po["version"]},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["version"] == po["version"] + 1
+    assert invoice_client.get(link_url).json()["sourceChanged"] is True
+    assert invoice_client.post(reconciliation_url, json={}).json() == result.json()
+
+    refreshed = invoice_client.put(
+        link_url,
+        json={**link_body, "poVersion": updated.json()["version"], "expectedLinkRevision": 1},
+    )
+    assert refreshed.status_code == 200
+    assert refreshed.json()["snapshotId"] != link["snapshotId"]
+    assert invoice_client.get(f"{history_url}/2").json()["isCurrent"] is False
+    changed = invoice_client.post(reconciliation_url, json={})
+    assert changed.status_code == 200
+    assert changed.json()["revision"] == result.json()["revision"] + 1
+    assert changed.json()["difference"] == {"net": "1000.00", "vat": "230.00", "gross": "1230.00"}
+    assert invoice_client.get(f"{history_url}/1").json()["result"] == legacy
+    assert invoice_client.get(f"{history_url}/latest").json()["isCurrent"] is True
+    assert session.execute(text("SELECT count(*) FROM invoice_reconciliations")).scalar_one() == 3
+    with pytest.raises(IntegrityError):
+        session.execute(text("UPDATE invoice_purchase_order_links SET po_version = po_version + 1"))
+    session.rollback()
+    with pytest.raises(IntegrityError):
+        session.execute(
+            text(
+                "UPDATE invoice_reconciliations SET source_snapshot_id = :snapshot "
+                "WHERE invoice_id = 'INV-2026-1042' AND revision = 1"
+            ),
+            {"snapshot": "missing-snapshot"},
+        )
+    session.rollback()
+
+
+def test_linked_comparison_exposes_invoice_and_po_quantities(invoice_client, monkeypatch):
+    monkeypatch.setenv("INVOICEFLOW_ENV", "local")
+    created = invoice_client.post(
+        "/api/v1/purchase-orders",
+        json={
+            "externalReference": "PO-QUANTITY-DIFFERENCE",
+            "supplier": "Fictional supplier",
+            "currency": "PLN",
+            "vatRate": "0.23",
+            "items": [
+                {"position": 10, "description": "Monitor", "quantity": 5, "unitNet": "820.00"},
+                {"position": 20, "description": "Keyboard", "quantity": 10, "unitNet": "110.00"},
+                {"position": 30, "description": "Dock", "quantity": 5, "unitNet": "240.00"},
+            ],
+        },
+    ).json()
+    linked = invoice_client.put(
+        "/api/v1/invoices/INV-2026-1042/purchase-order-link",
+        json={
+            "poId": created["id"],
+            "poVersion": created["version"],
+            "expectedLinkRevision": 0,
+            "mappings": [
+                {"invoiceLinePosition": 1, "poLinePosition": 10},
+                {"invoiceLinePosition": 2, "poLinePosition": 20},
+                {"invoiceLinePosition": 3, "poLinePosition": 30},
+            ],
+        },
+    )
+    assert linked.status_code == 200
+
+    comparison = invoice_client.get("/api/v1/invoices/INV-2026-1042/comparison")
+
+    assert comparison.status_code == 200
+    assert comparison.json()["items"][0] == {
+        "position": 1,
+        "name": "27-inch monitor",
+        "quantity": 10,
+        "poQuantity": 5,
+        "invoiceUnitNet": "820.00",
+        "poUnitNet": "820.00",
+        "invoiceNet": "8200.00",
+        "poNet": "4100.00",
+    }
+    assert comparison.json()["difference"]["net"] == "4100.00"
+
+
+def test_link_rejects_missing_mapping_without_partial_write(invoice_client, session, monkeypatch):
+    monkeypatch.setenv("INVOICEFLOW_ENV", "local")
+    created = invoice_client.post(
+        "/api/v1/purchase-orders",
+        json={
+            "externalReference": "PO-INCOMPLETE",
+            "supplier": "Fictional supplier",
+            "currency": "PLN",
+            "vatRate": "0.23",
+            "items": [{"position": 1, "description": "Item", "quantity": 1, "unitNet": "1.00"}],
+        },
+    )
+    assert created.status_code in (200, 201)
+    po = created.json()
+    response = invoice_client.put(
+        "/api/v1/invoices/INV-2026-1042/purchase-order-link",
+        json={
+            "poId": po["id"],
+            "poVersion": po["version"],
+            "expectedLinkRevision": 0,
+            "mappings": [{"invoiceLinePosition": 1, "poLinePosition": 1}],
+        },
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "po_link_conflict"
+    assert (
+        invoice_client.get("/api/v1/invoices/INV-2026-1042/comparison").json()["difference"][
+            "gross"
+        ]
+        == "615.00"
+    )
+
+
+def test_concurrent_link_and_reconciliation_record_complete_snapshot(
+    isolated_connection, database_settings
+):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    from invoiceflow.modules.invoices.reconciliation import ReconciliationService
+    from invoiceflow.modules.invoices.repository import InvoiceRepository
+    from invoiceflow.modules.purchase_orders.schemas import LinkRequest, POFields
+    from invoiceflow.modules.purchase_orders.service import PurchaseOrderService
+
+    config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+    config.attributes["connection"] = isolated_connection
+    command.upgrade(config, "head")
+    with Session(isolated_connection) as session:
+        seed(session)
+        session.commit()
+        po = PurchaseOrderService(session).save(
+            POFields.model_validate(
+                {
+                    "externalReference": "PO-CONCURRENT",
+                    "supplier": "Fictional supplier",
+                    "currency": "PLN",
+                    "vatRate": "0.23",
+                    "items": [
+                        {"position": 1, "description": "A", "quantity": 10, "unitNet": "820.00"},
+                        {"position": 2, "description": "B", "quantity": 10, "unitNet": "110.00"},
+                        {"position": 3, "description": "C", "quantity": 5, "unitNet": "240.00"},
+                    ],
+                }
+            )
+        )
+    schema = isolated_connection.execute(text("SELECT current_schema()")).scalar_one()
+    engine = create_engine(
+        database_settings.database_url.get_secret_value(),
+        connect_args={"options": f"-csearch_path={schema}"},
+    )
+    barrier = Barrier(2)
+    request = LinkRequest.model_validate(
+        {
+            "poId": po.id,
+            "poVersion": po.version,
+            "expectedLinkRevision": 0,
+            "mappings": [
+                {"invoiceLinePosition": position, "poLinePosition": position}
+                for position in (1, 2, 3)
+            ],
+        }
+    )
+
+    def link():
+        with Session(engine) as session:
+            barrier.wait(timeout=10)
+            return PurchaseOrderService(session).link("INV-2026-1042", request)
+
+    def reconcile():
+        with Session(engine) as session:
+            barrier.wait(timeout=10)
+            return ReconciliationService(InvoiceRepository(session)).reconcile("INV-2026-1042")
+
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            link_future = executor.submit(link)
+            result_future = executor.submit(reconcile)
+            linked = link_future.result(timeout=20)
+            result = result_future.result(timeout=20)
+        assert linked.revision == 1
+        assert result.algorithm in ("deterministic-v1", "deterministic-v2")
+        assert result.difference.gross == (
+            "615.00" if result.algorithm == "deterministic-v1" else "0.00"
+        )
+        with Session(engine) as session:
+            latest = ReconciliationService(InvoiceRepository(session)).reconcile("INV-2026-1042")
+            assert latest.algorithm == "deterministic-v2"
+            assert latest.difference.gross == "0.00"
+            assert (
+                session.execute(
+                    text("SELECT count(*) FROM invoice_po_snapshot_versions")
+                ).scalar_one()
+                == 1
+            )
+            assert session.execute(
+                text("SELECT count(*) FROM invoice_reconciliations")
+            ).scalar_one() == (2 if result.algorithm == "deterministic-v1" else 1)
+    finally:
+        engine.dispose()
+
+
+def test_link_commit_failure_rolls_back_snapshot_and_mapping(invoice_client, session, monkeypatch):
+    from sqlalchemy import event
+
+    from invoiceflow.modules.purchase_orders.schemas import LinkRequest
+    from invoiceflow.modules.purchase_orders.service import PurchaseOrderService
+
+    monkeypatch.setenv("INVOICEFLOW_ENV", "local")
+    created = invoice_client.post(
+        "/api/v1/purchase-orders",
+        json={
+            "externalReference": "PO-ROLLBACK",
+            "supplier": "Fictional supplier",
+            "currency": "PLN",
+            "vatRate": "0.23",
+            "items": [
+                {"position": 1, "description": "A", "quantity": 10, "unitNet": "820.00"},
+                {"position": 2, "description": "B", "quantity": 10, "unitNet": "110.00"},
+                {"position": 3, "description": "C", "quantity": 5, "unitNet": "240.00"},
+            ],
+        },
+    )
+    assert created.status_code == 201
+    po = created.json()
+    request = LinkRequest.model_validate(
+        {
+            "poId": po["id"],
+            "poVersion": po["version"],
+            "expectedLinkRevision": 0,
+            "mappings": [
+                {"invoiceLinePosition": position, "poLinePosition": position}
+                for position in (1, 2, 3)
+            ],
+        }
+    )
+
+    def fail_commit(session):
+        raise RuntimeError("simulated commit failure")
+
+    event.listen(session, "before_commit", fail_commit)
+    try:
+        with pytest.raises(RuntimeError, match="simulated"):
+            PurchaseOrderService(session).link("INV-2026-1042", request)
+    finally:
+        event.remove(session, "before_commit", fail_commit)
+    for table in (
+        "invoice_purchase_order_links",
+        "invoice_po_snapshot_versions",
+        "invoice_purchase_order_item_mappings",
+    ):
+        assert session.execute(text(f"SELECT count(*) FROM {table}")).scalar_one() == 0
+    comparison = invoice_client.get("/api/v1/invoices/INV-2026-1042/comparison")
+    assert comparison.json()["difference"]["gross"] == "615.00"

@@ -34,41 +34,12 @@
             (loadLatest)="loadLatestText()"
           />
         </div>
-        <div>
-          @if (message()) {
-            <p role="alert">{{ message() }}</p>
-          }
-          @if (conflict()) {
-            @if (serverConflictDraft(); as serverDraft) {
-              <section aria-label="Current server draft">
-                <h2>Current server draft</h2>
-                <p>Compare this version with your local edits below.</p>
-                <pre>{{ serverDraft | json }}</pre>
-              </section>
-            }
-            <button type="button" (click)="reload()">
-              Discard local changes and load latest draft
-            </button>
-          }
-          @if (pendingConfirmation() !== null) {
-            <p role="status">
-              The confirmation outcome is unknown. Retry confirmation or reload the document.
-            </p>
-            <button type="button" [disabled]="busy()" (click)="retryConfirmation()">
-              Retry confirmation
-            </button>
-            <button type="button" [disabled]="busy()" (click)="reload()">Reload document</button>
-          }
-          <app-draft-editor
-            [documentId]="documentId()"
-            [draft]="doc.draft"
-            [validation]="doc.validation"
-            [busy]="busy() || conflict() || pendingConfirmation() !== null"
-            (save)="saveDraft($event)"
-            (confirm)="confirmInvoice($event)"
-            (decide)="recordDecisions($event)"
-          />
-        </div>
+        <app-draft-review
+          [visit]="routeVisit()"
+          [document]="doc"
+          (saved)="saveDraft($event)"
+          (reload)="document.reload()"
+        />
       </div>
     }
   }
