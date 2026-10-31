@@ -20,12 +20,12 @@ export class DraftEditor {
   protected addTotals(): void {
     this.form.update((draft) => ({
       ...draft,
-      declared_totals: { net: null, vat: null, gross: null },
+      declaredTotals: { net: null, vat: null, gross: null },
     }));
   }
 
   protected removeTotals(): void {
-    this.form.update((draft) => ({ ...draft, declared_totals: null }));
+    this.form.update((draft) => ({ ...draft, declaredTotals: null }));
   }
 
   protected addItem(): void {
@@ -33,7 +33,7 @@ export class DraftEditor {
       ...draft,
       items: [
         ...draft.items,
-        { position: draft.items.length + 1, name: null, quantity: null, unit_net: null },
+        { position: draft.items.length + 1, name: null, quantity: null, unitNet: null },
       ],
     }));
   }

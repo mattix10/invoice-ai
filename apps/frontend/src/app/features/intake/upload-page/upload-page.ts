@@ -31,7 +31,7 @@ export class UploadPage {
       .subscribe({
         next: (document) => {
           this.busy.set(false);
-          void this.router.navigate(['/intake', document.document_id]);
+          void this.router.navigate(['/intake', document.documentId]);
         },
         error: (error: unknown) => {
           this.busy.set(false);
@@ -39,7 +39,7 @@ export class UploadPage {
             error instanceof HttpErrorResponse &&
             error.error?.error?.code === 'duplicate_document'
           ) {
-            this.duplicate.set(error.error.error.existing_document_id);
+            this.duplicate.set(error.error.error.existingDocumentId);
           }
           this.error.set(
             (error instanceof HttpErrorResponse && error.error?.error?.message) ||

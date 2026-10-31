@@ -44,13 +44,13 @@ def upload(client, data, name="invoice.pdf", mime="application/pdf"):
 def draft():
     return {
         "vendor": "Fictional vendor",
-        "supplier_invoice_number": "F-10",
+        "supplierInvoiceNumber": "F-10",
         "issued": None,
         "due": "2026-12-20",
         "currency": "PLN",
-        "vat_rate": "0.23",
-        "items": [{"position": 1, "name": "Service", "quantity": 2, "unit_net": "10.00"}],
-        "declared_totals": None,
+        "vatRate": "0.23",
+        "items": [{"position": 1, "name": "Service", "quantity": 2, "unitNet": "10.00"}],
+        "declaredTotals": None,
     }
 
 
@@ -62,16 +62,16 @@ def test_upload_save_confirm_and_reopen(client):
     # Act
     response = upload(client, contents, "../../invoice.pdf")
     doc = response.json()
-    url = "/api/v1/intake/documents/" + doc["document_id"]
-    saved = client.put(url + "/draft", json={"expected_revision": 0, "draft": data})
+    url = "/api/v1/intake/documents/" + doc["documentId"]
+    saved = client.put(url + "/draft", json={"expectedRevision": 0, "draft": data})
     fetched = client.get(url)
-    confirmation = client.post(url + "/confirm", json={"expected_revision": 1})
-    repeated = client.post(url + "/confirm", json={"expected_revision": 1})
-    invoice = client.get("/api/v1/invoices/" + confirmation.json()["invoice_id"])
+    confirmation = client.post(url + "/confirm", json={"expectedRevision": 1})
+    repeated = client.post(url + "/confirm", json={"expectedRevision": 1})
+    invoice = client.get("/api/v1/invoices/" + confirmation.json()["invoiceId"])
 
     # Assert
     assert response.status_code == 201
-    assert doc["original_name"] == "invoice.pdf"
+    assert doc["originalName"] == "invoice.pdf"
     assert client.get(url + "/file").content == contents
     assert saved.json()["validation"]["complete"] is True
     assert fetched.json()["draft"] == data
@@ -79,14 +79,14 @@ def test_upload_save_confirm_and_reopen(client):
     assert confirmation.status_code == 200
     assert repeated.json() == confirmation.json()
     assert invoice.json()["status"] == "needs_review"
-    assert invoice.json()["purchase_order"] is None
+    assert invoice.json()["purchaseOrder"] is None
     assert invoice.json()["totals"]["gross"] == "24.60"
 
 
 def test_stale_revision_is_rejected(client):
     # Arrange
-    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["document_id"]
-    body = {"expected_revision": 0, "draft": draft()}
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    body = {"expectedRevision": 0, "draft": draft()}
     client.put(url + "/draft", json=body)
 
     # Act
@@ -94,7 +94,7 @@ def test_stale_revision_is_rejected(client):
 
     # Assert
     assert response.status_code == 409
-    assert response.json()["error"]["current_revision"] == 1
+    assert response.json()["error"]["currentRevision"] == 1
     assert response.json()["error"]["code"] == "draft_revision_conflict"
 
 
@@ -130,21 +130,21 @@ def test_duplicate_document_is_rejected_without_removing_original(client):
     # Assert
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "duplicate_document"
-    assert response.json()["error"]["existing_document_id"] == first["document_id"]
+    assert response.json()["error"]["existingDocumentId"] == first["documentId"]
     assert (
-        client.get("/api/v1/intake/documents/" + first["document_id"] + "/file").content == contents
+        client.get("/api/v1/intake/documents/" + first["documentId"] + "/file").content == contents
     )
 
 
 def test_declared_totals_mismatch_cannot_create_invoice(client):
     # Arrange
-    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["document_id"]
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
     data = draft()
-    data["declared_totals"] = {"net": "1.00", "vat": None, "gross": None}
-    client.put(url + "/draft", json={"expected_revision": 0, "draft": data})
+    data["declaredTotals"] = {"net": "1.00", "vat": None, "gross": None}
+    client.put(url + "/draft", json={"expectedRevision": 0, "draft": data})
 
     # Act
-    response = client.post(url + "/confirm", json={"expected_revision": 1})
+    response = client.post(url + "/confirm", json={"expectedRevision": 1})
 
     # Assert
     assert response.status_code == 422
@@ -208,13 +208,13 @@ def test_concurrent_confirmation_creates_one_invoice(
 
 def test_incomplete_draft_is_saved_but_cannot_be_confirmed(client):
     # Arrange
-    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["document_id"]
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
     data = draft()
     data["vendor"] = None
 
     # Act
-    saved = client.put(url + "/draft", json={"expected_revision": 0, "draft": data})
-    confirmed = client.post(url + "/confirm", json={"expected_revision": 1})
+    saved = client.put(url + "/draft", json={"expectedRevision": 0, "draft": data})
+    confirmed = client.post(url + "/confirm", json={"expectedRevision": 1})
 
     # Assert
     assert saved.status_code == 200
@@ -225,12 +225,12 @@ def test_incomplete_draft_is_saved_but_cannot_be_confirmed(client):
 
 def test_draft_missing_key_is_rejected(client):
     # Arrange
-    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["document_id"]
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
     data = draft()
     del data["vendor"]
 
     # Act
-    response = client.put(url + "/draft", json={"expected_revision": 0, "draft": data})
+    response = client.put(url + "/draft", json={"expectedRevision": 0, "draft": data})
 
     # Assert
     assert response.status_code == 422
@@ -264,18 +264,18 @@ def test_multipart_body_limit_rejects_before_file_storage(client, tmp_path):
 
 def test_empty_draft_fields_are_saved_as_null(client):
     # Arrange
-    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["document_id"]
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
     data = draft()
-    data.update(currency="", vat_rate="", due="")
-    data["items"][0]["unit_net"] = ""
+    data.update(currency="", vatRate="", due="")
+    data["items"][0]["unitNet"] = ""
 
     # Act
-    response = client.put(url + "/draft", json={"expected_revision": 0, "draft": data})
+    response = client.put(url + "/draft", json={"expectedRevision": 0, "draft": data})
 
     # Assert
     assert response.status_code == 200
     assert response.json()["draft"]["currency"] is None
-    assert response.json()["draft"]["items"][0]["unit_net"] is None
+    assert response.json()["draft"]["items"][0]["unitNet"] is None
     assert response.json()["validation"]["complete"] is False
 
 
@@ -288,14 +288,14 @@ def test_duplicate_can_be_explicitly_uploaded_as_separate_document(client):
     response = client.post(
         "/api/v1/intake/documents",
         files={"file": ("invoice.pdf", contents, "application/pdf")},
-        data={"allow_duplicate": "true"},
+        data={"allowDuplicate": "true"},
     )
 
     # Assert
     assert response.status_code == 201
-    assert response.json()["document_id"] != original["document_id"]
+    assert response.json()["documentId"] != original["documentId"]
     assert (
-        client.get("/api/v1/intake/documents/" + original["document_id"] + "/file").content
+        client.get("/api/v1/intake/documents/" + original["documentId"] + "/file").content
         == contents
     )
 

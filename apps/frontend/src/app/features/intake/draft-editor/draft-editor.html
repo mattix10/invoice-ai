@@ -7,14 +7,14 @@
       <label>Vendor <input name="vendor" [(ngModel)]="form().vendor" /></label>
       <label
         >Supplier invoice number
-        <input name="supplier_invoice_number" [(ngModel)]="form().supplier_invoice_number"
+        <input name="supplier_invoice_number" [(ngModel)]="form().supplierInvoiceNumber"
       /></label>
       <label>Issue date <input type="date" name="issued" [(ngModel)]="form().issued" /></label>
       <label>Due date <input type="date" name="due" [(ngModel)]="form().due" /></label>
       <label>Currency <input name="currency" maxlength="3" [(ngModel)]="form().currency" /></label>
       <label
         >VAT rate (decimal, e.g. 0.23)
-        <input name="vat_rate" inputmode="decimal" [(ngModel)]="form().vat_rate"
+        <input name="vat_rate" inputmode="decimal" [(ngModel)]="form().vatRate"
       /></label>
       <h3>Line items</h3>
       @for (item of form().items; track $index; let i = $index) {
@@ -31,13 +31,13 @@
               [(ngModel)]="item.quantity" /></label
           ><label
             >Unit net
-            <input inputmode="decimal" [name]="'unit_net' + i" [(ngModel)]="item.unit_net" /></label
+            <input inputmode="decimal" [name]="'unit_net' + i" [(ngModel)]="item.unitNet" /></label
           ><button type="button" (click)="removeItem(i)">Remove item</button>
         </fieldset>
       }
       <button type="button" (click)="addItem()">Add item</button>
       <h3>Declared totals (optional)</h3>
-      @if (form().declared_totals; as totals) {
+      @if (form().declaredTotals; as totals) {
         <label
           >Net <input name="declared_net" inputmode="decimal" [(ngModel)]="totals.net"
         /></label>

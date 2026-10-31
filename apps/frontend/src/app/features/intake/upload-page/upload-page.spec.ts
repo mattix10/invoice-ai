@@ -25,7 +25,7 @@ describe('UploadPage', () => {
     // Assert
     expect(request.request.method).toBe('POST');
     expect(request.request.body.get('file')).toBe(file);
-    request.flush({ document_id: 'doc-1' });
+    request.flush({ documentId: 'doc-1' });
     expect(navigate).toHaveBeenCalledWith(['/intake', 'doc-1']);
     http.verify();
   });
@@ -77,7 +77,7 @@ describe('UploadPage', () => {
         error: {
           code: 'duplicate_document',
           message: 'Duplicate',
-          existing_document_id: 'doc-1',
+          existingDocumentId: 'doc-1',
         },
       },
       { status: 409, statusText: 'Conflict' },
@@ -90,8 +90,8 @@ describe('UploadPage', () => {
     const request = http.expectOne('/api/v1/intake/documents');
 
     // Assert
-    expect(request.request.body.get('allow_duplicate')).toBe('true');
-    request.flush({ document_id: 'doc-2' });
+    expect(request.request.body.get('allowDuplicate')).toBe('true');
+    request.flush({ documentId: 'doc-2' });
     http.verify();
   });
 });

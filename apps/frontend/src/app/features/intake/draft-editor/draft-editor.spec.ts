@@ -7,13 +7,13 @@ describe('DraftEditor', () => {
     const fixture = TestBed.createComponent(DraftEditor);
     fixture.componentRef.setInput('draft', {
       vendor: 'Example',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
+      vatRate: null,
       items: [],
-      declared_totals: null,
+      declaredTotals: null,
     });
     fixture.componentRef.setInput('validation', { complete: false, errors: ['due'] });
 
@@ -30,13 +30,13 @@ describe('DraftEditor', () => {
     const fixture = TestBed.createComponent(DraftEditor);
     fixture.componentRef.setInput('draft', {
       vendor: 'Example',
-      supplier_invoice_number: null,
+      supplierInvoiceNumber: null,
       issued: null,
       due: null,
       currency: null,
-      vat_rate: null,
-      items: [{ position: 1, name: 'Work', quantity: 1, unit_net: '10.00' }],
-      declared_totals: null,
+      vatRate: null,
+      items: [{ position: 1, name: 'Work', quantity: 1, unitNet: '10.00' }],
+      declaredTotals: null,
     });
     fixture.componentRef.setInput('validation', { complete: false, errors: [] });
     fixture.componentRef.setInput('busy', true);

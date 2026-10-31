@@ -78,7 +78,7 @@ export class InvoiceWorkspacePage {
           return;
         }
         try {
-          this.gross.set(formatInvoiceAmount(result.invoice.gross_amount, result.invoice.currency));
+          this.gross.set(formatInvoiceAmount(result.invoice.grossAmount, result.invoice.currency));
           this.invoice.set(result.invoice);
           this.view.set(result.comparison ? detailView(result.invoice, result.comparison) : null);
           this.state.set('ready');
