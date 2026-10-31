@@ -34,4 +34,3 @@ The skill paths below are relative to the repository root.
 - Do not add Playwright visual-regression tests or baselines.
 
 - Before adding UI styles, review existing shared panels and recurring structures across the application. Reuse or extract a shared component with content projection when structure and responsibility match; preserve semantic elements, accessibility and intentional variants. Do not create components solely for unrelated matching CSS declarations.
-
