@@ -3,7 +3,10 @@
 import copy
 import io
 import json
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError, URLError
 
@@ -371,6 +374,7 @@ class LifecycleTests(unittest.TestCase):
             "review": EMPTY,
             "incomplete": False,
             "budget": review.MAX_DIFF_BYTES,
+            "inference_completed": True,
         }
 
     def test_publisher_creates_then_updates_one_bot_comment(self):
@@ -408,6 +412,102 @@ class LifecycleTests(unittest.TestCase):
         self.assertNotIn("<script>", rendered)
         self.assertNotIn("@team", rendered)
         self.assertNotIn("[click]", rendered)
+
+
+class OutcomeTests(unittest.TestCase):
+    def report(self, **changes):
+        value = {
+            "revision": REVISION,
+            "status": "completed",
+            "message": "",
+            "review": EMPTY,
+            "incomplete": False,
+            "inference_completed": True,
+        }
+        value.update(changes)
+        return value
+
+    def test_status_codes_match_actual_review_outcome(self):
+        for changes, expected, verdict in [
+            ({}, 0, "clear"),
+            ({"status": "failed", "review": None, "message": "OpenRouter HTTP 429"}, 1, "failed"),
+            ({"incomplete": True}, 1, "incomplete"),
+            ({"review": finding()}, 1, "findings"),
+            ({"inference_completed": False}, 1, "failed"),
+            ({"status": "skipped", "review": None}, 0, "skipped"),
+        ]:
+            with self.subTest(verdict=verdict), patch("sys.stdout", new_callable=io.StringIO):
+                report = self.report(**changes)
+                self.assertEqual(review.report_status(report), expected)
+                self.assertEqual(review.outcome(report), verdict)
+
+    @patch.object(review, "request_json")
+    def test_inference_rate_limit_cannot_claim_validated_review(self, http):
+        http.side_effect = [CATALOG, review.ReviewError("OpenRouter HTTP 429; review incomplete.")]
+        report = review.analyze(github(), 1, REVISION, "prompt", "openrouter/free", "key")
+        self.assertTrue(report["inference_attempted"])
+        self.assertFalse(report["inference_completed"])
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(http.call_count, 2)
+        with patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(review.report_status(report), 1)
+
+    def test_failure_is_written_to_job_summary_without_clearance(self):
+        with tempfile.TemporaryDirectory() as directory:
+            summary = Path(directory) / "summary.md"
+            with (
+                patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
+                patch("sys.stdout", new_callable=io.StringIO),
+            ):
+                code = review.report_status(
+                    self.report(status="failed", review=None, message="OpenRouter HTTP 429")
+                )
+            text = summary.read_text(encoding="utf-8")
+            self.assertEqual(code, 1)
+            self.assertIn("Result: FAILED", text)
+            self.assertIn("OpenRouter HTTP 429", text)
+            self.assertIn("not assessed", text)
+            self.assertNotIn("No high-confidence issues", text)
+
+    def test_duplicate_failure_and_legacy_report_do_not_turn_green(self):
+        gh = github([bot(review.MARKER + f"\n<!-- revision:{REVISION} -->")])
+        with patch.object(review, "request_json") as http:
+            report = review.analyze(gh, 1, REVISION, "prompt", "openrouter/free", "key")
+        self.assertEqual(review.outcome(report), "failed")
+        http.assert_not_called()
+        for cached in ["failed", "incomplete", "findings", "clear"]:
+            report["cached_outcome"] = cached
+            self.assertEqual(review.outcome(report), cached)
+
+    def test_model_text_is_not_interpreted_as_a_workflow_command(self):
+        report = self.report(review={"summary": "::warning::untrusted", "findings": []})
+        with patch("sys.stdout", new_callable=io.StringIO) as log:
+            review.report_status(report)
+        self.assertNotIn("::warning::untrusted", log.getvalue())
+
+    def test_failure_report_is_published_before_failure_is_signalled(self):
+        gh = github()
+        report = self.report(status="failed", review=None, message="OpenRouter HTTP 429")
+        review.publish(gh, 1, REVISION, report)
+        self.assertEqual(gh.call.call_args.args[2], "POST")
+        self.assertIn("HTTP 429", gh.call.call_args.args[1]["body"])
+        with patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(review.report_status(report), 1)
+
+    def test_status_command_needs_no_credentials_and_returns_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "report.json"
+            path.write_bytes(
+                review.encoded(
+                    self.report(status="failed", review=None, message="OpenRouter HTTP 429")
+                )
+            )
+            with (
+                patch.dict(os.environ, {}, clear=True),
+                patch("sys.argv", ["reviewer", "status", "--report", str(path)]),
+                patch("sys.stdout", new_callable=io.StringIO),
+            ):
+                self.assertEqual(review.main(), 1)
 
 
 if __name__ == "__main__":

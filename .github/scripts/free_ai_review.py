@@ -44,6 +44,7 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def request_json(url, token, payload=None, method=None):
+    service = "OpenRouter" if url.startswith(OPENROUTER + "/") else "GitHub"
     headers = {"Accept": "application/json", "User-Agent": "InvoiceFlow-Free-Review"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -62,8 +63,13 @@ def request_json(url, token, payload=None, method=None):
         return json.loads(raw)
     except HTTPError as exc:
         if exc.code == 429:
-            raise ReviewError("API rate limit reached; AI review could not be completed.") from None
-        raise ReviewError(f"API request failed (HTTP {exc.code}); review incomplete.") from None
+            raise ReviewError(
+                f"{service} API rate limit reached (HTTP 429); AI review could not be completed. "
+                "Wait for quota/capacity to recover, then re-run all jobs. No automatic retry."
+            ) from None
+        raise ReviewError(
+            f"{service} API request failed (HTTP {exc.code}); review incomplete."
+        ) from None
     except (URLError, TimeoutError, OSError, ValueError, HTTPException):
         raise ReviewError("API unavailable or returned invalid JSON; review incomplete.") from None
 
@@ -300,6 +306,11 @@ def analyze(gh, number, expected, prompt, model, key, rerun=False):
         "review": None,
         "incomplete": False,
         "budget": MAX_DIFF_BYTES,
+        "model": model,
+        "inference_attempted": False,
+        "inference_completed": False,
+        "reviewed_files": 0,
+        "submitted_bytes": 0,
     }
     try:
         pr = gh.call(f"pulls/{number}")
@@ -307,9 +318,20 @@ def analyze(gh, number, expected, prompt, model, key, rerun=False):
             report.update(status="unchanged", message="Obsolete or ineligible PR; skipped.")
             return report
         stamp = f"<!-- revision:{expected} -->"
-        if not rerun and any(stamp in c["body"] for c in bot_comments(gh, number)):
-            report.update(status="unchanged", message="Revision already attempted; skipped.")
-            return report
+        if not rerun:
+            for comment in bot_comments(gh, number):
+                if stamp not in comment["body"]:
+                    continue
+                match = re.search(
+                    r"<!-- outcome:(clear|findings|incomplete|failed|skipped) -->", comment["body"]
+                )
+                report.update(
+                    status="unchanged",
+                    cached_outcome=match[1] if match else "failed",
+                    message="Revision already attempted. See the existing bot report. "
+                    "Re-run all jobs to explicitly request another AI review.",
+                )
+                return report
         files = gh.files(number)
         selected, refs, incomplete = select_diff(files)
         report["incomplete"] = incomplete
@@ -336,7 +358,13 @@ def analyze(gh, number, expected, prompt, model, key, rerun=False):
         if not eligible(gh.call(f"pulls/{number}"), gh.repo, expected):
             report.update(status="unchanged", message="PR changed during analysis; skipped.")
             return report
+        report.update(
+            inference_attempted=True,
+            reviewed_files=len(selected),
+            submitted_bytes=len(encoded(selected)),
+        )
         report["review"] = validate_review(infer(model, key, prompt, selected), refs)
+        report["inference_completed"] = True
         report["status"] = "completed"
     except ReviewError as exc:
         report["message"] = str(exc)
@@ -354,12 +382,27 @@ def safe_text(text):
 
 
 def comment_body(report):
+    verdict = outcome(report)
     lines = [
         MARKER,
         f"<!-- revision:{report['revision']} -->",
+        f"<!-- outcome:{verdict} -->",
         "### Free AI review (advisory)",
+        f"**Result: {verdict.upper()}**",
         f"Revision: `{report['revision']}`.",
+        f"Model: {safe_text(report.get('model', 'not recorded'))}. "
+        f"Validated AI response: {'yes' if report.get('inference_completed') else 'no'}. "
+        f"Submitted source files: {report.get('reviewed_files', 0)}; "
+        f"diff bytes: {report.get('submitted_bytes', 0)}.",
     ]
+    if report["status"] == "unchanged":
+        return "\n\n".join(
+            lines[:6]
+            + [
+                "Existing report reused; no new inference request was sent.",
+                safe_text(report["message"]),
+            ]
+        )
     if report["incomplete"]:
         lines.append(
             "**Warning: incomplete review coverage. Oversized, unavailable, or "
@@ -380,8 +423,55 @@ def comment_body(report):
                 )
     else:
         lines.append(safe_text(report["message"]))
+    if verdict == "clear":
+        lines.append(
+            "**AI verdict: OK for the reviewed diff.** No AI blockers found. "
+            "Merge only after required CI and human review pass; "
+            "this report alone does not certify that changes are safe to merge."
+        )
+    elif verdict in {"failed", "incomplete", "skipped"}:
+        lines.append("**Merge readiness: not assessed.** This is not a successful AI clearance.")
+    elif verdict == "findings":
+        lines.append(
+            "**Merge readiness: needs attention.** Resolve or dismiss the findings "
+            "with human review before merging."
+        )
     lines.append("AI output may be wrong. Existing quality gates remain authoritative.")
     return "\n\n".join(lines)
+
+
+def outcome(report):
+    if report["status"] == "unchanged":
+        return report.get("cached_outcome", "skipped")
+    if report["status"] != "completed":
+        return report["status"] if report["status"] in {"failed", "skipped"} else "failed"
+    if not report.get("inference_completed"):
+        return "failed"
+    if report["incomplete"]:
+        return "incomplete"
+    return "findings" if report["review"]["findings"] else "clear"
+
+
+def report_status(report):
+    body = comment_body(report)
+    # Model text goes only to Markdown, never to the workflow command log channel.
+    print("AI review outcome:", outcome(report))
+    if report.get("message"):
+        print("Reason:", safe_text(report["message"]))
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with Path(summary).open("a", encoding="utf-8") as output:
+            output.write(body + "\n")
+    verdict = outcome(report)
+    if verdict in {"failed", "incomplete", "findings"}:
+        print(
+            f"::error title=AI review {verdict}::AI review is {verdict}. "
+            "See the job summary and PR bot report for details."
+        )
+        return 1
+    if verdict == "skipped":
+        print("::notice::AI review was skipped; merge readiness was not assessed.")
+    return 0
 
 
 def publish(gh, number, expected, report):
@@ -413,9 +503,13 @@ def publish(gh, number, expected, report):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["analyze", "publish"])
+    parser.add_argument("command", choices=["analyze", "publish", "status"])
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
+    if args.command == "status":
+        if args.report.stat().st_size > 100_000:
+            raise ReviewError("Review artifact exceeds size limit.")
+        return report_status(json.loads(args.report.read_text(encoding="utf-8")))
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
     gh = GitHub(os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_TOKEN"])
     number = event["number"]
@@ -438,10 +532,11 @@ def main():
         if args.report.stat().st_size > 100_000:
             raise ReviewError("Review artifact exceeds size limit.")
         publish(gh, number, expected, json.loads(args.report.read_text(encoding="utf-8")))
+    return 0
 
 
 if __name__ == "__main__":
     try:
-        main()
+        raise SystemExit(main())
     except ReviewError as error:
         raise SystemExit(str(error)) from None

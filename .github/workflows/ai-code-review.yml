@@ -43,9 +43,13 @@ jobs:
           path: ${{ runner.temp }}/ai-review/report.json
           retention-days: 1
           if-no-files-found: error
+      - name: Report actual AI analysis outcome
+        run: python3 .github/scripts/free_ai_review.py status --report "$RUNNER_TEMP/ai-review/report.json"
 
   publish:
     needs: analyze
+    # Publish the saved failure report even when the analysis outcome is red.
+    if: ${{ !cancelled() && (needs.analyze.result == 'success' || needs.analyze.result == 'failure') }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
@@ -65,3 +69,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/free_ai_review.py publish --report "$RUNNER_TEMP/ai-review/report.json"
+      - name: Report actual AI review outcome
+        run: python3 .github/scripts/free_ai_review.py status --report "$RUNNER_TEMP/ai-review/report.json"

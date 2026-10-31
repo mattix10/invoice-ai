@@ -18,6 +18,34 @@ agents, paid subscriptions, OpenAI API calls or GitHub Models integrations.
    `pull-requests: write`; it does not receive the OpenRouter secret. It creates
    or updates one marked `github-actions[bot]` issue comment.
 
+The analysis job uploads its report **before** evaluating the actual review
+outcome. A final status step writes a readable Actions job summary and returns a
+nonzero exit code for failed/incomplete reviews or findings. The publisher runs
+even when that analysis status step fails, publishes the saved reason, and also
+reports the same outcome. It does not run for canceled or job-skipped analysis.
+Thus a successful API/script execution cannot disguise an unsuccessful review.
+
+Every eligible non-draft same-repository PR targeting `master` automatically gets
+this bot report. OpenRouter is a model API, not a GitHub user that this workflow
+can request as a named reviewer. The supported fallback is the automatic bot
+report plus Actions checks; no separate paid reviewer account is configured.
+
+| Report result | Actions outcome            | Meaning                                                                  |
+| ------------- | -------------------------- | ------------------------------------------------------------------------ |
+| `CLEAR`       | Green                      | Validated AI response, complete submitted source coverage, no findings   |
+| `FINDINGS`    | Red                        | AI completed and reported actionable findings; human assessment required |
+| `INCOMPLETE`  | Red                        | AI response received but some source diff was omitted                    |
+| `FAILED`      | Red                        | No validated AI review, e.g. rate limit, missing key or invalid response |
+| `SKIPPED`     | Green with explicit notice | No reviewable source diff or an obsolete revision; no AI clearance       |
+
+The report and job summaries include the exact revision, configured model,
+whether a validated AI response was received, and submitted file/byte counts.
+`CLEAR` says **OK for the reviewed diff**, not an unconditional “safe to merge”:
+required deterministic checks and human review must still pass. Draft/fork/disabled
+workflows are visibly skipped and produce no clearance. There is no report if the
+runner or GitHub itself fails before the reporting jobs can run; failed jobs must
+not be interpreted as successful review.
+
 Neither job executes PR code, installs PR dependencies, uses a PR-controlled
 workflow/script, interpolates PR text into shell, grants source write access,
 pushes or merges. Third-party actions are pinned to release commit SHAs.
@@ -79,7 +107,10 @@ they still rely on OpenRouter honoring its API contract.
 
 There is at most one inference POST per normal event revision (head + base SHA).
 A marker in the bot comment prevents reopening/ready events from spending another
-request on an already attempted revision. Explicit **Actions → Free AI code review
+request on an already attempted revision. It preserves the previous report's
+outcome: a prior failed review never becomes green just because it was deduplicated.
+Legacy comments without an outcome marker are treated as failed until explicitly
+rerun. Explicit **Actions → Free AI code review
 → select run → Re-run all jobs** bypasses this guard for a deliberate retry.
 **Re-run failed jobs** suffices if only publishing failed. A canceled run or failed
 comment write may have consumed inference without persisting its marker; a rerun
@@ -109,6 +140,12 @@ and the authenticated `GET /api/v1/key` counters for the actual account ceiling.
 Free capacity is not guaranteed and models can disappear. HTTP 429, quota
 exhaustion, timeouts, unavailable models and malformed output produce a distinct
 **review could not be completed** comment. There are no automatic retries.
+HTTP errors identify OpenRouter versus GitHub and the HTTP status without exposing
+raw provider responses. HTTP 429 requires waiting for quota or provider capacity
+to recover, then explicitly selecting **Re-run all jobs**. Creating a new key does
+not inherently increase an account's free quota. The original PR #2 failure was a
+reported API rate limit; the previous generic message did not identify which API
+issued it. Changing check reporting does not remove external rate limits.
 
 Model inference is $0 within free limits. GitHub-hosted runner minutes and artifact
 storage follow the repository's GitHub plan; private repositories may exhaust
@@ -161,8 +198,10 @@ actionlint .github/workflows/ai-code-review.yml .github/workflows/ci.yml
 git diff --check
 ```
 
-The existing CI runs the same offline reviewer tests in a new small blocking job.
+The existing CI runs the same offline reviewer tests in a small blocking job.
 They mock OpenRouter/GitHub and cover filtering, line validation, malformed output,
 empty findings, paid model rejection, API/rate-limit failures, oversize warnings,
 revision deduplication, stale PRs and comment creation/update. Application lint and
 test commands remain in their original jobs without being duplicated here.
+Additional regression tests cover outcome exit codes, job summaries, preservation
+of previous failures, and publication of failure reports before signaling failure.
