@@ -1,6 +1,12 @@
-<form (submit)="$event.preventDefault(); submit()">
+<form (submit)="$event.preventDefault(); submitUpload()">
   <label for="pdf">PDF file</label
-  ><input id="pdf" type="file" accept=".pdf,application/pdf" (change)="select($event)" />
+  ><input
+    id="pdf"
+    type="file"
+    accept=".pdf,application/pdf"
+    [disabled]="busy()"
+    (change)="selectFile($event)"
+  />
   @if (validation()) {
     <p role="alert">{{ validation() }}</p>
   }
@@ -12,7 +18,7 @@
       A matching document already exists.
       <a [routerLink]="['/intake', duplicate()]">Open existing document</a>
     </p>
-    <button type="button" [disabled]="busy()" (click)="duplicateSubmit()">
+    <button type="button" [disabled]="busy()" (click)="uploadSeparateDocument()">
       Create a separate document anyway
     </button>
   }

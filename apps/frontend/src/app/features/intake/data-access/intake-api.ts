@@ -8,34 +8,46 @@ export type Draft = components['schemas']['Draft'];
 export type Validation = components['schemas']['Validation'];
 export type Document = components['schemas']['DocumentResponse'];
 export type SavedDraft = components['schemas']['DraftResponse'];
+
+const INTAKE_DOCUMENTS_URL = '/api/v1/intake/documents';
+
 @Injectable({ providedIn: 'root' })
 export class IntakeApi {
   private readonly http = inject(HttpClient);
-  document(id: Signal<string>) {
-    return httpResource<Document>(() => `/api/v1/intake/documents/${encodeURIComponent(id())}`);
+
+  documentResource(documentId: Signal<string>) {
+    return httpResource<Document>(() => this.documentUrl(documentId()));
   }
-  file(id: Signal<string>) {
-    return httpResource.blob(() => `/api/v1/intake/documents/${encodeURIComponent(id())}/file`);
+
+  documentFileResource(documentId: Signal<string>) {
+    return httpResource.blob(() => `${this.documentUrl(documentId())}/file`);
   }
-  upload(file: File, allowDuplicate = false) {
-    const body = new FormData();
-    body.append('file', file);
-    if (allowDuplicate) body.append('allow_duplicate', 'true');
+
+  uploadDocument(file: File, allowDuplicate = false) {
+    const uploadForm = new FormData();
+    uploadForm.append('file', file);
+    if (allowDuplicate) uploadForm.append('allow_duplicate', 'true');
     return this.http.post<components['schemas']['UploadResponse']>(
-      '/api/v1/intake/documents',
-      body,
+      INTAKE_DOCUMENTS_URL,
+      uploadForm,
     );
   }
-  save(id: string, expected_revision: number, draft: Draft) {
-    return this.http.put<SavedDraft>(`/api/v1/intake/documents/${encodeURIComponent(id)}/draft`, {
-      expected_revision,
+
+  saveDraft(documentId: string, expectedRevision: number, draft: Draft) {
+    return this.http.put<SavedDraft>(`${this.documentUrl(documentId)}/draft`, {
+      expected_revision: expectedRevision,
       draft,
     });
   }
-  confirm(id: string, expected_revision: number) {
+
+  confirmInvoice(documentId: string, expectedRevision: number) {
     return this.http.post<components['schemas']['ConfirmResponse']>(
-      `/api/v1/intake/documents/${encodeURIComponent(id)}/confirm`,
-      { expected_revision },
+      `${this.documentUrl(documentId)}/confirm`,
+      { expected_revision: expectedRevision },
     );
+  }
+
+  private documentUrl(documentId: string): string {
+    return `${INTAKE_DOCUMENTS_URL}/${encodeURIComponent(documentId)}`;
   }
 }

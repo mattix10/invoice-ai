@@ -24,12 +24,12 @@ export class UploadPage {
     this.error.set('');
     this.duplicate.set('');
     this.api
-      .upload(file, allowDuplicate)
+      .uploadDocument(file, allowDuplicate)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (result) => {
+        next: (document) => {
           this.busy.set(false);
-          void this.router.navigate(['/intake', result.document_id]);
+          void this.router.navigate(['/intake', document.document_id]);
         },
         error: (error: unknown) => {
           this.busy.set(false);

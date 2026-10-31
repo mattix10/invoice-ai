@@ -18,7 +18,7 @@
       </h1>
       <p class="subtitle">
         {{ invoice.vendor }} · Issued {{ invoice.issued || 'Unavailable' }} ·
-        {{ gross() | currency: invoice.currency : 'code' }}
+        {{ gross() }}
       </p>
     </div>
     @if (invoice.id === 'INV-2026-1042') {

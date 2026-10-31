@@ -9,6 +9,8 @@ import { InvoiceStatusChart } from '../invoice-status-chart/invoice-status-chart
 import { RecentInvoicesTable } from '../recent-invoices-table/recent-invoices-table';
 import { AttentionQueue } from '../attention-queue/attention-queue';
 
+const NEXT_REVIEW_QUERY = { status: 'needs_review', page_size: 1, sort: '-id' } as const;
+
 @Component({
   selector: 'app-overview-page',
   imports: [
@@ -24,15 +26,18 @@ import { AttentionQueue } from '../attention-queue/attention-queue';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OverviewPage {
-  private readonly api = inject(InvoiceApi);
-  protected readonly invoiceResource = this.api.listResource({}, (page) =>
-    page.items.map(summaryView),
+  private readonly invoiceApi = inject(InvoiceApi);
+  protected readonly recentInvoices = this.invoiceApi.invoiceListResource({}, (invoicePage) =>
+    invoicePage.items.map(summaryView),
   );
-  protected readonly reviewResource = this.api.listResource(
-    { status: 'needs_review', page_size: 1, sort: '-id' },
-    (page) => page.items[0]?.id ?? null,
+  protected readonly nextInvoiceForReview = this.invoiceApi.invoiceListResource(
+    NEXT_REVIEW_QUERY,
+    (invoicePage) => invoicePage.items[0]?.id ?? null,
   );
-  protected readonly data = OVERVIEW_DEMO_DATA;
-  protected readonly invoiceLink = ['/invoices', OVERVIEW_DEMO_DATA.invoice.id];
-  protected readonly investigationLink = [...this.invoiceLink, 'investigation'];
+  protected readonly demoOverview = OVERVIEW_DEMO_DATA;
+  protected readonly investigationLink = [
+    '/invoices',
+    OVERVIEW_DEMO_DATA.invoice.id,
+    'investigation',
+  ];
 }

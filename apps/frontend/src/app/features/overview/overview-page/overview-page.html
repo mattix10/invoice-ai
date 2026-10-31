@@ -5,15 +5,15 @@
     <p class="subtitle">Your priority today: resolve the exceptions that need human review.</p>
   </div>
   <a class="btn" routerLink="/invoices/new">Upload invoice</a>
-  @if (reviewResource.isLoading()) {
+  @if (nextInvoiceForReview.isLoading()) {
     <p role="status">Loading review queue…</p>
-  } @else if (reviewResource.error()) {
+  } @else if (nextInvoiceForReview.error()) {
     <p role="alert">
       Review queue could not be loaded.
-      <button type="button" (click)="reviewResource.reload()">Retry</button>
+      <button type="button" (click)="nextInvoiceForReview.reload()">Retry</button>
     </p>
-  } @else if (reviewResource.hasValue()) {
-    @if (reviewResource.value(); as id) {
+  } @else if (nextInvoiceForReview.hasValue()) {
+    @if (nextInvoiceForReview.value(); as id) {
       <a class="btn btn-primary" [routerLink]="['/invoices', id]"
         >Review next invoice <span aria-hidden="true">→</span></a
       >
@@ -24,48 +24,48 @@
     <p role="status">Loading review queue…</p>
   }
 </div>
-<app-overview-kpis [kpis]="data.kpis" />
+<app-overview-kpis [kpis]="demoOverview.kpis" />
 <p>Historical metrics and the highlighted investigation below are synthetic demo content.</p>
 <app-attention-queue
   class="banner"
   mode="banner"
-  [invoice]="data.invoice"
-  [differencePercent]="data.differencePercent"
-  [additionalReviewCount]="data.additionalReviewCount"
+  [invoice]="demoOverview.invoice"
+  [differencePercent]="demoOverview.differencePercent"
+  [additionalReviewCount]="demoOverview.additionalReviewCount"
   [investigationLink]="investigationLink"
 />
 <div class="dashboard-grid">
-  @if (invoiceResource.isLoading()) {
+  @if (recentInvoices.isLoading()) {
     <p role="status">Loading invoices…</p>
-  } @else if (invoiceResource.error()) {
+  } @else if (recentInvoices.error()) {
     <p role="alert">
       Invoices could not be loaded.
-      <button type="button" (click)="invoiceResource.reload()">Retry</button>
+      <button type="button" (click)="recentInvoices.reload()">Retry</button>
     </p>
-  } @else if (invoiceResource.hasValue()) {
-    @if (invoiceResource.value().length === 0) {
+  } @else if (recentInvoices.hasValue()) {
+    @if (recentInvoices.value().length === 0) {
       <p>No invoices found.</p>
     } @else {
-      <app-recent-invoices-table [invoices]="invoiceResource.value()" />
+      <app-recent-invoices-table [invoices]="recentInvoices.value()" />
     }
   } @else {
     <p role="status">Loading invoices…</p>
   }
   <div class="side-stack">
     <app-processing-volume-chart
-      [volume]="data.processingVolume"
-      [chartLabel]="data.processingVolumeLabel"
-      [note]="data.processingVolumeNote"
+      [volume]="demoOverview.processingVolume"
+      [chartLabel]="demoOverview.processingVolumeLabel"
+      [note]="demoOverview.processingVolumeNote"
     />
     <app-invoice-status-chart
-      [statuses]="data.invoiceStatuses"
-      [chartLabel]="data.statusChartLabel"
+      [statuses]="demoOverview.invoiceStatuses"
+      [chartLabel]="demoOverview.statusChartLabel"
     />
     <app-attention-queue
       mode="list"
-      [invoice]="data.invoice"
-      [differencePercent]="data.differencePercent"
-      [additionalReviewCount]="data.additionalReviewCount"
+      [invoice]="demoOverview.invoice"
+      [differencePercent]="demoOverview.differencePercent"
+      [additionalReviewCount]="demoOverview.additionalReviewCount"
       [investigationLink]="investigationLink"
     />
   </div>

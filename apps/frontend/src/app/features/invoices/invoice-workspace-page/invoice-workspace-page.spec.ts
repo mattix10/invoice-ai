@@ -6,6 +6,48 @@ import { BehaviorSubject } from 'rxjs';
 import { InvoiceWorkspacePage } from './invoice-workspace-page';
 
 describe('InvoiceWorkspacePage', () => {
+  it('should display a large invoice amount exactly when comparison is unavailable', async () => {
+    // Arrange
+    TestBed.configureTestingModule({
+      imports: [InvoiceWorkspacePage],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: new BehaviorSubject(convertToParamMap({ id: 'large' })) },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(InvoiceWorkspacePage);
+    const http = TestBed.inject(HttpTestingController);
+
+    // Act
+    fixture.detectChanges();
+    http.expectOne('/api/v1/invoices/large').flush({
+      id: 'large',
+      vendor: 'Example',
+      due: '2026-11-19',
+      currency: 'PLN',
+      status: 'needs_review',
+      gross_amount: '100000000000000.01',
+      issued: null,
+      purchase_order: null,
+      vat_rate: null,
+      items: [],
+      totals: null,
+    });
+    http
+      .expectOne('/api/v1/invoices/large/comparison')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+
+    // Assert
+    expect(fixture.nativeElement.textContent).toContain('PLN100,000,000,000,000.01');
+    http.verify();
+  });
+
   it('should load changed route IDs and show missing comparison honestly', async () => {
     const params = new BehaviorSubject(convertToParamMap({ id: 'INV-2026-1041' }));
     TestBed.configureTestingModule({

@@ -9,7 +9,7 @@ export interface RecentInvoice {
   readonly id: string;
   readonly vendor: string;
   readonly due: string;
-  readonly amountGrosz: number;
+  readonly amount: string;
   readonly currency?: string;
   readonly status: string;
 }
@@ -40,28 +40,28 @@ const recentInvoices: readonly RecentInvoice[] = [
     id: DEMO_INVOICE.id,
     vendor: DEMO_INVOICE.vendor,
     due: '21 Nov 2026',
-    amountGrosz: DEMO_INVOICE.invoiceGrossGrosz,
+    amount: 'PLN12,915.00',
     status: DEMO_INVOICE.status,
   },
   {
     id: 'INV-2026-1041',
     vendor: 'Riverton Cloud Ltd.',
     due: '19 Nov 2026',
-    amountGrosz: 344400,
+    amount: 'PLN3,444.00',
     status: 'Approved',
   },
   {
     id: 'INV-2026-1040',
     vendor: 'Baltic Logistics Sp. z o.o.',
     due: '18 Nov 2026',
-    amountGrosz: 184500,
+    amount: 'PLN1,845.00',
     status: 'Processing',
   },
   {
     id: 'INV-2026-1039',
     vendor: 'Fieldstone Services',
     due: '16 Nov 2026',
-    amountGrosz: 516600,
+    amount: 'PLN5,166.00',
     status: 'Needs review',
   },
 ];

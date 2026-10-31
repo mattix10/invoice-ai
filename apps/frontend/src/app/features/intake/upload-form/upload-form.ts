@@ -1,5 +1,8 @@
 import { RouterLink } from '@angular/router';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+
+const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024;
+
 @Component({
   selector: 'app-upload-form',
   imports: [RouterLink],
@@ -14,25 +17,26 @@ export class UploadForm {
   readonly uploadDuplicate = output<File>();
   readonly selectionChanged = output<void>();
   readonly upload = output<File>();
-  protected readonly file = signal<File | null>(null);
+  protected readonly selectedFile = signal<File | null>(null);
   protected readonly validation = signal('');
-  protected select(event: Event) {
-    this.file.set((event.target as HTMLInputElement).files?.[0] ?? null);
+  protected selectFile(event: Event): void {
+    if (this.busy()) return;
+    this.selectedFile.set((event.target as HTMLInputElement).files?.[0] ?? null);
     this.validation.set('');
     this.selectionChanged.emit();
   }
-  protected duplicateSubmit() {
-    const file = this.file();
+  protected uploadSeparateDocument(): void {
+    const file = this.selectedFile();
     if (file) this.uploadDuplicate.emit(file);
   }
-  protected submit() {
-    const file = this.file();
+  protected submitUpload(): void {
+    const file = this.selectedFile();
     if (
       !file ||
       !file.name.toLowerCase().endsWith('.pdf') ||
       (file.type && file.type !== 'application/pdf') ||
       file.size === 0 ||
-      file.size > 10 * 1024 * 1024
+      file.size > MAX_PDF_SIZE_BYTES
     ) {
       this.validation.set('Select a non-empty PDF no larger than 10 MiB.');
       return;

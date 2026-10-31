@@ -23,7 +23,7 @@
               <td>{{ row.vendor }}</td>
               <td>{{ row.due }}</td>
               <td class="numeric">
-                {{ row.amountGrosz / 100 | currency: row.currency || 'PLN' : 'code' : '1.2-2' }}
+                {{ row.amount }}
               </td>
               <td>
                 <span

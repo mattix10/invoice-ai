@@ -8,10 +8,10 @@ export type InvoiceSummaryDto = components['schemas']['InvoiceSummary'];
 export type InvoiceListQuery = NonNullable<operations['listInvoices']['parameters']['query']>;
 export type InvoicePageDto = components['schemas']['InvoicePage'];
 
-function listParams(query: InvoiceListQuery): HttpParams {
+function invoiceListParams(query: InvoiceListQuery): HttpParams {
   let params = new HttpParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== null) params = params.set(key, String(value));
+  for (const [parameter, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null) params = params.set(parameter, String(value));
   }
   return params;
 }
@@ -20,15 +20,15 @@ function listParams(query: InvoiceListQuery): HttpParams {
 export class InvoiceApi {
   private readonly http = inject(HttpClient);
 
-  listResource<T>(query: InvoiceListQuery, parse: (page: InvoicePageDto) => T) {
-    return httpResource(() => ({ url: '/api/v1/invoices', params: listParams(query) }), {
-      parse: (value) => parse(value as InvoicePageDto),
+  invoiceListResource<T>(query: InvoiceListQuery, parsePage: (page: InvoicePageDto) => T) {
+    return httpResource(() => ({ url: '/api/v1/invoices', params: invoiceListParams(query) }), {
+      parse: (response) => parsePage(response as InvoicePageDto),
     });
   }
 
   list(query: InvoiceListQuery = {}) {
     return this.http.get<components['schemas']['InvoicePage']>('/api/v1/invoices', {
-      params: listParams(query),
+      params: invoiceListParams(query),
     });
   }
 

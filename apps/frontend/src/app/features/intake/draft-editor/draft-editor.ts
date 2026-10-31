@@ -25,18 +25,20 @@ export class DraftEditor {
     this.form.update((draft) => ({ ...draft, declared_totals: null }));
   }
   protected addItem() {
-    this.form.update((d) => ({
-      ...d,
+    this.form.update((draft) => ({
+      ...draft,
       items: [
-        ...d.items,
-        { position: d.items.length + 1, name: null, quantity: null, unit_net: null },
+        ...draft.items,
+        { position: draft.items.length + 1, name: null, quantity: null, unit_net: null },
       ],
     }));
   }
   protected removeItem(index: number) {
-    this.form.update((d) => ({
-      ...d,
-      items: d.items.filter((_, i) => i !== index).map((item, i) => ({ ...item, position: i + 1 })),
+    this.form.update((draft) => ({
+      ...draft,
+      items: draft.items
+        .filter((_, itemIndex) => itemIndex !== index)
+        .map((item, itemIndex) => ({ ...item, position: itemIndex + 1 })),
     }));
   }
 }

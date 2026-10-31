@@ -34,12 +34,21 @@
               Discard local changes and load latest draft
             </button>
           }
+          @if (pendingConfirmation() !== null) {
+            <p role="status">
+              The confirmation outcome is unknown. Retry confirmation or reload the document.
+            </p>
+            <button type="button" [disabled]="busy()" (click)="retryConfirmation()">
+              Retry confirmation
+            </button>
+            <button type="button" [disabled]="busy()" (click)="reload()">Reload document</button>
+          }
           <app-draft-editor
             [draft]="doc.draft"
             [validation]="doc.validation"
-            [busy]="busy() || conflict()"
-            (save)="save($event)"
-            (confirm)="save($event, true)"
+            [busy]="busy() || conflict() || pendingConfirmation() !== null"
+            (save)="saveDraft($event)"
+            (confirm)="confirmInvoice($event)"
           />
         </div>
       </div>

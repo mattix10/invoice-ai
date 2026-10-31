@@ -2,9 +2,206 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { DraftPage } from './draft-page';
 describe('DraftPage', () => {
+  it('should ignore a save from an earlier visit after returning to the same document', async () => {
+    // Arrange
+    const firstDocument = convertToParamMap({ documentId: 'doc-1' });
+    const routeParams = new BehaviorSubject(firstDocument);
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: firstDocument }, paramMap: routeParams },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(DraftPage);
+    const http = TestBed.inject(HttpTestingController);
+    const draft = {
+      vendor: 'Original',
+      supplier_invoice_number: null,
+      issued: null,
+      due: null,
+      currency: null,
+      vat_rate: null,
+      items: [],
+      declared_totals: null,
+    };
+    const validation = { complete: false, errors: [] };
+    fixture.detectChanges();
+    http.expectOne('/api/v1/intake/documents/doc-1').flush({
+      document_id: 'doc-1',
+      status: 'draft',
+      original_name: 'a.pdf',
+      revision: 2,
+      draft,
+      validation,
+    });
+    http
+      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
+    await fixture.whenStable();
+    const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
+      button.textContent?.includes('Confirm invoice'),
+    ) as HTMLButtonElement;
+    confirm.click();
+    const oldSave = http.expectOne('/api/v1/intake/documents/doc-1/draft');
+
+    // Act
+    routeParams.next(convertToParamMap({ documentId: 'doc-2' }));
+    fixture.detectChanges();
+    routeParams.next(firstDocument);
+    fixture.detectChanges();
+    oldSave.flush({ draft: { ...draft, vendor: 'Old response' }, revision: 3, validation });
+    http
+      .match(() => true)
+      .filter((request) => !request.cancelled)
+      .forEach((request) => request.flush(null, { status: 503, statusText: 'Unavailable' }));
+    await fixture.whenStable();
+
+    // Assert
+    http.expectNone('/api/v1/intake/documents/doc-1/confirm');
+    expect(fixture.nativeElement.textContent).not.toContain('Old response');
+    http.verify();
+  });
+  it('should not confirm another document when the route changes during saving', async () => {
+    // Arrange
+    const firstDocument = convertToParamMap({ documentId: 'doc-1' });
+    const routeParams = new BehaviorSubject(firstDocument);
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: firstDocument }, paramMap: routeParams },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(DraftPage);
+    const http = TestBed.inject(HttpTestingController);
+    const draft = {
+      vendor: 'Example',
+      supplier_invoice_number: null,
+      issued: null,
+      due: null,
+      currency: null,
+      vat_rate: null,
+      items: [],
+      declared_totals: null,
+    };
+    const validation = { complete: false, errors: [] };
+    fixture.detectChanges();
+    http.expectOne('/api/v1/intake/documents/doc-1').flush({
+      document_id: 'doc-1',
+      status: 'draft',
+      original_name: 'a.pdf',
+      revision: 2,
+      draft,
+      validation,
+    });
+    http
+      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
+    await fixture.whenStable();
+    const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
+      button.textContent?.includes('Confirm invoice'),
+    ) as HTMLButtonElement;
+    confirm.click();
+    const save = http.expectOne('/api/v1/intake/documents/doc-1/draft');
+
+    // Act
+    routeParams.next(convertToParamMap({ documentId: 'doc-2' }));
+    fixture.detectChanges();
+    save.flush({ draft, revision: 3, validation });
+
+    // Assert
+    http.expectNone('/api/v1/intake/documents/doc-2/confirm');
+    http.expectNone('/api/v1/intake/documents/doc-1/confirm');
+    http.expectOne('/api/v1/intake/documents/doc-2').flush({
+      document_id: 'doc-2',
+      status: 'draft',
+      original_name: 'b.pdf',
+      revision: 1,
+      draft,
+      validation,
+    });
+    http
+      .expectOne('/api/v1/intake/documents/doc-2/file')
+      .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
+    http.verify();
+  });
+  it('should retry confirmation without saving again when the response is lost', async () => {
+    // Arrange
+    const params = convertToParamMap({ documentId: 'doc-1' });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: params }, paramMap: of(params) },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(DraftPage);
+    const http = TestBed.inject(HttpTestingController);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const draft = {
+      vendor: 'Example',
+      supplier_invoice_number: null,
+      issued: null,
+      due: null,
+      currency: null,
+      vat_rate: null,
+      items: [],
+      declared_totals: null,
+    };
+    const validation = { complete: false, errors: [] };
+    fixture.detectChanges();
+    http.expectOne('/api/v1/intake/documents/doc-1').flush({
+      document_id: 'doc-1',
+      status: 'draft',
+      original_name: 'a.pdf',
+      revision: 2,
+      draft,
+      validation,
+    });
+    http
+      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
+    await fixture.whenStable();
+    const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
+      button.textContent?.includes('Confirm invoice'),
+    ) as HTMLButtonElement;
+    confirm.click();
+    http
+      .expectOne('/api/v1/intake/documents/doc-1/draft')
+      .flush({ draft, revision: 3, validation });
+    http.expectOne('/api/v1/intake/documents/doc-1/confirm').error(new ProgressEvent('error'));
+    await fixture.whenStable();
+
+    // Act
+    const retry = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
+      button.textContent?.includes('Retry confirmation'),
+    ) as HTMLButtonElement;
+    retry.click();
+    http
+      .expectOne('/api/v1/intake/documents/doc-1/confirm')
+      .flush({ invoice_id: 'INV-1', status: 'confirmed' });
+
+    // Assert
+    http.expectNone('/api/v1/intake/documents/doc-1/draft');
+    expect(navigate).toHaveBeenCalledWith(['/invoices', 'INV-1']);
+    http.verify();
+  });
   it('should load the saved draft and report a PDF failure separately', async () => {
     // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
