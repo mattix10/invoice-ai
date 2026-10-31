@@ -1,7 +1,7 @@
 import { Panel } from '../../../shared/ui/panel/panel';
 import { CurrencyPipe, formatCurrency } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { INVOICE_WORKSPACE_DATA } from '../invoice-demo.data';
+import { InvoiceWorkspaceView } from '../data-access/invoice-adapter';
 import { InvoiceComparisonTable } from '../invoice-comparison-table/invoice-comparison-table';
 
 @Component({
@@ -13,7 +13,7 @@ import { InvoiceComparisonTable } from '../invoice-comparison-table/invoice-comp
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoiceComparison {
-  readonly data = input.required<typeof INVOICE_WORKSPACE_DATA>();
+  readonly data = input.required<InvoiceWorkspaceView>();
   protected readonly itemHeaders = [
     'Item',
     'Qty',
@@ -25,7 +25,8 @@ export class InvoiceComparison {
   protected readonly totalHeaders = ['Totals', 'Invoice', 'Purchase order'];
 
   private money(value: number): string {
-    return formatCurrency(value, 'en-US', 'PLN', 'PLN');
+    const currency = this.data().invoice.currency;
+    return formatCurrency(value, 'en-US', currency, currency);
   }
   protected readonly itemRows = computed(() =>
     this.data().items.map((item) => [

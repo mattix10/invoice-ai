@@ -1,7 +1,7 @@
 import { Panel } from '../../../shared/ui/panel/panel';
 import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { INVOICE_WORKSPACE_DATA } from '../invoice-demo.data';
+import { InvoiceWorkspaceView } from '../data-access/invoice-adapter';
 
 @Component({
   selector: 'app-invoice-fields',
@@ -11,5 +11,5 @@ import { INVOICE_WORKSPACE_DATA } from '../invoice-demo.data';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoiceFields {
-  readonly data = input.required<typeof INVOICE_WORKSPACE_DATA>();
+  readonly data = input.required<InvoiceWorkspaceView>();
 }

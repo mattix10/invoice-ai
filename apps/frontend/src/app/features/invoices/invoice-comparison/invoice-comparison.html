@@ -16,16 +16,18 @@
 ></app-panel>
 <app-panel variant="warning" class="discrepancy"
   ><section class="panel" aria-labelledby="difference-title">
-    <h2 id="difference-title">Price mismatch · Needs review</h2>
+    <h2 id="difference-title">Invoice and purchase order difference</h2>
     <p>
-      {{ data().items[0].quantity }} monitors ×
-      {{ data().monitorUnitDifference | currency: 'PLN' : 'code' }} =
-      {{ data().differenceNet | currency: 'PLN' : 'code' }} net, plus
-      {{ data().differenceVat | currency: 'PLN' : 'code' }} VAT.
+      {{ data().differenceNet | currency: data().invoice.currency : 'code' }} net, plus
+      {{ data().differenceVat | currency: data().invoice.currency : 'code' }} VAT.
     </p>
     <p>
-      Gross difference: <strong>{{ data().differenceGross | currency: 'PLN' : 'code' }}</strong
-      >. Quantities match the purchase order and sample delivery receipt.
+      Gross difference:
+      <strong>{{ data().differenceGross | currency: data().invoice.currency : 'code' }}</strong>
+      @if (data().differencePercent !== null) {
+        ({{ data().differencePercent }}% of PO gross)
+      }
+      .
     </p>
   </section></app-panel
 >

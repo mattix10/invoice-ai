@@ -1,7 +1,7 @@
 <app-panel
   ><section class="panel" aria-labelledby="fields-title">
     <h2 id="fields-title">Invoice fields</h2>
-    <p class="section-note">Values shown from the static sample</p>
+    <p class="section-note">Values supplied by the invoice API</p>
     <dl class="fields">
       <div>
         <dt>Supplier</dt>
@@ -25,7 +25,7 @@
       </div>
       <div>
         <dt>Gross total</dt>
-        <dd>{{ data().invoiceGross | currency: 'PLN' : 'code' }}</dd>
+        <dd>{{ data().invoiceGross | currency: data().invoice.currency : 'code' }}</dd>
       </div>
     </dl>
   </section></app-panel
