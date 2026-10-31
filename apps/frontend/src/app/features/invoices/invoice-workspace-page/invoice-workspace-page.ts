@@ -13,10 +13,11 @@ import {
 import { InvoiceDocument } from '../invoice-document/invoice-document';
 import { InvoiceFields } from '../invoice-fields/invoice-fields';
 import { InvoiceComparison } from '../invoice-comparison/invoice-comparison';
+import { LoadError } from '../../../shared/ui/load-error/load-error';
 
 @Component({
   selector: 'app-invoice-workspace-page',
-  imports: [RouterLink, InvoiceDocument, InvoiceFields, InvoiceComparison],
+  imports: [RouterLink, InvoiceDocument, InvoiceFields, InvoiceComparison, LoadError],
   templateUrl: './invoice-workspace-page.html',
   styleUrl: './invoice-workspace-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
