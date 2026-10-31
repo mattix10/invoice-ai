@@ -142,3 +142,110 @@ def test_inconsistent_invoice_and_po_are_not_presented_as_valid(invoice_client, 
     session.expire_all()
     with pytest.raises(ValueError, match="items do not match"):
         invoice_client.get("/api/v1/invoices/INV-2026-1042/comparison")
+
+
+def test_reconciliation_records_evidence_and_is_idempotent(invoice_client, session):
+    url = "/api/v1/invoices/INV-2026-1042/reconciliation"
+    first = invoice_client.post(url, json={})
+    assert first.status_code == 200
+    result = first.json()
+    assert result["state"] == "completed" and result["revision"] == 1
+    assert result["difference"] == {"net": "500.00", "vat": "115.00", "gross": "615.00"}
+    assert result["difference_percent"] == "5.0"
+    assert [line["difference_net"] for line in result["lines"]] == ["500.00", "0.00", "0.00"]
+    assert invoice_client.post(url, json={}).json() == result
+    assert session.execute(text("SELECT count(*) FROM invoice_reconciliations")).scalar_one() == 1
+    session.execute(
+        text(
+            "UPDATE invoice_po_items SET quantity = 9 "
+            "WHERE invoice_id = 'INV-2026-1042' AND position = 1"
+        )
+    )
+    session.commit()
+    session.expire_all()
+    changed = invoice_client.post(url, json={}).json()
+    assert changed["revision"] == 2
+    assert changed["lines"][0]["po_quantity"] == 9
+    assert (
+        invoice_client.post("/api/v1/invoices/INV-2026-1041/reconciliation", json={}).status_code
+        == 409
+    )
+    assert (
+        invoice_client.post("/api/v1/invoices/INV-2026-9999/reconciliation", json={}).status_code
+        == 404
+    )
+    assert invoice_client.post(url, json={"state": "approved"}).status_code == 422
+    assert (
+        session.execute(text("SELECT status FROM invoices WHERE id = 'INV-2026-1042'")).scalar_one()
+        == "needs_review"
+    )
+
+
+def test_concurrent_reconciliation_returns_one_revision(isolated_connection, database_settings):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    from invoiceflow.modules.invoices.reconciliation import ReconciliationService
+    from invoiceflow.modules.invoices.repository import InvoiceRepository
+
+    config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+    config.attributes["connection"] = isolated_connection
+    command.upgrade(config, "head")
+    with Session(isolated_connection) as session:
+        seed(session)
+        session.commit()
+    schema = isolated_connection.execute(text("SELECT current_schema()")).scalar_one()
+    engine = create_engine(
+        database_settings.database_url.get_secret_value(),
+        connect_args={"options": f"-csearch_path={schema}"},
+    )
+    barrier = Barrier(2)
+
+    def run():
+        with Session(engine) as session:
+            barrier.wait(timeout=10)
+            return ReconciliationService(InvoiceRepository(session)).reconcile("INV-2026-1042")
+
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(lambda _: run(), range(2)))
+        assert results[0] == results[1]
+        assert results[0].revision == 1
+        assert (
+            isolated_connection.execute(
+                text("SELECT count(*) FROM invoice_reconciliations")
+            ).scalar_one()
+            == 1
+        )
+    finally:
+        engine.dispose()
+
+
+def test_reconciliation_database_failure_rolls_back(invoice_client, session):
+    from sqlalchemy import event
+
+    from invoiceflow.modules.invoices.reconciliation import ReconciliationService
+    from invoiceflow.modules.invoices.repository import InvoiceRepository
+
+    def fail_commit(session):
+        raise RuntimeError("simulated commit failure")
+
+    event.listen(session, "before_commit", fail_commit)
+    try:
+        with pytest.raises(RuntimeError, match="simulated"):
+            ReconciliationService(InvoiceRepository(session)).reconcile("INV-2026-1042")
+    finally:
+        event.remove(session, "before_commit", fail_commit)
+    assert session.execute(text("SELECT count(*) FROM invoice_reconciliations")).scalar_one() == 0
+
+
+def test_reconciliation_openapi_contract(invoice_client):
+    schema = invoice_client.get("/openapi.json").json()
+    operation = schema["paths"]["/api/v1/invoices/{invoice_id}/reconciliation"]["post"]
+    assert operation["operationId"] == "reconcileInvoice"
+    assert {"200", "404", "409", "422", "503"} <= operation["responses"].keys()
+    assert operation["requestBody"]["required"] is True
+    assert "ReconciliationInputs" in schema["components"]["schemas"]

@@ -111,3 +111,52 @@ class ErrorDetail(BaseModel):
 
 class ApiError(BaseModel):
     error: ErrorDetail
+
+
+class ReconciliationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class ReconciliationLine(BaseModel):
+    position: int
+    name: str
+    invoice_quantity: int
+    po_quantity: int
+    invoice_unit_net: Money
+    po_unit_net: Money
+    invoice_net: Money
+    po_net: Money
+    difference_net: Money
+
+
+class ReconciliationInputLine(BaseModel):
+    position: int
+    name: str
+    invoice_quantity: int
+    po_quantity: int
+    invoice_unit_net: Money
+    po_unit_net: Money
+
+
+class ReconciliationInputs(BaseModel):
+    invoice_id: InvoiceId
+    purchase_order: str
+    delivery_receipt_id: str | None
+    currency: str
+    vat_rate: str
+    lines: list[ReconciliationInputLine]
+    stored_invoice_totals: InvoiceTotals
+
+
+class ReconciliationResult(BaseModel):
+    invoice_id: InvoiceId
+    revision: int
+    state: Literal["completed"]
+    algorithm: Literal["deterministic-v1"]
+    input_hash: str
+    inputs: ReconciliationInputs
+    lines: list[ReconciliationLine]
+    invoice_totals: InvoiceTotals
+    po_totals: InvoiceTotals
+    difference: InvoiceTotals
+    difference_percent: str | None

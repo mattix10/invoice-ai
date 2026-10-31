@@ -17,7 +17,7 @@ Invoke-RestMethod http://localhost:8000/health
 Invoke-RestMethod http://localhost:8000/health/ready
 ```
 
-Both health endpoints return `{"status":"ok"}` when PostgreSQL is available. `/health` is process liveness; `/health/ready` checks PostgreSQL and returns 503 when unavailable. Readiness does not assert schema version; apply migrations explicitly before using business APIs. Open `http://localhost:8000/docs` or `/openapi.json` for the read-only invoice routes. The container runs as a non-root user; only the backend and PostgreSQL development ports are exposed on loopback.
+Both health endpoints return `{"status":"ok"}` when PostgreSQL is available. `/health` is process liveness; `/health/ready` checks PostgreSQL and returns 503 when unavailable. Readiness does not assert schema version; apply migrations explicitly before using business APIs. Open `http://localhost:8000/docs` or `/openapi.json` for the invoice and reconciliation routes. The container runs as a non-root user; only the backend and PostgreSQL development ports are exposed on loopback.
 
 `.env.example` contains fictional local-only credentials, not production secrets. Change credentials before creating a fresh volume if desired. Compose interpolation assumes URL-safe username/password; percent-encode credentials in a manually provided DATABASE_URL if special characters are needed. Changing POSTGRES_PASSWORD after initializing a volume does not rotate the existing database role password.
 
@@ -113,3 +113,5 @@ After backup and explicit confirmation, stop the environment with the previous c
 ## CI and review
 
 See [GitHub quality gates](github-quality-gates.md). Local verification outcomes and limitations are recorded in [progress](../PROGRESS.md). No commit, push, cloud provisioning or deployment is needed for these commands.
+
+After migrations and explicit local seeding, invoke reconciliation with `curl -X POST http://localhost:8000/api/v1/invoices/INV-2026-1042/reconciliation -H "Content-Type: application/json" -d "{}"`. The endpoint records deterministic results and does not change invoice approval status.
