@@ -13,6 +13,7 @@ The skill paths below are relative to the repository root.
 
 - For work in this existing frontend, use the upstream `.agents/skills/angular-developer/SKILL.md` for Angular guidance and the project-owned `.agents/skills/angular-feature/SKILL.md` for InvoiceFlow decisions.
 - Use the upstream `.agents/skills/angular-new-app/SKILL.md` only when a task explicitly creates another Angular application. Keep upstream skills vendor-owned and unchanged; project requirements here and in the assigned task take precedence when their defaults differ.
+- At the end of the implementation, use `.agents/skills/angular-readable-code/SKILL.md` to improve readability of the code.
 
 - Use supported standalone Angular components, Angular Router and TypeScript strict.
 - Every component must have separate `.ts`, `.html`, and `.scss` files; reference the template and styles with `templateUrl` and `styleUrl`. Do not use inline component templates or styles, including for small components.
