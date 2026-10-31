@@ -6,6 +6,9 @@
 !/.agents/skills/fastapi-feature/
 !/.agents/skills/backend-unit-tests/
 !/.agents/skills/backend-architecture-review/
+!/.agents/skills/pr-demo-video/
+!/.agents/skills/invoice-task/
+/.pr-demo-video/
 /tasks/*
 !/tasks/backend/
 
