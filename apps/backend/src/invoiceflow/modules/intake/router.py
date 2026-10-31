@@ -18,6 +18,8 @@ from invoiceflow.modules.intake.schemas import (
     UploadResponse,
 )
 from invoiceflow.modules.intake.service import IntakeService, document_response
+from invoiceflow.modules.intake.suggestion_schemas import SuggestionsResponse
+from invoiceflow.modules.intake.suggestion_service import SuggestionService
 from invoiceflow.modules.invoices.schemas import ApiError
 
 router = APIRouter(prefix="/api/v1/intake/documents", tags=["intake"])
@@ -39,6 +41,14 @@ def get_extraction_service(request: Request, session: DatabaseSession) -> Extrac
 
 
 Extraction = Annotated[ExtractionService, Depends(get_extraction_service)]
+
+
+def get_suggestion_service(request: Request, session: DatabaseSession) -> SuggestionService:
+    settings = request.app.state.settings
+    return SuggestionService(session, settings.intake_storage_dir, settings.ai_provider)
+
+
+Suggestions = Annotated[SuggestionService, Depends(get_suggestion_service)]
 
 
 @router.post("", status_code=201, response_model=UploadResponse, responses=errors)
@@ -108,6 +118,18 @@ def extract_document_text(document_id: UUID, service: Extraction):
     responses=errors,
 )
 def get_latest_text_extraction(document_id: UUID, service: Extraction):
+    return service.latest(str(document_id))
+
+
+@router.post("/{document_id}/suggestions", response_model=SuggestionsResponse, responses=errors)
+def create_suggestions(document_id: UUID, service: Suggestions):
+    return service.start(str(document_id))
+
+
+@router.get(
+    "/{document_id}/suggestions/latest", response_model=SuggestionsResponse, responses=errors
+)
+def get_latest_suggestions(document_id: UUID, service: Suggestions):
     return service.latest(str(document_id))
 
 

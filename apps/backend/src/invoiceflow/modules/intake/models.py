@@ -61,3 +61,29 @@ class ExtractedPage(Base):
     page_number: Mapped[int] = mapped_column(Integer, nullable=False)
     extraction_method: Mapped[str] = mapped_column(String(32), nullable=False)
     text: Mapped[str] = mapped_column(String, nullable=False)
+
+
+class IntakeSuggestion(Base):
+    __tablename__ = "intake_suggestions"
+    __table_args__ = (
+        UniqueConstraint("document_id", "version"),
+        CheckConstraint("version > 0", name="version"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    document_id: Mapped[str] = mapped_column(ForeignKey("intake_documents.id"), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False)
+
+
+class IntakeDraftAudit(Base):
+    __tablename__ = "intake_draft_audit"
+    __table_args__ = (
+        UniqueConstraint("document_id", "revision"),
+        CheckConstraint("revision > 0", name="revision"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    document_id: Mapped[str] = mapped_column(ForeignKey("intake_documents.id"), nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    previous_draft: Mapped[dict] = mapped_column(JSON, nullable=False)
+    draft: Mapped[dict] = mapped_column(JSON, nullable=False)
+    suggestion_decisions: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
