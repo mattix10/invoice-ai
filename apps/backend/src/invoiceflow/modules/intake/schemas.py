@@ -102,6 +102,21 @@ class ConfirmResponse(ApiSchema):
     status: Literal["confirmed"]
 
 
+class ExtractedPageResponse(ApiSchema):
+    document_id: str
+    page_number: int
+    extraction_method: Literal["pdf_text", "ocr"]
+    extraction_version: int
+    text: str
+
+
+class TextExtractionResponse(ApiSchema):
+    document_id: str
+    version: int
+    status: Literal["completed"]
+    pages: list[ExtractedPageResponse]
+
+
 class RequestValidationDetail(ApiSchema):
     loc: list[str | int]
     msg: str

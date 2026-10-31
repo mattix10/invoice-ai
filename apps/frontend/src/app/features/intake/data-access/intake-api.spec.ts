@@ -46,4 +46,22 @@ describe('IntakeApi', () => {
     expect(confirmation.request.body).toEqual({ expectedRevision: expectedRevision });
     confirmation.flush({ invoiceId: 'INV-2026-1000', status: 'confirmed' });
   });
+
+  it('should request text extraction for the selected document', () => {
+    intakeApi.extractText('document/1').subscribe();
+
+    const extraction = http.expectOne('/api/v1/intake/documents/document%2F1/text-extractions');
+    expect(extraction.request.method).toBe('POST');
+    extraction.flush({ documentId: 'document/1', version: 1, status: 'completed', pages: [] });
+  });
+
+  it('should retrieve the latest saved text extraction', () => {
+    intakeApi.latestText('document/1').subscribe();
+
+    const extraction = http.expectOne(
+      '/api/v1/intake/documents/document%2F1/text-extractions/latest',
+    );
+    expect(extraction.request.method).toBe('GET');
+    extraction.flush({ documentId: 'document/1', version: 1, status: 'completed', pages: [] });
+  });
 });

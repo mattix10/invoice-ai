@@ -29,7 +29,9 @@ def client(isolated_connection, session, database_settings, tmp_path):
     config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
     config.attributes["connection"] = isolated_connection
     command.upgrade(config, "head")
-    settings = database_settings.model_copy(update={"intake_storage_dir": str(tmp_path)})
+    settings = database_settings.model_copy(
+        update={"intake_storage_dir": str(tmp_path), "intake_ocr_spool_dir": str(tmp_path)}
+    )
     app = create_app(settings)
     app.dependency_overrides[get_session] = lambda: session
     with TestClient(app) as value:
@@ -353,3 +355,118 @@ def test_concurrent_duplicate_uploads_require_explicit_resolution(
         assert len(list(tmp_path.iterdir())) == 1
     finally:
         engine.dispose()
+
+
+def test_extraction_preserves_draft_and_persists_page_provenance(client, monkeypatch):
+    # Arrange
+    document = upload(client, pdf()).json()
+    document_id = document["documentId"]
+    url = "/api/v1/intake/documents/" + document_id
+    client.put(url + "/draft", json={"expectedRevision": 0, "draft": draft()})
+    before = client.get(url).json()
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: ["Fictional invoice"],
+    )
+
+    # Act
+    first = client.post(url + "/text-extractions")
+    second = client.post(url + "/text-extractions")
+    latest = client.get(url + "/text-extractions/latest")
+    after = client.get(url).json()
+
+    # Assert
+    assert first.status_code == 200, first.text
+    assert first.json()["pages"] == [
+        {
+            "documentId": document_id,
+            "pageNumber": 1,
+            "extractionMethod": "pdf_text",
+            "extractionVersion": 1,
+            "text": "Fictional invoice",
+        }
+    ]
+    assert second.json()["version"] == 2
+    assert latest.json() == second.json()
+    assert after == before
+    assert after["invoiceId"] is None
+
+
+def test_unavailable_extraction_leaves_document_unchanged_and_can_be_retried(client, monkeypatch):
+    # Arrange
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    before = client.get(url).json()
+    from invoiceflow.modules.intake.errors import IntakeError
+
+    def unavailable(path, spool):
+        raise IntakeError(503, "extraction_unavailable", "Document processing unavailable")
+
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer", unavailable
+    )
+
+    # Act
+    failed = client.post(url + "/text-extractions")
+    missing = client.get(url + "/text-extractions/latest")
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: ["Text"],
+    )
+    retry = client.post(url + "/text-extractions")
+
+    # Assert
+    assert failed.status_code == 503
+    assert failed.json()["error"]["code"] == "extraction_unavailable"
+    assert missing.status_code == 404
+    assert retry.status_code == 200, retry.text
+    assert retry.json()["version"] == 1
+    assert client.get(url).json() == before
+
+
+@pytest.mark.parametrize("kind,mime", [("PNG", "image/png"), ("JPEG", "image/jpeg")])
+def test_image_upload_returns_original_and_safe_preview(client, kind, mime):
+    # Arrange
+    from PIL import Image
+
+    stream = BytesIO()
+    Image.new("RGB", (20, 10), "white").save(stream, format=kind)
+    original = stream.getvalue()
+    name = "invoice." + kind.lower()
+
+    # Act
+    response = upload(client, original, name, mime)
+    url = "/api/v1/intake/documents/" + response.json()["documentId"]
+    file_response = client.get(url + "/file")
+    preview = client.get(url + "/preview")
+
+    # Assert
+    assert response.status_code == 201
+    assert file_response.content == original
+    assert file_response.headers["content-type"] == mime
+    assert preview.status_code == 200
+    assert preview.headers["content-type"] == "image/jpeg"
+    with Image.open(BytesIO(preview.content)) as image:
+        assert image.format == "JPEG"
+        assert not image.getexif()
+    assert client.get(url).json()["invoiceId"] is None
+
+
+@pytest.mark.parametrize(
+    "name,mime,contents,status",
+    [
+        ("invoice.png", "image/png", b"\x89PNG\r\n\x1a\n", 422),
+        ("invoice.jpeg", "image/jpeg", b"\xff\xd8\xff", 422),
+        ("invoice.png", "image/jpeg", b"data", 415),
+        ("invoice.svg", "image/svg+xml", b"<svg/>", 415),
+        ("invoice.png", "image/png", b"x" * (10 * 1024 * 1024 + 1), 413),
+    ],
+)
+def test_invalid_image_upload_is_rejected_without_storage(
+    client, tmp_path, name, mime, contents, status
+):
+    # Act
+    response = upload(client, contents, name, mime)
+
+    # Assert
+    assert response.status_code == status
+    assert list(tmp_path.iterdir()) == []

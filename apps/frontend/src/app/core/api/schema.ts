@@ -157,6 +157,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/intake/documents/{document_id}/preview': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Document Preview */
+    get: operations['get_document_preview_api_v1_intake_documents__document_id__preview_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents/{document_id}/text-extractions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Extract Document Text */
+    post: operations['extract_document_text_api_v1_intake_documents__document_id__text_extractions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents/{document_id}/text-extractions/latest': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Latest Text Extraction */
+    get: operations['get_latest_text_extraction_api_v1_intake_documents__document_id__text_extractions_latest_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/intake/documents/{document_id}/draft': {
     parameters: {
       query?: never;
@@ -327,6 +378,22 @@ export interface components {
       currentRevision?: number | null;
       /** Existingdocumentid */
       existingDocumentId?: string | null;
+    };
+    /** ExtractedPageResponse */
+    ExtractedPageResponse: {
+      /** Documentid */
+      documentId: string;
+      /** Pagenumber */
+      pageNumber: number;
+      /**
+       * Extractionmethod
+       * @enum {string}
+       */
+      extractionMethod: 'pdf_text' | 'ocr';
+      /** Extractionversion */
+      extractionVersion: number;
+      /** Text */
+      text: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -537,6 +604,20 @@ export interface components {
       /** Detail */
       detail: components['schemas']['RequestValidationDetail'][];
     };
+    /** TextExtractionResponse */
+    TextExtractionResponse: {
+      /** Documentid */
+      documentId: string;
+      /** Version */
+      version: number;
+      /**
+       * Status
+       * @constant
+       */
+      status: 'completed';
+      /** Pages */
+      pages: components['schemas']['ExtractedPageResponse'][];
+    };
     /** UploadResponse */
     UploadResponse: {
       /** Documentid */
@@ -596,6 +677,7 @@ export type DraftItem = components['schemas']['DraftItem'];
 export type DraftRequest = components['schemas']['DraftRequest'];
 export type DraftResponse = components['schemas']['DraftResponse'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
+export type ExtractedPageResponse = components['schemas']['ExtractedPageResponse'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
 export type HealthResponse = components['schemas']['HealthResponse'];
 export type InvoiceComparison = components['schemas']['InvoiceComparison'];
@@ -612,6 +694,7 @@ export type ReconciliationRequest = components['schemas']['ReconciliationRequest
 export type ReconciliationResult = components['schemas']['ReconciliationResult'];
 export type RequestValidationDetail = components['schemas']['RequestValidationDetail'];
 export type RequestValidationError = components['schemas']['RequestValidationError'];
+export type TextExtractionResponse = components['schemas']['TextExtractionResponse'];
 export type UploadResponse = components['schemas']['UploadResponse'];
 export type Validation = components['schemas']['Validation'];
 export type ValidationError = components['schemas']['ValidationError'];
@@ -1006,6 +1089,195 @@ export interface operations {
         headers: Record<string, unknown>;
         content: {
           'application/json': unknown;
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  get_document_preview_api_v1_intake_documents__document_id__preview_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'image/jpeg': string;
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  extract_document_text_api_v1_intake_documents__document_id__text_extractions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['TextExtractionResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  get_latest_text_extraction_api_v1_intake_documents__document_id__text_extractions_latest_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['TextExtractionResponse'];
         };
       };
       /** @description Not Found */

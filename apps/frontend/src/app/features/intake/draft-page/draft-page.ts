@@ -13,6 +13,9 @@ import { distinctUntilChanged, map } from 'rxjs';
 import { DocumentPreview } from '../document-preview/document-preview';
 import { DraftEditor } from '../draft-editor/draft-editor';
 import { Draft, IntakeApi, SavedDraft } from '../data-access/intake-api';
+import { ExtractedText } from '../extracted-text/extracted-text';
+import type { TextExtractionResponse } from '../../../core/api/schema';
+import { Observable } from 'rxjs';
 
 interface PendingConfirmation {
   documentId: string;
@@ -21,7 +24,7 @@ interface PendingConfirmation {
 
 @Component({
   selector: 'app-draft-page',
-  imports: [DocumentPreview, DraftEditor, RouterLink],
+  imports: [DocumentPreview, DraftEditor, ExtractedText, RouterLink],
   templateUrl: './draft-page.html',
   styleUrl: './draft-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,8 +44,24 @@ export class DraftPage {
   );
 
   protected readonly documentId = computed(() => this.routeVisit().documentId);
+  protected readonly originalFileUrl = computed(() => this.api.originalFileUrl(this.documentId()));
   protected readonly document = this.api.documentResource(this.documentId);
   protected readonly file = this.api.documentFileResource(this.documentId);
+  protected readonly extraction = linkedSignal(() => {
+    this.routeVisit();
+
+    return null as TextExtractionResponse | null;
+  });
+  protected readonly extractionBusy = linkedSignal(() => {
+    this.routeVisit();
+
+    return false;
+  });
+  protected readonly extractionError = linkedSignal(() => {
+    this.routeVisit();
+
+    return '';
+  });
   protected readonly busy = linkedSignal(() => {
     this.routeVisit();
 
@@ -71,6 +90,35 @@ export class DraftPage {
     this.persistDraft(draft, () => {
       this.busy.set(false);
       this.message.set('Draft saved.');
+    });
+  }
+
+  protected extractText(): void {
+    this.requestText(this.api.extractText(this.documentId()));
+  }
+
+  protected loadLatestText(): void {
+    this.requestText(this.api.latestText(this.documentId()));
+  }
+
+  private requestText(request: Observable<TextExtractionResponse>): void {
+    if (this.extractionBusy()) return;
+    const visit = this.routeVisit();
+    this.extractionBusy.set(true);
+    this.extractionError.set('');
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (result) => {
+        if (this.routeVisit() !== visit) return;
+        this.extraction.set(result);
+        this.extractionBusy.set(false);
+      },
+      error: () => {
+        if (this.routeVisit() !== visit) return;
+        this.extractionBusy.set(false);
+        this.extractionError.set(
+          'Text is unavailable. You can continue entering the draft manually.',
+        );
+      },
     });
   }
 

@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 
 @Component({
   selector: 'app-document-preview',
@@ -10,13 +9,12 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 export class DocumentPreview {
   readonly file = input.required<Blob>();
   readonly name = input.required<string>();
-  private readonly sanitizer = inject(DomSanitizer);
-  protected readonly url = signal<SafeResourceUrl | null>(null);
+  protected readonly url = signal<string | null>(null);
 
   constructor() {
     effect((onCleanup) => {
       const url = URL.createObjectURL(this.file());
-      this.url.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+      this.url.set(url);
       onCleanup(() => URL.revokeObjectURL(url));
     });
   }

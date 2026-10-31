@@ -32,3 +32,32 @@ class IntakeDocument(Base):
     draft: Mapped[dict] = mapped_column(JSON, nullable=False)
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
     invoice_id: Mapped[str | None] = mapped_column(ForeignKey("invoices.id"))
+
+
+class TextExtraction(Base):
+    __tablename__ = "intake_text_extractions"
+    __table_args__ = (
+        UniqueConstraint("document_id", "version"),
+        CheckConstraint("version > 0", name="version"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    document_id: Mapped[str] = mapped_column(ForeignKey("intake_documents.id"), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+
+
+class ExtractedPage(Base):
+    __tablename__ = "intake_extracted_pages"
+    __table_args__ = (
+        UniqueConstraint("extraction_id", "page_number"),
+        CheckConstraint("page_number > 0", name="page_number"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    extraction_id: Mapped[str] = mapped_column(
+        ForeignKey("intake_text_extractions.id", ondelete="CASCADE"), nullable=False
+    )
+    page_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    extraction_method: Mapped[str] = mapped_column(String(32), nullable=False)
+    text: Mapped[str] = mapped_column(String, nullable=False)

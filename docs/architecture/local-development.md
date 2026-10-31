@@ -10,7 +10,7 @@ Create the ignored local environment file once; do not overwrite an existing one
 
 ```powershell
 if (-not (Test-Path apps/backend/.env)) { Copy-Item apps/backend/.env.example apps/backend/.env }
-docker compose --env-file apps/backend/.env up -d --build --wait postgres backend
+docker compose --env-file apps/backend/.env up -d --build --wait postgres backend ocr-worker
 docker compose --env-file apps/backend/.env exec backend alembic upgrade head
 docker compose --env-file apps/backend/.env exec backend alembic check
 Invoke-RestMethod http://localhost:8000/health
@@ -21,7 +21,27 @@ Both health endpoints return `{"status":"ok"}` when PostgreSQL is available. `/h
 
 Document intake is for local development only until Task 09 adds authorization. Compose stores uploaded PDFs in the private `intake-data` volume; it survives container restarts. Local non-container runs use `.invoiceflow-storage` in the backend working directory by default; `INTAKE_STORAGE_DIR` overrides it. Keep this directory private and outside static hosting. Do not commit documents or expose the unauthenticated application publicly.
 
-The upload accepts PDF files up to 10 MiB and 20 pages. It validates structure in a resource-limited subprocess, but is not a malware scanner. Duplicate file content produces a conflict offering the existing document or explicit creation of a separate one; duplicate supplier invoice numbers are rejected at confirmation. Drafts use revision checks and confirmation creates a `needs_review` invoice without inventing a purchase order.
+The upload accepts PDF files up to 10 MiB and 20 pages, and JPEG or PNG files up to 10 MiB and 20 decoded megapixels. It validates the file, but is not a malware scanner. Duplicate file content produces a conflict offering the existing document or explicit creation of a separate one; duplicate supplier invoice numbers are rejected at confirmation. Drafts use revision checks and confirmation creates a `needs_review` invoice without inventing a purchase order.
+
+## Offline document worker (Windows / VS Code)
+
+Install Docker Desktop with the WSL 2 Linux-container backend, start Docker Desktop, and open this repository in VS Code. Run the Compose commands above from the VS Code PowerShell terminal at the repository root; the first build compiles Tesseract and can take several minutes. No Windows Tesseract, Poppler installation or paid account is required. The document worker is an independent Compose service: the API and worker share only the private `ocr-spool` volume, not the database or document-storage volumes. Both run as UID 10001 so the worker can read the API's private job directories. Do not mount the Docker socket, credentials or additional paths into the worker.
+
+The Compose worker has no network, a read-only root filesystem and language data, no Linux capabilities, `no-new-privileges`, a 512 MiB memory limit, one CPU, a 32-process limit and a 256 MiB temporary filesystem. PDF rendering, text-layer parsing and OCR run there. The worker's binaries get a minimal environment without database credentials. Jobs have a 60-second processing deadline; the API waits at most 75 seconds. The API removes its temporary job directory on completion or timeout; the worker cleans abandoned jobs older than ten minutes. The volume contains sensitive document data while jobs are active, so restrict Docker access and protect its storage. A crash can leave temporary data until cleanup, and the volume itself has no disk quota. These controls depend on the Compose configuration and Docker host; a process with access to the spool can read or impersonate jobs. Do not expose this unauthenticated local prototype publicly.
+
+The worker image builds [Tesseract 5.5.4](https://github.com/tesseract-ocr/tesseract/releases/tag/5.5.4) at commit `7e548e6eff172f38f97664afe7f7ce40db36c8d6` (Apache-2.0), including its security fixes. It installs Debian Trixie `tesseract-ocr-eng` and `tesseract-ocr-pol` version `1:4.1.0-2` (Apache-2.0 traineddata) and `poppler-utils` version `25.03.0-5+deb13u4` (GPL-2.0-or-later; see Debian package copyright for component notices). Tesseract uses Debian Leptonica (BSD-2-Clause and component licenses). PDF text parsing uses the locked pypdf 6.21.4 (BSD-3-Clause); image validation uses Pillow 13.0.0 (HPND/MIT-CMU and component licenses). Debian transitive packages and the base-image digest are not pinned by this Dockerfile; rebuilding can change them or fail if the explicitly pinned packages leave the repository. Review their security updates and licenses when distributing an image.
+
+The [Debian Poppler security tracker](https://security-tracker.debian.org/tracker/source-package/poppler) reports unresolved issues for the pinned package, including CVE-2026-107705 and CVE-2026-93653. Isolation reduces exposure but does not prevent a compromised worker from accessing other active jobs in its shared spool. Use only fictional or trusted local documents while evaluating these vulnerabilities; update the renderer when a suitable fixed release is available.
+
+Uploaded images are decoded, checked for truncation and format, oriented using EXIF, and converted without source metadata. Previews are bounded JPEGs of at most 1600 pixels on the longest side; OCR image input retains its resolution within the 20-megapixel limit. PDF rendering uses the same 1600-pixel maximum. Extracted text is limited to 1,000,000 UTF-8 bytes per document. A blank or unreadable page can yield empty text; OCR is not a source of verified financial values and never fills the draft automatically. If the worker is absent, overloaded, times out or lacks its engine/language files, extraction and PDF preview return a sanitized 503; manual draft editing remains available. When running the API outside Compose, the default has no worker spool and these operations are unavailable: do not point it at an unisolated local process.
+
+For a smoke check, upload a fictional digital PDF, a scanned PDF, and JPEG/PNG samples using the UI or `/docs`, request text extraction, and inspect the page methods and text. Verify a private preview and confirm that the draft has not changed. To inspect the runtime constraints and installed engine without printing document contents:
+
+```powershell
+docker compose --env-file apps/backend/.env exec ocr-worker tesseract --version
+docker compose --env-file apps/backend/.env exec ocr-worker tesseract --list-langs
+docker inspect (docker compose --env-file apps/backend/.env ps -q ocr-worker)
+```
 
 Upload failures remove staged files when possible. A process crash between file placement and database commit can leave an orphan in storage; recovery requires an operator to compare generated storage names with `intake_documents.storage_name` before removing any unreferenced file. There is no automatic deletion of stored documents or volumes.
 

@@ -21,7 +21,7 @@ describe('UploadForm', () => {
     );
   });
 
-  it('should show validation when the selected file is not a PDF', async () => {
+  it('should show validation when the selected file is not a supported document', async () => {
     // Arrange
     const fixture = TestBed.createComponent(UploadForm);
     await fixture.whenStable();
@@ -33,7 +33,24 @@ describe('UploadForm', () => {
     await fixture.whenStable();
 
     // Assert
-    expect(fixture.nativeElement.textContent).toContain('Select a non-empty PDF');
+    expect(fixture.nativeElement.textContent).toContain('Select a non-empty PDF, JPEG or PNG');
+  });
+
+  it.each([
+    ['invoice.jpg', 'image/jpeg'],
+    ['invoice.png', 'image/png'],
+  ])('should emit a supported image %s', async (name, type) => {
+    const fixture = TestBed.createComponent(UploadForm);
+    const file = new File(['image'], name, { type });
+    const emit = vi.fn();
+    fixture.componentInstance.upload.subscribe(emit);
+    await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('input');
+    Object.defineProperty(input, 'files', { value: [file] });
+
+    input.dispatchEvent(new Event('change'));
+
+    expect(emit).toHaveBeenCalledWith(file);
   });
 
   it('should emit the selected PDF', async () => {

@@ -71,3 +71,13 @@ jobs:
       - run: uv run pytest tests/integration
       - name: Build backend image
         run: docker build -t invoiceflow-backend:ci .
+      - name: Build and test isolated OCR worker
+        run: |
+          docker build -f Dockerfile.ocr -t invoiceflow-ocr:ci .
+          container=$(docker run -d --network none --read-only --cap-drop ALL \
+            --security-opt no-new-privileges:true --memory 512m --cpus 1 --pids-limit 32 \
+            --tmpfs /tmp:size=256m,noexec,nosuid,nodev \
+            --tmpfs /spool:uid=10001,gid=10001 invoiceflow-ocr:ci)
+          trap 'docker rm -f "$container"' EXIT
+          uv run python tests/docker/verify_isolation.py "$container"
+          uv run python tests/docker/smoke_documents.py "$container"
