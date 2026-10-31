@@ -24,6 +24,7 @@ export class UploadForm {
     this.selectedFile.set((event.target as HTMLInputElement).files?.[0] ?? null);
     this.validation.set('');
     this.selectionChanged.emit();
+    if (this.selectedFile()) this.submitUpload();
   }
   protected uploadSeparateDocument(): void {
     const file = this.selectedFile();
@@ -31,17 +32,19 @@ export class UploadForm {
   }
   protected submitUpload(): void {
     const file = this.selectedFile();
-    if (
-      !file ||
-      !file.name.toLowerCase().endsWith('.pdf') ||
-      (file.type && file.type !== 'application/pdf') ||
-      file.size === 0 ||
-      file.size > MAX_PDF_SIZE_BYTES
-    ) {
+    if (!file || !this.isSupportedPdf(file)) {
       this.validation.set('Select a non-empty PDF no larger than 10 MiB.');
       return;
     }
     this.validation.set('');
     this.upload.emit(file);
+  }
+
+  private isSupportedPdf(file: File): boolean {
+    const hasPdfExtension = file.name.toLowerCase().endsWith('.pdf');
+    const hasSupportedMediaType = !file.type || file.type === 'application/pdf';
+    const hasSupportedSize = file.size > 0 && file.size <= MAX_PDF_SIZE_BYTES;
+
+    return hasPdfExtension && hasSupportedMediaType && hasSupportedSize;
   }
 }

@@ -1,12 +1,21 @@
-<form (submit)="$event.preventDefault(); submitUpload()">
-  <label for="pdf">PDF file</label
-  ><input
-    id="pdf"
-    type="file"
-    accept=".pdf,application/pdf"
-    [disabled]="busy()"
-    (change)="selectFile($event)"
-  />
+<div>
+  <div class="file-selection">
+    <input
+      id="pdf"
+      class="file-input"
+      type="file"
+      accept=".pdf,application/pdf"
+      [disabled]="busy()"
+      (change)="selectFile($event)"
+      aria-describedby="selected-file"
+    />
+    <label class="btn btn-primary file-button" for="pdf">
+      {{ busy() ? 'Uploading…' : 'Upload invoice' }}
+    </label>
+    <span id="selected-file" class="file-name" aria-live="polite">
+      {{ selectedFile()?.name || 'No file selected' }}
+    </span>
+  </div>
   @if (validation()) {
     <p role="alert">{{ validation() }}</p>
   }
@@ -22,7 +31,9 @@
       Create a separate document anyway
     </button>
   }
-  <button class="btn btn-primary" type="submit" [disabled]="busy()">
-    {{ busy() ? 'Uploading…' : 'Upload invoice' }}
-  </button>
-</form>
+  @if (error() && !duplicate() && selectedFile()) {
+    <button class="btn" type="button" [disabled]="busy()" (click)="submitUpload()">
+      Retry upload
+    </button>
+  }
+</div>

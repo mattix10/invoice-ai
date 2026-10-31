@@ -16,9 +16,8 @@ describe('UploadPage', () => {
     const input = fixture.nativeElement.querySelector('input');
     const file = new File(['pdf'], 'invoice.pdf', { type: 'application/pdf' });
     Object.defineProperty(input, 'files', { value: [file] });
-    input.dispatchEvent(new Event('change'));
     // Act
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    input.dispatchEvent(new Event('change'));
     const request = http.expectOne('/api/v1/intake/documents');
     // Assert
     expect(request.request.method).toBe('POST');
@@ -39,9 +38,8 @@ describe('UploadPage', () => {
     Object.defineProperty(input, 'files', {
       value: [new File(['pdf'], 'a.pdf', { type: 'application/pdf' })],
     });
-    input.dispatchEvent(new Event('change'));
     // Act
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    input.dispatchEvent(new Event('change'));
     http
       .expectOne('/api/v1/intake/documents')
       .flush({}, { status: 503, statusText: 'Unavailable' });
@@ -64,9 +62,8 @@ describe('UploadPage', () => {
     Object.defineProperty(input, 'files', {
       value: [new File(['pdf'], 'a.pdf', { type: 'application/pdf' })],
     });
-    input.dispatchEvent(new Event('change'));
     // Act
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    input.dispatchEvent(new Event('change'));
     http.expectOne('/api/v1/intake/documents').flush(
       {
         error: {

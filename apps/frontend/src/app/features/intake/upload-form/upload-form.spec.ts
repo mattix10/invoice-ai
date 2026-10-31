@@ -2,12 +2,32 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { UploadForm } from './upload-form';
 describe('UploadForm', () => {
-  it('should show validation when no file was selected', async () => {
+  it('should show the selected filename', async () => {
     // Arrange
     const fixture = TestBed.createComponent(UploadForm);
     await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    const file = new File(['pdf'], 'invoice.pdf', { type: 'application/pdf' });
+    Object.defineProperty(input, 'files', { value: [file] });
+
     // Act
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    input.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    // Assert
+    expect(fixture.nativeElement.querySelector('#selected-file').textContent).toContain(
+      'invoice.pdf',
+    );
+  });
+
+  it('should show validation when the selected file is not a PDF', async () => {
+    // Arrange
+    const fixture = TestBed.createComponent(UploadForm);
+    await fixture.whenStable();
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    Object.defineProperty(input, 'files', { value: [new File(['text'], 'invoice.txt')] });
+    // Act
+    input.dispatchEvent(new Event('change'));
     await fixture.whenStable();
     // Assert
     expect(fixture.nativeElement.textContent).toContain('Select a non-empty PDF');
@@ -23,7 +43,6 @@ describe('UploadForm', () => {
     Object.defineProperty(input, 'files', { value: [file] });
     // Act
     input.dispatchEvent(new Event('change'));
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     // Assert
     expect(emit).toHaveBeenCalledWith(file);
   });
