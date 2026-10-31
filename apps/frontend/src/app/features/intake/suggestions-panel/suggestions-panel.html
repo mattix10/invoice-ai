@@ -1,0 +1,60 @@
+<section aria-labelledby="suggestions-heading">
+  <h2 id="suggestions-heading">Extraction suggestions</h2>
+  <p>Suggestions are applied only when selected. Review them before saving.</p>
+  <button type="button" [disabled]="busy() || disabled()" (click)="load(false)">
+    Load latest suggestions
+  </button>
+  <button type="button" [disabled]="busy() || disabled()" (click)="load(true)">
+    Run extraction
+  </button>
+  @if (busy()) {
+    <p role="status">Loading suggestions…</p>
+  }
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (suggestions(); as result) {
+    <p>Suggestion version {{ result.version }}</p>
+    @for (warning of result.warnings; track $index) {
+      <p>{{ warning }}</p>
+    }
+    @for (proposal of result.proposals; track $index; let i = $index) {
+      <div class="proposal">
+        <label
+          ><input
+            type="checkbox"
+            [disabled]="disabled() || busy() || !available(proposal)"
+            [checked]="selected().includes(i)"
+            (change)="toggle(i, $any($event.target).checked)"
+          />
+          {{ proposal.field }}</label
+        >
+        <p>Current: {{ display(draft()[proposal.field]) }}</p>
+        <p>Suggested: {{ display(proposal.value) }}</p>
+        @if (proposal.source; as source) {
+          <p>Page {{ source.pageNumber }} · {{ source.extractionMethod }}: {{ source.excerpt }}</p>
+        }
+        @if (!available(proposal)) {
+          <p>Unavailable: source evidence is missing or invalid.</p>
+        }
+        @for (warning of proposal.warnings; track $index) {
+          <p>{{ warning }}</p>
+        }
+      </div>
+    }
+    <button
+      type="button"
+      [disabled]="disabled() || busy() || selected().length === 0"
+      (click)="applySelected()"
+    >
+      Apply selected suggestions
+    </button>
+    <button
+      type="button"
+      [disabled]="disabled() || busy() || selected().length === 0"
+      (click)="rejectSelected()"
+    >
+      Reject selected suggestions
+    </button>
+  }
+</section>

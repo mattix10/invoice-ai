@@ -23,6 +23,7 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       INTAKE_STORAGE_DIR: /var/lib/invoiceflow/documents
       INTAKE_OCR_SPOOL_DIR: /spool
+      AI_PROVIDER: ${AI_PROVIDER:-disabled}
     volumes:
       - intake-data:/var/lib/invoiceflow/documents
       - ocr-spool:/spool

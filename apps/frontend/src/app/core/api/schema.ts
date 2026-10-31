@@ -208,6 +208,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/intake/documents/{document_id}/suggestions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Suggestions */
+    post: operations['create_suggestions_api_v1_intake_documents__document_id__suggestions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents/{document_id}/suggestions/latest': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Latest Suggestions */
+    get: operations['get_latest_suggestions_api_v1_intake_documents__document_id__suggestions_latest_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/intake/documents/{document_id}/draft': {
     parameters: {
       query?: never;
@@ -360,6 +394,9 @@ export interface components {
       /** Expectedrevision */
       expectedRevision: number;
       draft: components['schemas']['Draft'];
+      suggestionDecisions?: components['schemas']['SuggestionDecisions'] | null;
+      /** Suggestiondecisionbatches */
+      suggestionDecisionBatches?: components['schemas']['SuggestionDecisions'][];
     };
     /** DraftResponse */
     DraftResponse: {
@@ -394,6 +431,31 @@ export interface components {
       extractionVersion: number;
       /** Text */
       text: string;
+    };
+    /** FieldProposal */
+    FieldProposal: {
+      /**
+       * Field
+       * @enum {string}
+       */
+      field:
+        | 'vendor'
+        | 'supplierInvoiceNumber'
+        | 'issued'
+        | 'due'
+        | 'currency'
+        | 'vatRate'
+        | 'items'
+        | 'declaredTotals';
+      /** Value */
+      value:
+        | string
+        | components['schemas']['DraftItem'][]
+        | components['schemas']['DeclaredTotals']
+        | null;
+      source: components['schemas']['SuggestionSource'];
+      /** Warnings */
+      warnings: string[];
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -604,6 +666,68 @@ export interface components {
       /** Detail */
       detail: components['schemas']['RequestValidationDetail'][];
     };
+    /** SuggestionDecision */
+    SuggestionDecision: {
+      /**
+       * Field
+       * @enum {string}
+       */
+      field:
+        | 'vendor'
+        | 'supplierInvoiceNumber'
+        | 'issued'
+        | 'due'
+        | 'currency'
+        | 'vatRate'
+        | 'items'
+        | 'declaredTotals';
+      /**
+       * Decision
+       * @enum {string}
+       */
+      decision: 'applied' | 'rejected';
+    };
+    /** SuggestionDecisions */
+    SuggestionDecisions: {
+      /** Suggestionversion */
+      suggestionVersion: number;
+      /** Decisions */
+      decisions: components['schemas']['SuggestionDecision'][];
+    };
+    /** SuggestionSource */
+    SuggestionSource: {
+      /** Pagenumber */
+      pageNumber: number;
+      /** Start */
+      start: number;
+      /** End */
+      end: number;
+      /** Excerpt */
+      excerpt: string;
+      /**
+       * Extractionmethod
+       * @enum {string}
+       */
+      extractionMethod: 'pdf_text' | 'ocr';
+      /** Extractionversion */
+      extractionVersion: number;
+    };
+    /** SuggestionsResponse */
+    SuggestionsResponse: {
+      /** Documentid */
+      documentId: string;
+      /** Version */
+      version: number;
+      /**
+       * Status
+       * @constant
+       */
+      status: 'completed';
+      /** Proposals */
+      proposals: components['schemas']['FieldProposal'][];
+      /** Warnings */
+      warnings: string[];
+    };
     /** TextExtractionResponse */
     TextExtractionResponse: {
       /** Documentid */
@@ -678,6 +802,7 @@ export type DraftRequest = components['schemas']['DraftRequest'];
 export type DraftResponse = components['schemas']['DraftResponse'];
 export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type ExtractedPageResponse = components['schemas']['ExtractedPageResponse'];
+export type FieldProposal = components['schemas']['FieldProposal'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
 export type HealthResponse = components['schemas']['HealthResponse'];
 export type InvoiceComparison = components['schemas']['InvoiceComparison'];
@@ -694,6 +819,10 @@ export type ReconciliationRequest = components['schemas']['ReconciliationRequest
 export type ReconciliationResult = components['schemas']['ReconciliationResult'];
 export type RequestValidationDetail = components['schemas']['RequestValidationDetail'];
 export type RequestValidationError = components['schemas']['RequestValidationError'];
+export type SuggestionDecision = components['schemas']['SuggestionDecision'];
+export type SuggestionDecisions = components['schemas']['SuggestionDecisions'];
+export type SuggestionSource = components['schemas']['SuggestionSource'];
+export type SuggestionsResponse = components['schemas']['SuggestionsResponse'];
 export type TextExtractionResponse = components['schemas']['TextExtractionResponse'];
 export type UploadResponse = components['schemas']['UploadResponse'];
 export type Validation = components['schemas']['Validation'];
@@ -1278,6 +1407,132 @@ export interface operations {
         headers: Record<string, unknown>;
         content: {
           'application/json': components['schemas']['TextExtractionResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  create_suggestions_api_v1_intake_documents__document_id__suggestions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['SuggestionsResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  get_latest_suggestions_api_v1_intake_documents__document_id__suggestions_latest_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['SuggestionsResponse'];
         };
       };
       /** @description Not Found */

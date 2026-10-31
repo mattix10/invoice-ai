@@ -8,6 +8,9 @@ import type {
   DraftResponse,
   UploadResponse,
   TextExtractionResponse,
+  SuggestionsResponse,
+  FieldProposal as SuggestionProposal,
+  SuggestionDecisions,
 } from '../../../core/api/schema';
 
 export type {
@@ -15,9 +18,20 @@ export type {
   DraftItem,
   Validation,
   DraftResponse as SavedDraft,
+  FieldProposal as SuggestionProposal,
+  SuggestionsResponse,
 } from '../../../core/api/schema';
 
 const INTAKE_DOCUMENTS_URL = '/api/v1/intake/documents';
+
+export interface SuggestionDecisionBatch {
+  suggestionVersion: number;
+  decisions: {
+    field: SuggestionProposal['field'];
+    decision: 'applied' | 'rejected';
+    value: SuggestionProposal['value'];
+  }[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class IntakeApi {
@@ -25,6 +39,10 @@ export class IntakeApi {
 
   documentResource(documentId: Signal<string>): HttpResourceRef<DocumentResponse | undefined> {
     return httpResource<DocumentResponse>(() => this.documentUrl(documentId()));
+  }
+
+  getDocument(documentId: string): Observable<DocumentResponse> {
+    return this.http.get<DocumentResponse>(this.documentUrl(documentId));
   }
 
   documentFileResource(documentId: Signal<string>): HttpResourceRef<Blob | undefined> {
@@ -56,10 +74,24 @@ export class IntakeApi {
     );
   }
 
-  saveDraft(documentId: string, expectedRevision: number, draft: Draft): Observable<DraftResponse> {
+  latestSuggestions(documentId: string): Observable<SuggestionsResponse> {
+    return this.http.get<SuggestionsResponse>(`${this.documentUrl(documentId)}/suggestions/latest`);
+  }
+
+  rerunSuggestions(documentId: string): Observable<SuggestionsResponse> {
+    return this.http.post<SuggestionsResponse>(`${this.documentUrl(documentId)}/suggestions`, {});
+  }
+
+  saveDraft(
+    documentId: string,
+    expectedRevision: number,
+    draft: Draft,
+    suggestionDecisionBatches?: SuggestionDecisions[],
+  ): Observable<DraftResponse> {
     return this.http.put<DraftResponse>(`${this.documentUrl(documentId)}/draft`, {
       expectedRevision: expectedRevision,
       draft,
+      ...(suggestionDecisionBatches?.length ? { suggestionDecisionBatches } : {}),
     });
   }
 

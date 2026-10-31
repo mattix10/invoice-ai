@@ -23,6 +23,33 @@ Document intake is for local development only until Task 09 adds authorization. 
 
 The upload accepts PDF files up to 10 MiB and 20 pages, and JPEG or PNG files up to 10 MiB and 20 decoded megapixels. It validates the file, but is not a malware scanner. Duplicate file content produces a conflict offering the existing document or explicit creation of a separate one; duplicate supplier invoice numbers are rejected at confirmation. Drafts use revision checks and confirmation creates a `needs_review` invoice without inventing a purchase order.
 
+## Local field suggestions
+
+`AI_PROVIDER=disabled` is the default. Suggestion reruns then return 503 (`suggestions_unavailable`), while manual editing remains available. Set `AI_PROVIDER=demo` in `apps/backend/.env` and recreate the backend container to enable the offline deterministic parser:
+
+```powershell
+docker compose --env-file apps/backend/.env up -d --force-recreate backend
+```
+
+Compose passes this setting to the backend. An existing shell environment variable takes precedence over the environment file. No external provider or network fallback is configured; values other than `demo` are unavailable. For a backend run outside Compose, set the same variable in `apps/backend/.env` or the process environment and restart it.
+
+First upload a fictional document, run text extraction in the review screen, and inspect the extracted text. Then request suggestions. The demo parser recognizes the following exact line labels (case-insensitive) and format on the same page for the item and totals blocks:
+
+```text
+Vendor: Example Company
+Invoice number: DEMO-100
+Issued: 2026-10-01
+Due: 2026-10-31
+Currency: PLN
+VAT rate: 0.23
+Item: 1 | Paper | 2 | 12.00
+Net: 24.00
+VAT: 5.52
+Gross: 29.52
+```
+
+Each item line contains position, name, integer quantity and decimal-string unit net price; consecutive item lines form one block. Totals must appear in the shown order. Dates use ISO format, currency uses three uppercase letters, and VAT is a decimal rate between 0 and 1. The parser intentionally recognizes only this demo format; OCR may alter labels or values, so inspect the extracted text and source spans. Suggestions do not update the draft automatically. Select fields, review and save; mismatched totals produce warnings, and confirmation uses the existing validated draft flow.
+
 ## Offline document worker (Windows / VS Code)
 
 Install Docker Desktop with the WSL 2 Linux-container backend, start Docker Desktop, and open this repository in VS Code. Run the Compose commands above from the VS Code PowerShell terminal at the repository root; the first build compiles Tesseract and can take several minutes. No Windows Tesseract, Poppler installation or paid account is required. The document worker is an independent Compose service: the API and worker share only the private `ocr-spool` volume, not the database or document-storage volumes. Both run as UID 10001 so the worker can read the API's private job directories. Do not mount the Docker socket, credentials or additional paths into the worker.

@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { JsonPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,7 +13,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { distinctUntilChanged, map } from 'rxjs';
 import { DocumentPreview } from '../document-preview/document-preview';
 import { DraftEditor } from '../draft-editor/draft-editor';
-import { Draft, IntakeApi, SavedDraft } from '../data-access/intake-api';
+import { Draft, IntakeApi, SavedDraft, SuggestionDecisionBatch } from '../data-access/intake-api';
 import { ExtractedText } from '../extracted-text/extracted-text';
 import type { TextExtractionResponse } from '../../../core/api/schema';
 import { Observable } from 'rxjs';
@@ -24,7 +25,7 @@ interface PendingConfirmation {
 
 @Component({
   selector: 'app-draft-page',
-  imports: [DocumentPreview, DraftEditor, ExtractedText, RouterLink],
+  imports: [DocumentPreview, DraftEditor, ExtractedText, RouterLink, JsonPipe],
   templateUrl: './draft-page.html',
   styleUrl: './draft-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,6 +80,38 @@ export class DraftPage {
 
     return false;
   });
+
+  protected readonly serverConflictDraft = linkedSignal(() => {
+    this.routeVisit();
+
+    return null as Draft | null;
+  });
+
+  protected readonly decisions = linkedSignal(() => {
+    this.routeVisit();
+
+    return [] as SuggestionDecisionBatch[];
+  });
+
+  protected recordDecisions(batch: SuggestionDecisionBatch): void {
+    this.decisions.update((current) => {
+      const previous =
+        current.find((entry) => entry.suggestionVersion === batch.suggestionVersion)?.decisions ??
+        [];
+      const fields = new Set(batch.decisions.map((decision) => decision.field));
+
+      return [
+        ...current.filter((entry) => entry.suggestionVersion !== batch.suggestionVersion),
+        {
+          suggestionVersion: batch.suggestionVersion,
+          decisions: [
+            ...previous.filter((decision) => !fields.has(decision.field)),
+            ...batch.decisions,
+          ],
+        },
+      ];
+    });
+  }
 
   protected readonly pendingConfirmation = linkedSignal(() => {
     this.routeVisit();
@@ -139,6 +172,8 @@ export class DraftPage {
   protected reload(): void {
     this.pendingConfirmation.set(null);
     this.conflict.set(false);
+    this.serverConflictDraft.set(null);
+    this.decisions.set([]);
     this.message.set('');
     this.document.reload();
   }
@@ -153,8 +188,31 @@ export class DraftPage {
     const documentId = visit.documentId;
     this.busy.set(true);
     this.message.set('');
+    const normalized = normalizeDraft(draft);
+    const recorded = [...this.decisions()].sort(
+      (a, b) => a.suggestionVersion - b.suggestionVersion,
+    );
+    const latestApplied = new Map<string, unknown>();
+    for (const batch of recorded) {
+      for (const decision of batch.decisions) {
+        if (decision.decision === 'applied') latestApplied.set(decision.field, decision.value);
+      }
+    }
+    const batches = recorded
+      .map((batch) => ({
+        suggestionVersion: batch.suggestionVersion,
+        decisions: batch.decisions
+          .filter(
+            (decision) =>
+              decision.decision === 'rejected' ||
+              JSON.stringify(normalized[decision.field]) ===
+                JSON.stringify(latestApplied.get(decision.field)),
+          )
+          .map(({ field, decision }) => ({ field, decision })),
+      }))
+      .filter((batch) => batch.decisions.length);
     this.api
-      .saveDraft(documentId, document.revision, normalizeDraft(draft))
+      .saveDraft(documentId, document.revision, normalized, batches)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (savedDraft) => {
@@ -162,6 +220,7 @@ export class DraftPage {
           this.document.update((current) =>
             current ? { ...current, ...savedDraft, status: 'draft' } : current,
           );
+          this.decisions.set([]);
           afterSave(documentId, savedDraft);
         },
         error: (error: unknown) => {
@@ -204,6 +263,21 @@ export class DraftPage {
       this.message.set(
         'The document changed elsewhere. Reload the latest version before trying again. Your unsaved changes remain visible until you reload.',
       );
+
+      const visit = this.routeVisit();
+      this.api
+        .getDocument(visit.documentId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (document) => {
+            if (this.routeVisit() === visit && this.conflict())
+              this.serverConflictDraft.set(document.draft);
+          },
+          error: () => {
+            if (this.routeVisit() === visit && this.conflict())
+              this.message.set('Could not load the server draft. Your local edits remain visible.');
+          },
+        });
 
       return;
     }

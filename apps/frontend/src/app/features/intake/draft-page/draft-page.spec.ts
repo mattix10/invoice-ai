@@ -361,6 +361,9 @@ describe('DraftPage', () => {
     await fixture.whenStable();
 
     // Act
+    const vendor = fixture.nativeElement.querySelector('[name="vendor"]') as HTMLInputElement;
+    vendor.value = 'Local edit';
+    vendor.dispatchEvent(new Event('input'));
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     http
       .expectOne('/api/v1/intake/documents/doc-1/draft')
@@ -368,11 +371,109 @@ describe('DraftPage', () => {
         { error: { code: 'draft_revision_conflict', message: 'Conflict', currentRevision: 3 } },
         { status: 409, statusText: 'Conflict' },
       );
+    http.expectOne('/api/v1/intake/documents/doc-1').flush({
+      documentId: 'doc-1',
+      status: 'draft',
+      originalName: 'new.pdf',
+      revision: 3,
+      draft: { ...draft, vendor: 'Server edit' },
+      validation: { complete: false, errors: [] },
+    });
     await fixture.whenStable();
 
     // Assert
     expect(fixture.nativeElement.textContent).toContain('Your unsaved changes remain visible');
     expect(fixture.nativeElement.textContent).toContain('Discard local changes');
+    expect(fixture.nativeElement.textContent).toContain('Server edit');
+    expect(vendor.value).toBe('Local edit');
+    http.verify();
+  });
+
+  it('should preserve decisions from multiple suggestion versions when saving', async () => {
+    const params = convertToParamMap({ documentId: 'doc-1' });
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: params }, paramMap: of(params) },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(DraftPage);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    const draft = {
+      vendor: null,
+      supplierInvoiceNumber: null,
+      issued: null,
+      due: null,
+      currency: null,
+      vatRate: null,
+      items: [],
+      declaredTotals: null,
+    };
+    http.expectOne('/api/v1/intake/documents/doc-1').flush({
+      documentId: 'doc-1',
+      status: 'draft',
+      originalName: 'new.pdf',
+      revision: 2,
+      draft,
+      validation: { complete: false, errors: [] },
+    });
+    http.expectOne('/api/v1/intake/documents/doc-1/preview').flush(new Blob());
+    await fixture.whenStable();
+    const panel = fixture.nativeElement.querySelector('app-suggestions-panel') as HTMLElement;
+    const proposal = {
+      field: 'vendor',
+      value: 'Example',
+      source: {
+        pageNumber: 1,
+        start: 0,
+        end: 7,
+        excerpt: 'Example',
+        extractionMethod: 'pdf_text',
+        extractionVersion: 1,
+      },
+      warnings: [],
+    };
+    panel.querySelectorAll('button')[0].click();
+    http.expectOne('/api/v1/intake/documents/doc-1/suggestions/latest').flush({
+      documentId: 'doc-1',
+      version: 1,
+      status: 'completed',
+      proposals: [proposal],
+      warnings: [],
+    });
+    await fixture.whenStable();
+    (panel.querySelector('input') as HTMLInputElement).click();
+    await fixture.whenStable();
+    panel.querySelectorAll('button')[2].click();
+    panel.querySelectorAll('button')[1].click();
+    http.expectOne('/api/v1/intake/documents/doc-1/suggestions').flush({
+      documentId: 'doc-1',
+      version: 2,
+      status: 'completed',
+      proposals: [proposal],
+      warnings: [],
+    });
+    await fixture.whenStable();
+    (panel.querySelector('input') as HTMLInputElement).click();
+    await fixture.whenStable();
+    panel.querySelectorAll('button')[3].click();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    const request = http.expectOne('/api/v1/intake/documents/doc-1/draft');
+    expect(request.request.body.suggestionDecisionBatches).toEqual([
+      { suggestionVersion: 1, decisions: [{ field: 'vendor', decision: 'applied' }] },
+      { suggestionVersion: 2, decisions: [{ field: 'vendor', decision: 'rejected' }] },
+    ]);
+    request.flush({
+      draft: { ...draft, vendor: 'Example' },
+      revision: 3,
+      validation: { complete: false, errors: [] },
+    });
     http.verify();
   });
 

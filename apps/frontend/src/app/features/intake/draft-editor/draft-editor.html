@@ -1,6 +1,15 @@
 <section>
   <h2>Invoice details</h2>
   <p>Enter the invoice details manually. Saving does not approve the invoice.</p>
+  @if (documentId()) {
+    <app-suggestions-panel
+      [documentId]="documentId()"
+      [draft]="form()"
+      [disabled]="busy()"
+      (apply)="applySuggestions($event)"
+      (decide)="decide.emit($event)"
+    />
+  }
   <form #editor="ngForm" (ngSubmit)="save.emit(form())">
     <fieldset [disabled]="busy()">
       <legend>Editable invoice details</legend>

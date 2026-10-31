@@ -13,6 +13,7 @@ from invoiceflow.core.api_schema import ApiSchema
 
 MoneyInput = Annotated[str, StringConstraints(pattern=r"^\d{1,16}\.\d{2}$")]
 VatInput = Annotated[str, StringConstraints(pattern=r"^(0(?:\.\d{1,4})?|1(?:\.0{1,4})?)$")]
+MAX_DRAFT_ITEMS = 1000
 
 
 class NullableDraftModel(ApiSchema):
@@ -47,7 +48,7 @@ class Draft(NullableDraftModel):
     due: date | None
     currency: Annotated[str, StringConstraints(pattern=r"^[A-Z]{3}$")] | None
     vat_rate: VatInput | None
-    items: list[DraftItem] = Field(max_length=1000)
+    items: list[DraftItem] = Field(max_length=MAX_DRAFT_ITEMS)
     declared_totals: DeclaredTotals | None = None
 
     @model_validator(mode="after")
@@ -58,10 +59,52 @@ class Draft(NullableDraftModel):
         return self
 
 
+class SuggestionDecision(ApiSchema):
+    model_config = ConfigDict(extra="forbid")
+    field: Literal[
+        "vendor",
+        "supplierInvoiceNumber",
+        "issued",
+        "due",
+        "currency",
+        "vatRate",
+        "items",
+        "declaredTotals",
+    ]
+    decision: Literal["applied", "rejected"]
+
+
+class SuggestionDecisions(ApiSchema):
+    model_config = ConfigDict(extra="forbid")
+    suggestion_version: int = Field(gt=0, strict=True)
+    decisions: list[SuggestionDecision] = Field(min_length=1, max_length=8)
+
+    @model_validator(mode="after")
+    def unique_fields(self):
+        fields = [decision.field for decision in self.decisions]
+        if len(fields) != len(set(fields)):
+            raise ValueError("Each field may have only one decision")
+        return self
+
+
 class DraftRequest(ApiSchema):
     model_config = ConfigDict(extra="forbid")
     expected_revision: int = Field(ge=0, strict=True)
     draft: Draft
+    suggestion_decisions: SuggestionDecisions | None = None
+    suggestion_decision_batches: list[SuggestionDecisions] = Field(
+        default_factory=list, max_length=100
+    )
+
+    @model_validator(mode="after")
+    def unique_suggestion_versions(self):
+        batches = list(self.suggestion_decision_batches)
+        if self.suggestion_decisions:
+            batches.append(self.suggestion_decisions)
+        versions = [batch.suggestion_version for batch in batches]
+        if len(versions) != len(set(versions)):
+            raise ValueError("Each suggestion version may appear only once")
+        return self
 
 
 class ConfirmRequest(ApiSchema):

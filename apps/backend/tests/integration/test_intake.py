@@ -470,3 +470,168 @@ def test_invalid_image_upload_is_rejected_without_storage(
     # Assert
     assert response.status_code == status
     assert list(tmp_path.iterdir()) == []
+
+
+def test_suggestions_reruns_preserve_draft_revision_and_manual_values(client, monkeypatch):
+    # Arrange
+    client.app.state.settings.ai_provider = "demo"
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    manual = draft()
+    manual["vendor"] = "Human correction"
+    client.put(url + "/draft", json={"expectedRevision": 0, "draft": manual})
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: ["Vendor: Proposed vendor\nInvoice number: F-10\nCurrency: PLN"],
+    )
+    assert client.post(url + "/text-extractions").status_code == 200
+    before = client.get(url).json()
+
+    # Act
+    first = client.post(url + "/suggestions")
+    second = client.post(url + "/suggestions")
+    latest = client.get(url + "/suggestions/latest")
+    after = client.get(url).json()
+
+    # Assert
+    assert first.status_code == 200, first.text
+    assert second.status_code == 200, second.text
+    assert first.json()["version"] == 1
+    assert second.json()["version"] == 2
+    assert latest.json() == second.json()
+    assert after == before
+    assert after["revision"] == 1
+    assert after["draft"]["vendor"] == "Human correction"
+    vendor = next(p for p in first.json()["proposals"] if p["field"] == "vendor")
+    assert vendor["value"] == "Proposed vendor"
+    assert vendor["source"]["excerpt"] == "Proposed vendor"
+    assert vendor["source"]["pageNumber"] == 1
+
+
+def test_disabled_suggestions_leave_draft_and_previous_state_unchanged(client):
+    # Arrange
+    client.app.state.settings.ai_provider = "disabled"
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    before = client.get(url).json()
+
+    # Act
+    response = client.post(url + "/suggestions")
+    latest = client.get(url + "/suggestions/latest")
+
+    # Assert
+    assert response.status_code == 503
+    assert latest.status_code == 404
+    assert client.get(url).json() == before
+
+
+def test_suggestions_warn_when_declared_financial_totals_do_not_match(client, monkeypatch):
+    # Arrange
+    client.app.state.settings.ai_provider = "demo"
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: [
+            "Currency: PLN\nVAT rate: 0.23\nItem: 1 | Paper | 2 | 12.00\n"
+            "Net: 24.00\nVAT: 5.52\nGross: 30.00"
+        ],
+    )
+    assert client.post(url + "/text-extractions").status_code == 200
+
+    # Act
+    response = client.post(url + "/suggestions")
+
+    # Assert
+    assert response.status_code == 200, response.text
+    assert response.json()["warnings"] == ["declaredTotals.gross does not match calculated total"]
+    assert client.get(url).json()["revision"] == 0
+
+
+def test_invalid_suggestion_evidence_is_rejected_without_persistence(client, monkeypatch):
+    # Arrange
+    from invoiceflow.modules.intake.suggestion_schemas import FieldProposal, SuggestionSource
+
+    client.app.state.settings.ai_provider = "demo"
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: ["Vendor: Real vendor"],
+    )
+    assert client.post(url + "/text-extractions").status_code == 200
+    forged = FieldProposal(
+        field="vendor",
+        value="Fake",
+        source=SuggestionSource(
+            page_number=1,
+            start=0,
+            end=4,
+            excerpt="Fake",
+            extraction_method="pdf_text",
+            extraction_version=1,
+        ),
+        warnings=[],
+    )
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.suggestion_service.parse_suggestions",
+        lambda pages, version: [forged],
+    )
+
+    # Act
+    response = client.post(url + "/suggestions")
+
+    # Assert
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_suggestion"
+    assert client.get(url + "/suggestions/latest").status_code == 404
+    assert client.get(url).json()["revision"] == 0
+
+
+def test_suggestion_decisions_and_draft_are_audited_atomically(client, session, monkeypatch):
+    from sqlalchemy import select
+
+    from invoiceflow.modules.intake.models import IntakeDraftAudit
+
+    # Arrange
+    client.app.state.settings.ai_provider = "demo"
+    document_id = upload(client, pdf()).json()["documentId"]
+    url = "/api/v1/intake/documents/" + document_id
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: ["Vendor: Suggested\nCurrency: PLN"],
+    )
+    assert client.post(url + "/text-extractions").status_code == 200
+    assert client.post(url + "/suggestions").status_code == 200
+    original = client.get(url).json()["draft"]
+    corrected = draft()
+    corrected["vendor"] = "Suggested"
+    corrected["currency"] = "EUR"
+    body = {
+        "expectedRevision": 0,
+        "draft": corrected,
+        "suggestionDecisionBatches": [
+            {
+                "suggestionVersion": 1,
+                "decisions": [
+                    {"field": "vendor", "decision": "applied"},
+                    {"field": "currency", "decision": "rejected"},
+                ],
+            }
+        ],
+    }
+
+    # Act
+    saved = client.put(url + "/draft", json=body)
+    conflict = client.put(url + "/draft", json=body)
+    records = session.scalars(
+        select(IntakeDraftAudit).where(IntakeDraftAudit.document_id == document_id)
+    ).all()
+
+    # Assert
+    assert saved.status_code == 200, saved.text
+    assert conflict.status_code == 409
+    assert len(records) == 1
+    assert records[0].previous_draft["vendor"] == original["vendor"]
+    assert records[0].draft["vendor"] == "Suggested"
+    assert records[0].draft["currency"] == "EUR"
+    assert records[0].suggestion_decisions[0]["decisions"] == [
+        {"field": "vendor", "decision": "applied"},
+        {"field": "currency", "decision": "rejected"},
+    ]

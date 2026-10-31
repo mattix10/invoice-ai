@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from invoiceflow.modules.intake.errors import IntakeError
 from invoiceflow.modules.intake.image_format import image_preview
-from invoiceflow.modules.intake.models import IntakeDocument
+from invoiceflow.modules.intake.models import IntakeDocument, IntakeDraftAudit, IntakeSuggestion
 from invoiceflow.modules.intake.ocr_client import render_pdf_preview
 from invoiceflow.modules.intake.schemas import Draft, DraftResponse, Validation
 from invoiceflow.modules.intake.storage import store
@@ -164,7 +164,57 @@ class IntakeService:
             raise IntakeError(
                 409, "document_state_conflict", "Confirmed documents cannot be edited"
             )
-        doc.draft = request.draft.model_dump(mode="json")
+        new_draft = request.draft.model_dump(mode="json")
+        batches = list(request.suggestion_decision_batches)
+        if request.suggestion_decisions:
+            batches.append(request.suggestion_decisions)
+        applied_values = {}
+        for batch in sorted(batches, key=lambda item: item.suggestion_version):
+            suggestion = self.session.scalar(
+                select(IntakeSuggestion).where(
+                    IntakeSuggestion.document_id == document_id,
+                    IntakeSuggestion.version == batch.suggestion_version,
+                )
+            )
+            if suggestion is None:
+                raise IntakeError(
+                    422, "invalid_suggestion_decisions", "Suggestion version not found"
+                )
+            from invoiceflow.modules.intake.suggestion_schemas import SuggestionsResponse
+
+            response = SuggestionsResponse.model_validate(suggestion.payload)
+            proposals = {
+                p.field: p.model_dump(mode="json", by_alias=True)["value"]
+                for p in response.proposals
+            }
+            for decision in batch.decisions:
+                if decision.field not in proposals:
+                    raise IntakeError(
+                        422, "invalid_suggestion_decisions", "Suggestion field not found"
+                    )
+                if decision.decision == "applied":
+                    applied_values[decision.field] = proposals[decision.field]
+        draft_fields = request.draft.model_dump(mode="json", by_alias=True)
+        if any(draft_fields[field] != value for field, value in applied_values.items()):
+            raise IntakeError(
+                422, "invalid_suggestion_decisions", "Applied value does not match draft"
+            )
+        audit_decisions = None
+        if request.suggestion_decision_batches:
+            audit_decisions = [batch.model_dump(mode="json") for batch in batches]
+        elif request.suggestion_decisions:
+            audit_decisions = request.suggestion_decisions.model_dump(mode="json")
+        self.session.add(
+            IntakeDraftAudit(
+                id=str(uuid4()),
+                document_id=document_id,
+                revision=doc.revision + 1,
+                previous_draft=doc.draft,
+                draft=new_draft,
+                suggestion_decisions=audit_decisions,
+            )
+        )
+        doc.draft = new_draft
         doc.revision += 1
         doc.status = "draft"
         self.session.commit()
