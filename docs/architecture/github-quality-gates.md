@@ -14,3 +14,5 @@ To enforce checks after pushing this workflow and seeing it run:
 3. Disallow force pushes/deletions and configure bypass/review rules according to ownership. Confirm a deliberately failing PR cannot merge.
 
 Branch protection and remote workflow execution have **not** been configured or verified by this local task. YAML/action configuration validation is separate from a successful GitHub Actions run.
+
+Native Codex review complements these deterministic jobs without adding an AI workflow. See [code review setup and validation](../engineering/CODE_REVIEW.md); account-side enablement is separate from repository preparation.

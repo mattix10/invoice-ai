@@ -1,5 +1,12 @@
 # Angular-specific instructions
 
+## Code Review Rules
+
+- Preserve reactive state and subscription lifecycles. Flag stale Signals/computed state, missing dependency tracking, leaked subscriptions or races that render an older request's result; use existing signal derivations and lifecycle-aware RxJS cancellation/cleanup rather than adding parallel state.
+- Preserve the generated OpenAPI wire contract and exact monetary view mapping. Flag request/response, nullability or enum mismatches and lossy decimal conversions; use the existing typed API client and explicit validated adapters, keeping display models separate.
+- Preserve usable asynchronous interactions. Flag missing loading, empty or error handling when it causes duplicate actions, stale invoice data or invisible failures; model those states explicitly in the responsible feature component and verify the affected interaction.
+- Preserve feature-based architecture, component responsibilities and existing inputs, outputs and user interactions. Flag presentation-embedded business logic or boundary changes only when they cause a concrete correctness or maintenance risk; keep views compositional, move rules to the established owner and retain the public component contract.
+
 ## Skills for this workspace
 
 The skill paths below are relative to the repository root.

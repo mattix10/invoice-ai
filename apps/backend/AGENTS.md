@@ -2,6 +2,15 @@
 
 Read root `AGENTS.md`, the assigned `tasks/backend/*.md`, relevant architecture documents and existing target code. Work on one task; no automatic push, deployment or future-task implementation.
 
+## Code Review Rules
+
+- Preserve invoice state invariants and atomic use cases. Flag invalid status transitions, partial writes or commits that leave reconciliation inconsistent; validate transitions before mutation and keep the full operation in its service-owned transaction with rollback on failure.
+- Preserve exact financial values and currency identity. Flag float calculations, mixed currencies, premature rounding or totals inconsistent with stored items; use Decimal/NUMERIC and the existing independently tested ROUND_HALF_UP policy, retaining decimal-string API serialization.
+- Preserve FastAPI request validation, response schemas and secret-safe errors. Flag invalid inputs reaching persistence or incompatible status/error shapes; validate at the API boundary and translate known failures without leaking SQL, credentials or internal exceptions.
+- Preserve access boundaries. Flag newly introduced unauthorized reads/writes or exposure of another user's data; enforce authorization before access and scope queries to the authorized owner/tenant when identity exists. The existing local unauthenticated prototype is not grounds for speculative auth findings; do not invent identity or 401/403 contracts.
+- Preserve request-scoped SQLAlchemy sessions and explicit migration ownership. Flag shared/leaked sessions, blocking synchronous DB work in async routes, implicit startup DDL, destructive migrations or lost constraints; use existing lifecycle dependencies, synchronous routes and reviewed Alembic revisions with real PostgreSQL upgrade/downgrade and integrity checks.
+- Preserve human ownership of financial decisions and bounded AI authority when AI code is introduced. Flag unvalidated LLM outputs, unsupported evidence or unauthorized tool execution; validate schemas and persisted evidence, authorize allowlisted tool calls, and require human approval before financial side effects. Do not add AI infrastructure to unrelated tasks.
+
 ## Skills
 
 - Use `.agents/skills/fastapi-feature/SKILL.md` for backend implementation and `.agents/skills/fastapi/SKILL.md` for framework guidance. Keep upstream files unchanged. Project requirements override upstream defaults: SQLAlchemy 2, not SQLModel; separate API schemas and ORM models; no new dependencies or architecture without a concrete task requirement. Check locked versions before using newer APIs described upstream.
