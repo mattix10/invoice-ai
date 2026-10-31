@@ -17,7 +17,7 @@ Invoke-RestMethod http://localhost:8000/health
 Invoke-RestMethod http://localhost:8000/health/ready
 ```
 
-Both health endpoints return `{"status":"ok"}` when PostgreSQL is available. `/health` is process liveness; `/health/ready` checks PostgreSQL and returns 503 when unavailable. Readiness does not assert schema version; apply migrations explicitly before using business APIs. Open `http://localhost:8000/docs` or `/openapi.json`. Task 01 has no invoice routes. The container runs as a non-root user; only the backend and PostgreSQL development ports are exposed on loopback.
+Both health endpoints return `{"status":"ok"}` when PostgreSQL is available. `/health` is process liveness; `/health/ready` checks PostgreSQL and returns 503 when unavailable. Readiness does not assert schema version; apply migrations explicitly before using business APIs. Open `http://localhost:8000/docs` or `/openapi.json` for the read-only invoice routes. The container runs as a non-root user; only the backend and PostgreSQL development ports are exposed on loopback.
 
 `.env.example` contains fictional local-only credentials, not production secrets. Change credentials before creating a fresh volume if desired. Compose interpolation assumes URL-safe username/password; percent-encode credentials in a manually provided DATABASE_URL if special characters are needed. Changing POSTGRES_PASSWORD after initializing a volume does not rotate the existing database role password.
 
@@ -76,7 +76,7 @@ npm ci
 npm start
 ```
 
-Open `http://localhost:4200`. The frontend still uses its existing fixtures and static PDF; Task 03 will connect it to the API. From the same directory:
+Open `http://localhost:4200`. The development proxy forwards `/api` requests to the backend on port 8000. The sample PDF and investigation remain demonstration content. Regenerate frontend wire types from the running backend's actual OpenAPI with `npm run api:generate`; the pinned `openapi-typescript` generator avoids a handwritten duplicate contract. From the same directory:
 
 ```powershell
 npm run arch:test
@@ -90,7 +90,7 @@ If a running Angular server locks `esbuild.exe`, stop that server in its own ter
 
 ## Demo data
 
-Task 01 has no domain tables and no seed command. Current demonstration data stays in the frontend. Task 02 will add explicit, local-only, idempotent seeding as specified in [database.md](database.md); do not run a nonexistent command or imply data is already persisted. No production seeding by default.
+After applying migrations, explicitly seed the local database from `apps/backend` with `uv run python -m invoiceflow.modules.invoices.seed` and `INVOICEFLOW_ENV=local`. The command requires a loopback database host, preserves existing records and is not run automatically. See [database.md](database.md).
 
 ## Stop and deliberate reset
 

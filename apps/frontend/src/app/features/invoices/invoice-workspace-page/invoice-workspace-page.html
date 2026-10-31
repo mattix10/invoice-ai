@@ -1,29 +1,68 @@
-<header class="page-header">
-  <div>
-    <h1>
-      <span class="eyebrow">Invoice workspace</span> {{ data.invoice.id }}
-      <span class="status">{{ data.invoice.status }}</span>
-    </h1>
-    <p class="subtitle">
-      {{ data.invoice.vendor }} · Issued {{ data.invoice.issued }} ·
-      {{ data.invoiceGross | currency: 'PLN' : 'code' }}
-    </p>
-  </div>
-  <a class="btn btn-primary" [routerLink]="investigationLink">Investigate with AI</a>
-</header>
-<p class="notice">
-  Static sample source data. No upload, OCR or automatic extraction has taken place. Human review is
-  required for price variances.
-</p>
-<div class="workspace">
-  <app-invoice-document />
-  <div class="details">
-    <app-invoice-fields [data]="data" />
-    <app-invoice-comparison [data]="data" />
-    <div class="actions" aria-label="Unavailable prototype actions">
-      <button class="btn" disabled>Save</button><button class="btn" disabled>Export</button
-      ><button class="btn" disabled>Request clarification</button
-      ><span>Actions unavailable in this prototype.</span>
+@if (state() === 'loading') {
+  <h1>Invoice workspace</h1>
+  <p role="status">Loading invoice…</p>
+} @else if (state() === 'not-found') {
+  <h1>Invoice workspace</h1>
+  <p role="alert">Invoice not found.</p>
+} @else if (state() === 'error') {
+  <h1>Invoice workspace</h1>
+  <p role="alert">
+    Invoice could not be loaded. <button type="button" (click)="load()">Retry</button>
+  </p>
+} @else if (invoice(); as invoice) {
+  <header class="page-header">
+    <div>
+      <h1>
+        <span class="eyebrow">Invoice workspace</span> {{ invoice.id }}
+        <span class="status">{{ statusLabels[invoice.status] }}</span>
+      </h1>
+      <p class="subtitle">
+        {{ invoice.vendor }} · Issued {{ invoice.issued || 'Unavailable' }} ·
+        {{ gross() | currency: invoice.currency : 'code' }}
+      </p>
+    </div>
+    @if (invoice.id === 'INV-2026-1042') {
+      <a class="btn btn-primary" [routerLink]="['/invoices', invoice.id, 'investigation']"
+        >View demo investigation</a
+      >
+    }
+  </header>
+  <p class="notice">
+    Synthetic sample data. No upload, OCR or automatic extraction has taken place. Human review is
+    required.
+  </p>
+  <div class="workspace">
+    @if (invoice.id === 'INV-2026-1042') {
+      <app-invoice-document />
+    } @else {
+      <p>Document preview unavailable for this invoice.</p>
+    }
+    <div class="details">
+      @if (view(); as data) {
+        <app-invoice-fields [data]="data" /><app-invoice-comparison [data]="data" />
+      } @else {
+        <section>
+          <h2>Invoice fields</h2>
+          <p>Status: {{ statusLabels[invoice.status] }}</p>
+          <p>Due: {{ invoice.due }}</p>
+          <p>Purchase order: {{ invoice.purchase_order || 'Unavailable' }}</p>
+          <p>Comparison unavailable.</p>
+          @if (invoice.items.length === 0) {
+            <p>Line items unavailable.</p>
+          } @else {
+            <ul>
+              @for (item of invoice.items; track item.position) {
+                <li>{{ item.name }} · {{ item.quantity }}</li>
+              }
+            </ul>
+          }
+        </section>
+      }
+      <div class="actions" aria-label="Unavailable prototype actions">
+        <button class="btn" disabled>Save</button><button class="btn" disabled>Export</button
+        ><button class="btn" disabled>Request clarification</button
+        ><span>Actions unavailable in this prototype.</span>
+      </div>
     </div>
   </div>
-</div>
+}

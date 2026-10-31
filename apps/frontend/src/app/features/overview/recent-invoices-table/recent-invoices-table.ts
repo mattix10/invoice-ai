@@ -13,6 +13,4 @@ import { RecentInvoice } from '../overview-demo.data';
 })
 export class RecentInvoicesTable {
   readonly invoices = input.required<readonly RecentInvoice[]>();
-  readonly featuredInvoiceId = input.required<string>();
-  readonly invoiceLink = input.required<readonly string[]>();
 }

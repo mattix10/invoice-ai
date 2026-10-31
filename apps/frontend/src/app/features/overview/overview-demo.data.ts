@@ -10,6 +10,7 @@ export interface RecentInvoice {
   readonly vendor: string;
   readonly due: string;
   readonly amountGrosz: number;
+  readonly currency?: string;
   readonly status: string;
 }
 export interface ProcessingVolume {
