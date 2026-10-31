@@ -44,7 +44,7 @@ describe('DraftPage', () => {
       validation,
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
@@ -109,7 +109,7 @@ describe('DraftPage', () => {
       validation,
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
@@ -135,7 +135,7 @@ describe('DraftPage', () => {
       validation,
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-2/file')
+      .expectOne('/api/v1/intake/documents/doc-2/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     http.verify();
   });
@@ -178,7 +178,7 @@ describe('DraftPage', () => {
       validation,
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
@@ -245,13 +245,16 @@ describe('DraftPage', () => {
       validation: { complete: false, errors: [] },
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
 
     // Assert
     expect(fixture.nativeElement.querySelector('[name="vendor"]').value).toBe('Example');
-    expect(fixture.nativeElement.textContent).toContain('Could not load the PDF');
+    expect(fixture.nativeElement.textContent).toContain('Could not load the preview');
+    expect(fixture.nativeElement.querySelector('a[href$="/file"]').getAttribute('href')).toBe(
+      '/api/v1/intake/documents/doc-1/file',
+    );
     http.verify();
   });
 
@@ -291,7 +294,7 @@ describe('DraftPage', () => {
       validation: { complete: false, errors: [] },
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     const vendor = fixture.nativeElement.querySelector('[name="vendor"]');
@@ -353,7 +356,7 @@ describe('DraftPage', () => {
       validation: { complete: false, errors: [] },
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
 
@@ -410,7 +413,7 @@ describe('DraftPage', () => {
       validation: { complete: true, errors: [] },
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
 
@@ -468,7 +471,7 @@ describe('DraftPage', () => {
       validation: { complete: false, errors: [] },
     });
     http
-      .expectOne('/api/v1/intake/documents/doc-1/file')
+      .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
 

@@ -8,11 +8,12 @@ from pathlib import Path
 from uuid import uuid4
 
 from invoiceflow.modules.intake.errors import IntakeError
+from invoiceflow.modules.intake.image_format import image_preview
 
 LIMIT = 10 * 1024 * 1024
 
 
-def store(stream, directory: str):
+def store(stream, directory: str, document_type: str = "pdf"):
     root = Path(directory)
     temporary = None
     final = None
@@ -29,7 +30,13 @@ def store(stream, directory: str):
                 digest.update(chunk)
                 output.write(chunk)
         if size == 0:
-            raise IntakeError(422, "invalid_document", "Invalid PDF document")
+            raise IntakeError(422, "invalid_document", "Invalid document")
+        if document_type in {"jpeg", "png"}:
+            image_preview(temporary, document_type.upper())
+            final = root / (uuid4().hex + "." + document_type)
+            os.replace(temporary, final)
+            temporary = None
+            return final, size, digest.hexdigest()
         with temporary.open("rb") as source:
             if source.read(5) != b"%PDF-":
                 raise IntakeError(422, "invalid_document", "Invalid PDF document")

@@ -22,13 +22,31 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       INTAKE_STORAGE_DIR: /var/lib/invoiceflow/documents
+      INTAKE_OCR_SPOOL_DIR: /spool
     volumes:
       - intake-data:/var/lib/invoiceflow/documents
+      - ocr-spool:/spool
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+
+  ocr-worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile.ocr
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 32
+    tmpfs:
+      - /tmp:size=256m,noexec,nosuid,nodev
+    volumes:
+      - ocr-spool:/spool
 
   postgres-test:
     image: postgres:17
@@ -50,3 +68,4 @@ services:
 volumes:
   postgres-data:
   intake-data:
+  ocr-spool:

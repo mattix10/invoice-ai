@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     database_url: SecretStr
     intake_storage_dir: str = ".invoiceflow-storage"
+    intake_ocr_spool_dir: str | None = None
 
     @field_validator("database_url")
     @classmethod

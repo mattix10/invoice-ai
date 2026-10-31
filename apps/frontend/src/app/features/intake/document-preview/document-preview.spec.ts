@@ -15,7 +15,7 @@ describe('DocumentPreview', () => {
 
     // Assert
     expect(fixture.nativeElement.textContent).toContain('new.pdf');
-    expect(fixture.nativeElement.querySelector('iframe').getAttribute('src')).toBe('blob:invoice');
+    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe('blob:invoice');
     fixture.destroy();
     expect(revoke).toHaveBeenCalledWith('blob:invoice');
     create.mockRestore();

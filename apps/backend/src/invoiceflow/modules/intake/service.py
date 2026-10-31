@@ -10,7 +10,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from invoiceflow.modules.intake.errors import IntakeError
+from invoiceflow.modules.intake.image_format import image_preview
 from invoiceflow.modules.intake.models import IntakeDocument
+from invoiceflow.modules.intake.ocr_client import render_pdf_preview
 from invoiceflow.modules.intake.schemas import Draft, DraftResponse, Validation
 from invoiceflow.modules.intake.storage import store
 from invoiceflow.modules.invoices.calculations import calculate_totals
@@ -77,9 +79,10 @@ def document_response(doc):
 
 
 class IntakeService:
-    def __init__(self, session: Session, directory: str):
+    def __init__(self, session: Session, directory: str, ocr_spool: str | None = None):
         self.session = session
         self.directory = directory
+        self.ocr_spool = ocr_spool
 
     def get(self, document_id, lock=False):
         query = select(IntakeDocument).where(IntakeDocument.id == document_id)
@@ -95,9 +98,17 @@ class IntakeService:
             "NFKC", (upload.filename or "").replace("\\", "/").split("/")[-1]
         )
         original = "".join(c for c in original if c.isprintable()).strip()[:255]
-        if not original.lower().endswith(".pdf") or upload.content_type != "application/pdf":
-            raise IntakeError(415, "unsupported_document_type", "Only PDF documents are supported")
-        path, size, digest = store(upload.file, self.directory)
+        suffix = Path(original).suffix.lower()
+        formats = {
+            (".pdf", "application/pdf"): "pdf",
+            (".jpg", "image/jpeg"): "jpeg",
+            (".jpeg", "image/jpeg"): "jpeg",
+            (".png", "image/png"): "png",
+        }
+        document_type = formats.get((suffix, upload.content_type))
+        if document_type is None:
+            raise IntakeError(415, "unsupported_document_type", "Unsupported document type")
+        path, size, digest = store(upload.file, self.directory, document_type)
         doc = IntakeDocument(
             id=str(uuid4()),
             status="uploaded",
@@ -137,6 +148,14 @@ class IntakeService:
         if not path.is_file():
             raise IntakeError(503, "storage_unavailable", "Document storage unavailable")
         return path
+
+    def preview(self, doc):
+        path = self.file(doc)
+        if path.suffix in {".jpeg", ".png"}:
+            return image_preview(path, path.suffix[1:].upper())
+        if self.ocr_spool is None:
+            raise IntakeError(503, "preview_unavailable", "PDF preview unavailable")
+        return render_pdf_preview(path, self.ocr_spool)
 
     def save(self, document_id, request):
         doc = self.get(document_id, lock=True)

@@ -1,0 +1,30 @@
+FROM python:3.13-slim-trixie AS build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential cmake git pkg-config libleptonica-dev libarchive-dev libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+RUN git clone https://github.com/tesseract-ocr/tesseract.git /src \
+    && git -C /src checkout 7e548e6eff172f38f97664afe7f7ce40db36c8d6 \
+    && cmake -S /src -B /build -DBUILD_TRAINING_TOOLS=OFF -DBUILD_SHARED_LIBS=OFF \
+    && cmake --build /build -j2 && cmake --install /build
+
+FROM python:3.13-slim-trixie
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libleptonica-dev libarchive13t64 libcurl4t64 \
+    poppler-utils=25.03.0-5+deb13u4 \
+    tesseract-ocr-eng=1:4.1.0-2 tesseract-ocr-pol=1:4.1.0-2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 10001 invoiceflow \
+    && useradd --system --uid 10001 --gid 10001 invoiceflow \
+    && mkdir /spool && chown invoiceflow:invoiceflow /spool
+COPY --from=build /usr/local/bin/tesseract /usr/local/bin/tesseract
+RUN printf '%s\n' \
+    'pypdf==6.21.4 --hash=sha256:33e4fb41ca352810eb4e9838aa0d82d6888a5f8bf682f43e99cce5faa666255c' \
+    'pillow==13.0.0 --hash=sha256:5f56499c1a74d2b862beb0c33b8016f99d095858455df9d21583bbbc1c15b582 --hash=sha256:19b66ca0a4d25cc0200b381ce824c7ea090db61427315e73cfb05dbf1b35c369' > /tmp/requirements.txt \
+    && pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt
+COPY ocr_worker.py /app/ocr_worker.py
+COPY ocr_text_layer.py /app/ocr_text_layer.py
+COPY src/invoiceflow/modules/intake/image_worker.py src/invoiceflow/modules/intake/pdf_check.py /app/invoiceflow/modules/intake/
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
+USER 10001:10001
+CMD ["python", "/app/ocr_worker.py"]

@@ -7,6 +7,7 @@ import type {
   Draft,
   DraftResponse,
   UploadResponse,
+  TextExtractionResponse,
 } from '../../../core/api/schema';
 
 export type {
@@ -27,7 +28,11 @@ export class IntakeApi {
   }
 
   documentFileResource(documentId: Signal<string>): HttpResourceRef<Blob | undefined> {
-    return httpResource.blob(() => `${this.documentUrl(documentId())}/file`);
+    return httpResource.blob(() => `${this.documentUrl(documentId())}/preview`);
+  }
+
+  originalFileUrl(documentId: string): string {
+    return `${this.documentUrl(documentId)}/file`;
   }
 
   uploadDocument(file: File, allowDuplicate = false): Observable<UploadResponse> {
@@ -36,6 +41,19 @@ export class IntakeApi {
     if (allowDuplicate) uploadForm.append('allowDuplicate', 'true');
 
     return this.http.post<UploadResponse>(INTAKE_DOCUMENTS_URL, uploadForm);
+  }
+
+  extractText(documentId: string): Observable<TextExtractionResponse> {
+    return this.http.post<TextExtractionResponse>(
+      `${this.documentUrl(documentId)}/text-extractions`,
+      {},
+    );
+  }
+
+  latestText(documentId: string): Observable<TextExtractionResponse> {
+    return this.http.get<TextExtractionResponse>(
+      `${this.documentUrl(documentId)}/text-extractions/latest`,
+    );
   }
 
   saveDraft(documentId: string, expectedRevision: number, draft: Draft): Observable<DraftResponse> {

@@ -1,7 +1,7 @@
 import { RouterLink } from '@angular/router';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 
-const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024;
 
 @Component({
   selector: 'app-upload-form',
@@ -35,8 +35,8 @@ export class UploadForm {
 
   protected submitUpload(): void {
     const file = this.selectedFile();
-    if (!file || !this.isSupportedPdf(file)) {
-      this.validation.set('Select a non-empty PDF no larger than 10 MiB.');
+    if (!file || !this.isSupportedDocument(file)) {
+      this.validation.set('Select a non-empty PDF, JPEG or PNG no larger than 10 MiB.');
 
       return;
     }
@@ -44,11 +44,18 @@ export class UploadForm {
     this.upload.emit(file);
   }
 
-  private isSupportedPdf(file: File): boolean {
-    const hasPdfExtension = file.name.toLowerCase().endsWith('.pdf');
-    const hasSupportedMediaType = !file.type || file.type === 'application/pdf';
-    const hasSupportedSize = file.size > 0 && file.size <= MAX_PDF_SIZE_BYTES;
+  private isSupportedDocument(file: File): boolean {
+    const extension = file.name.toLowerCase().split('.').pop();
+    const mediaTypes: Record<string, string> = {
+      pdf: 'application/pdf',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+    };
+    const expectedType = extension ? mediaTypes[extension] : undefined;
+    const hasSupportedMediaType = expectedType && (!file.type || file.type === expectedType);
+    const hasSupportedSize = file.size > 0 && file.size <= MAX_DOCUMENT_SIZE_BYTES;
 
-    return hasPdfExtension && hasSupportedMediaType && hasSupportedSize;
+    return !!hasSupportedMediaType && hasSupportedSize;
   }
 }
