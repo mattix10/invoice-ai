@@ -1,0 +1,36 @@
+<app-panel
+  ><section>
+    <h2>Discrepancy</h2>
+    <dl>
+      <div>
+        <dt>Net difference</dt>
+        <dd>{{ data().differenceNet | currency: 'PLN' : 'code' }}</dd>
+      </div>
+      <div>
+        <dt>VAT difference</dt>
+        <dd>{{ data().differenceVat | currency: 'PLN' : 'code' }}</dd>
+      </div>
+      <div>
+        <dt>Gross difference</dt>
+        <dd>{{ data().differenceGross | currency: 'PLN' : 'code' }}</dd>
+      </div>
+      <div>
+        <dt>Of PO gross total</dt>
+        <dd>{{ data().differencePercent | number: '1.1-1' }}%</dd>
+      </div>
+    </dl>
+    <h2>Application event trail</h2>
+    <p class="caption">Illustrative demo events, not a live processing log.</p>
+    <ol>
+      <li>Sample invoice and purchase order data prepared.</li>
+      <li>Monitor unit prices compared; variance identified.</li>
+      <li>Sample delivery quantities checked against both records.</li>
+      <li>Recommendation prepared for human review.</li>
+    </ol>
+    <h2>Suggested next step</h2>
+    <p>
+      Request supplier confirmation of the monitor unit price. A person must decide how to proceed;
+      no automatic approval or payment occurs.
+    </p>
+  </section></app-panel
+>

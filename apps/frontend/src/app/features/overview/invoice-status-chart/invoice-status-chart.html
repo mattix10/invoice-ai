@@ -1,0 +1,24 @@
+<app-panel variant="dashboard"
+  ><section class="panel">
+    <div class="card-heading">
+      <h2>Invoice status</h2>
+      <p class="muted">Visible queue · synthetic data</p>
+    </div>
+    <div class="status-chart" role="img" [attr.aria-label]="chartLabel()">
+      @for (status of statuses(); track status.label) {
+        <div class="status-row">
+          <span>{{ status.label }}</span>
+          <div class="track">
+            <div
+              class="fill"
+              [class.review]="status.style === 'review'"
+              [class.approved]="status.style === 'approved'"
+              [style.width.%]="status.sharePercent"
+            ></div>
+          </div>
+          <strong>{{ status.count }}</strong>
+        </div>
+      }
+    </div>
+  </section></app-panel
+>

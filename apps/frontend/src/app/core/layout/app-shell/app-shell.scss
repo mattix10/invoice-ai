@@ -1,0 +1,26 @@
+.shell {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.area {
+  min-width: 0;
+}
+main {
+  max-width: 1550px;
+  margin: 0 auto;
+  padding: 36px;
+}
+@media (max-width: 850px) {
+  .shell {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+  main {
+    padding: 24px;
+  }
+}
+@media (max-width: 580px) {
+  main {
+    padding: 20px 16px;
+  }
+}

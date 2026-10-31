@@ -1,0 +1,40 @@
+h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+h2:not(:first-child) {
+  margin-top: 24px;
+}
+dl {
+  margin: 0;
+}
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+dt,
+p,
+li {
+  color: var(--text-2);
+}
+dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+p,
+li {
+  line-height: 1.6;
+}
+.caption {
+  font-size: 12px;
+}
+ol {
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 8px;
+}

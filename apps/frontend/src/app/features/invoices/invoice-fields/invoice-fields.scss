@@ -1,0 +1,31 @@
+h2 {
+  margin: 0;
+  font-size: 16px;
+}
+dl {
+  margin: 0;
+}
+dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.section-note {
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0 0;
+}
+@media (max-width: 580px) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+}

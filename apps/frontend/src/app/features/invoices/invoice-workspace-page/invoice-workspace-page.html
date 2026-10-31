@@ -1,0 +1,29 @@
+<header class="page-header">
+  <div>
+    <h1>
+      <span class="eyebrow">Invoice workspace</span> {{ data.invoice.id }}
+      <span class="status">{{ data.invoice.status }}</span>
+    </h1>
+    <p class="subtitle">
+      {{ data.invoice.vendor }} · Issued {{ data.invoice.issued }} ·
+      {{ data.invoiceGross | currency: 'PLN' : 'code' }}
+    </p>
+  </div>
+  <a class="btn btn-primary" [routerLink]="investigationLink">Investigate with AI</a>
+</header>
+<p class="notice">
+  Static sample source data. No upload, OCR or automatic extraction has taken place. Human review is
+  required for price variances.
+</p>
+<div class="workspace">
+  <app-invoice-document />
+  <div class="details">
+    <app-invoice-fields [data]="data" />
+    <app-invoice-comparison [data]="data" />
+    <div class="actions" aria-label="Unavailable prototype actions">
+      <button class="btn" disabled>Save</button><button class="btn" disabled>Export</button
+      ><button class="btn" disabled>Request clarification</button
+      ><span>Actions unavailable in this prototype.</span>
+    </div>
+  </div>
+</div>

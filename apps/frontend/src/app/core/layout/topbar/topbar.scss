@@ -1,0 +1,73 @@
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+header {
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 36px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.crumb,
+.right,
+.account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.crumb {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.crumb strong {
+  color: var(--text);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preview {
+  background: var(--primary-bg);
+  color: #3730a3;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.account {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e8ecf3;
+}
+@media (max-width: 850px) {
+  header {
+    padding: 0 24px;
+  }
+  .account-name {
+    display: none;
+  }
+}
+@media (max-width: 580px) {
+  header {
+    padding: 0 16px;
+  }
+  .crumb > span {
+    display: none;
+  }
+}

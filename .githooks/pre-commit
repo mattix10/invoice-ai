@@ -1,0 +1,2 @@
+#!/bin/sh
+node apps/frontend/scripts/check-staged-format.mjs

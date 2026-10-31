@@ -1,0 +1,32 @@
+<app-panel
+  ><section class="panel" aria-labelledby="fields-title">
+    <h2 id="fields-title">Invoice fields</h2>
+    <p class="section-note">Values shown from the static sample</p>
+    <dl class="fields">
+      <div>
+        <dt>Supplier</dt>
+        <dd>{{ data().invoice.vendor }}</dd>
+      </div>
+      <div>
+        <dt>Invoice number</dt>
+        <dd>{{ data().invoice.id }}</dd>
+      </div>
+      <div>
+        <dt>Purchase order</dt>
+        <dd>{{ data().invoice.purchaseOrder }}</dd>
+      </div>
+      <div>
+        <dt>Issued</dt>
+        <dd>{{ data().invoice.issued }}</dd>
+      </div>
+      <div>
+        <dt>Due</dt>
+        <dd>{{ data().invoice.due }}</dd>
+      </div>
+      <div>
+        <dt>Gross total</dt>
+        <dd>{{ data().invoiceGross | currency: 'PLN' : 'code' }}</dd>
+      </div>
+    </dl>
+  </section></app-panel
+>

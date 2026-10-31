@@ -1,0 +1,31 @@
+<app-panel
+  ><section class="panel" aria-labelledby="comparison-title">
+    <h2 id="comparison-title">Line items and PO comparison</h2>
+    <p class="section-note">Net amounts · {{ data().invoice.purchaseOrder }}</p>
+    <app-invoice-comparison-table
+      label="Line items and purchase order comparison"
+      [headers]="itemHeaders"
+      [rows]="itemRows()"
+    />
+    <app-invoice-comparison-table
+      class="comparison-totals"
+      label="Invoice and purchase order totals"
+      [headers]="totalHeaders"
+      [rows]="totalRows()"
+    /></section
+></app-panel>
+<app-panel variant="warning" class="discrepancy"
+  ><section class="panel" aria-labelledby="difference-title">
+    <h2 id="difference-title">Price mismatch · Needs review</h2>
+    <p>
+      {{ data().items[0].quantity }} monitors ×
+      {{ data().monitorUnitDifference | currency: 'PLN' : 'code' }} =
+      {{ data().differenceNet | currency: 'PLN' : 'code' }} net, plus
+      {{ data().differenceVat | currency: 'PLN' : 'code' }} VAT.
+    </p>
+    <p>
+      Gross difference: <strong>{{ data().differenceGross | currency: 'PLN' : 'code' }}</strong
+      >. Quantities match the purchase order and sample delivery receipt.
+    </p>
+  </section></app-panel
+>

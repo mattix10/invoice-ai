@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  min-width: 0;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+:host([variant='dashboard']),
+:host([variant='metric']) {
+  box-shadow: 0 4px 20px rgba(16, 24, 40, 0.035);
+}
+:host([variant='dashboard']) {
+  padding: 22px;
+}
+:host([variant='metric']) {
+  padding: 20px 22px;
+}
+:host([variant='metric'].emphasis) {
+  border-color: #c7d2fe;
+}
+:host([variant='summary']) {
+  padding: 20px;
+}
+:host([variant='warning']) {
+  background: var(--warning-bg);
+  border-color: var(--warning);
+}
+@media (max-width: 580px) {
+  :host(:not([variant='metric']):not([variant='summary'])) {
+    padding: 16px;
+  }
+}

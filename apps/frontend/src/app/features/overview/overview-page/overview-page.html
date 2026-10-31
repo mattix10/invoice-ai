@@ -1,0 +1,44 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">FINANCE OPERATIONS</p>
+    <h1>Overview</h1>
+    <p class="subtitle">Your priority today: resolve the exceptions that need human review.</p>
+  </div>
+  <a class="btn btn-primary" [routerLink]="invoiceLink"
+    >Review next invoice <span aria-hidden="true">→</span></a
+  >
+</div>
+<app-overview-kpis [kpis]="data.kpis" />
+<app-attention-queue
+  class="banner"
+  mode="banner"
+  [invoice]="data.invoice"
+  [differencePercent]="data.differencePercent"
+  [additionalReviewCount]="data.additionalReviewCount"
+  [investigationLink]="investigationLink"
+/>
+<div class="dashboard-grid">
+  <app-recent-invoices-table
+    [invoices]="data.recentInvoices"
+    [featuredInvoiceId]="data.invoice.id"
+    [invoiceLink]="invoiceLink"
+  />
+  <div class="side-stack">
+    <app-processing-volume-chart
+      [volume]="data.processingVolume"
+      [chartLabel]="data.processingVolumeLabel"
+      [note]="data.processingVolumeNote"
+    />
+    <app-invoice-status-chart
+      [statuses]="data.invoiceStatuses"
+      [chartLabel]="data.statusChartLabel"
+    />
+    <app-attention-queue
+      mode="list"
+      [invoice]="data.invoice"
+      [differencePercent]="data.differencePercent"
+      [additionalReviewCount]="data.additionalReviewCount"
+      [investigationLink]="investigationLink"
+    />
+  </div>
+</div>

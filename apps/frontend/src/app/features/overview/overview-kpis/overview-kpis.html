@@ -1,0 +1,11 @@
+<section class="stats" aria-label="October overview, synthetic data">
+  @for (kpi of kpis(); track kpi.label; let first = $first) {
+    <app-panel variant="metric" [class.emphasis]="first"
+      ><article class="stat">
+        <h2>{{ kpi.label }}</h2>
+        <p class="stat-value">{{ kpi.value }}</p>
+        <p class="muted">{{ kpi.detail }}</p>
+      </article></app-panel
+    >
+  }
+</section>

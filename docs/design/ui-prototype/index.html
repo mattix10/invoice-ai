@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#151D2B" />
+  <title>InvoiceAI — UI design prototype</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#dashboard" aria-label="InvoiceAI overview">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-label">InvoiceAI<span class="brand-dot">.</span><small>AI finance workspace</small></span>
+      </a>
+      <div class="nav-caption">WORKSPACE</div>
+      <nav class="side-nav" id="side-nav" aria-label="Sections"></nav>
+      <div class="sidebar-bottom">
+        <div class="demo-note"><span class="demo-signal"></span><div><strong>Design preview</strong><small>Sample data · no backend</small></div></div>
+        <div class="sidebar-person"><span class="avatar">JD</span><span class="sidebar-person-name"><strong>Jordan Davis</strong><small>Finance Operations</small></span></div>
+      </div>
+    </aside>
+    <div class="app-area">
+      <header class="topbar">
+        <div class="topbar-left"><span class="topbar-breadcrumb">WORKSPACE</span><span class="breadcrumb-slash">/</span><span id="topbar-current">Overview</span></div>
+        <div class="topbar-right"><span class="preview-pill"><span class="preview-dot"></span>UI CONCEPT</span><span class="topbar-divider"></span><span class="topbar-account"><span class="avatar sm">JD</span><span>Jordan Davis</span></span></div>
+      </header>
+      <main id="screen" tabindex="-1" aria-live="polite"></main>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

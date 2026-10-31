@@ -1,0 +1,43 @@
+@if (mode() === 'banner') {
+  <section class="warning" aria-label="Invoice requiring attention">
+    <span class="warning-icon" aria-hidden="true">!</span>
+    <div>
+      <h2>One price discrepancy deserves attention</h2>
+      <p>
+        {{ invoice().id }}: invoice value exceeds purchase order by
+        {{ invoice().differenceGrossGrosz / 100 | currency: 'PLN' : 'code' : '1.2-2' }} ({{
+          differencePercent()
+        }}%). No payment decision has been made.
+      </p>
+    </div>
+    <a class="link" [routerLink]="investigationLink()">Investigate →</a>
+  </section>
+} @else {
+  <app-panel variant="dashboard"
+    ><section class="panel">
+      <div class="card-heading">
+        <h2>Attention required</h2>
+        <p class="muted">Clear, actionable next steps</p>
+      </div>
+      <div class="attention">
+        <span class="attention-icon" aria-hidden="true">!</span>
+        <div>
+          <strong>Price variance · {{ invoice().id }}</strong
+          ><small
+            >{{ invoice().vendor }} ·
+            {{ invoice().differenceGrossGrosz / 100 | currency: 'PLN' : 'code' : '1.2-2' }} above
+            PO</small
+          >
+        </div>
+        <a class="link" [routerLink]="investigationLink()">Open →</a>
+      </div>
+      <div class="attention">
+        <span class="attention-icon neutral" aria-hidden="true">i</span>
+        <div>
+          <strong>{{ additionalReviewCount() }} more invoices await review</strong
+          ><small>Review data is synthetic in this prototype</small>
+        </div>
+      </div>
+    </section></app-panel
+  >
+}

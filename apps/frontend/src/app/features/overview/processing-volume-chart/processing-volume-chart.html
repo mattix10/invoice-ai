@@ -1,0 +1,21 @@
+<app-panel variant="dashboard"
+  ><section class="panel">
+    <div class="card-heading">
+      <h2>Processing volume</h2>
+      <p class="muted">Invoices processed by month · synthetic data</p>
+    </div>
+    <div class="chart" role="img" [attr.aria-label]="chartLabel()">
+      @for (point of volume(); track point.month; let last = $last) {
+        <div class="chart-column">
+          <div class="bar-area">
+            <div class="bar" [class.current]="last" [style.height.%]="point.heightPercent"></div>
+          </div>
+          <span>{{ point.month }}</span>
+        </div>
+      }
+    </div>
+    <p class="chart-note">
+      {{ note().period }} · <strong>{{ note().count }} invoices</strong> · {{ note().annotation }}
+    </p>
+  </section></app-panel
+>

@@ -1,0 +1,29 @@
+<header class="page-header">
+  <div>
+    <h1>AI investigation</h1>
+    <p>Prepared demo explanation · Human review required</p>
+  </div>
+  <a [routerLink]="['/invoices', data.invoice.id]">Back to invoice</a>
+</header>
+<app-panel variant="summary" class="summary-panel"
+  ><section class="summary" aria-label="Invoice summary">
+    <div>
+      <span>Invoice</span><strong>{{ data.invoice.id }}</strong>
+    </div>
+    <div>
+      <span>Supplier</span><strong>{{ data.invoice.vendor }}</strong>
+    </div>
+    <div>
+      <span>Invoice total</span><strong>{{ data.invoiceGross | currency: 'PLN' : 'code' }}</strong>
+    </div>
+    <div>
+      <span>PO total</span><strong>{{ data.poGross | currency: 'PLN' : 'code' }}</strong>
+    </div>
+    <div>
+      <span>Status</span><strong>{{ data.invoice.status }}</strong>
+    </div>
+  </section></app-panel
+>
+<div class="layout">
+  <app-investigation-evidence [data]="data" /><app-investigation-audit [data]="data" />
+</div>

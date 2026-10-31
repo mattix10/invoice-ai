@@ -1,0 +1,54 @@
+<app-panel variant="dashboard"
+  ><section class="queue">
+    <div class="card-heading">
+      <h2>Review queue</h2>
+      <p class="muted">Synthetic invoices requiring attention and recent processing</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Vendor</th>
+            <th>Due</th>
+            <th class="numeric">Amount</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of invoices(); track row.id) {
+            <tr>
+              <td class="invoice-id">{{ row.id }}</td>
+              <td>{{ row.vendor }}</td>
+              <td>{{ row.due }}</td>
+              <td class="numeric">
+                {{ row.amountGrosz / 100 | currency: 'PLN' : 'code' : '1.2-2' }}
+              </td>
+              <td>
+                <span
+                  class="status"
+                  [class.review]="row.status === 'Needs review'"
+                  [class.approved]="row.status === 'Approved'"
+                  >{{ row.status }}</span
+                >
+              </td>
+              <td>
+                @if (row.id === featuredInvoiceId()) {
+                  <a
+                    class="link"
+                    [routerLink]="invoiceLink()"
+                    [attr.aria-label]="'Review ' + row.id"
+                    >Review →</a
+                  >
+                } @else {
+                  <span class="muted">Demo only</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section></app-panel
+>
