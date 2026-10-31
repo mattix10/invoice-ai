@@ -3,7 +3,7 @@
 ## Architecture
 
 `.github/workflows/ai-code-review.yml` uses `pull_request_target` for opened,
-reopened, synchronized and ready-for-review PRs targeting `main`. Drafts, forks
+reopened, synchronized and ready-for-review PRs targeting `master`. Drafts, forks
 and PRs with `FREE_AI_REVIEW_ENABLED=false` are skipped at the job boundary.
 The Python reviewer uses only the standard library. There are no new packages,
 agents, paid subscriptions, OpenAI API calls or GitHub Models integrations.
@@ -21,7 +21,7 @@ agents, paid subscriptions, OpenAI API calls or GitHub Models integrations.
 Neither job executes PR code, installs PR dependencies, uses a PR-controlled
 workflow/script, interpolates PR text into shell, grants source write access,
 pushes or merges. Third-party actions are pinned to release commit SHAs.
-Protect `main` and require human review of changes to `.github/` and `prompts/`:
+Protect `master` and require human review of changes to `.github/` and `prompts/`:
 the trusted base is the security boundary. The first PR introducing these files
 cannot use its own reviewer; merge the implementation through normal review first.
 
@@ -34,7 +34,7 @@ the new run replaces it.
 
 ## Manual GitHub setup
 
-1. Merge these reviewed files into `main`. Do not enable an unreviewed base script.
+1. Merge these reviewed files into `master`. Do not enable an unreviewed base script.
 2. At **Settings → Actions → General**, enable Actions and allow the pinned
    `actions/checkout`, `actions/upload-artifact`, `actions/download-artifact`
    actions. Organization policy must permit the job's `pull-requests: write`
@@ -49,7 +49,7 @@ the new run replaces it.
    - `FREE_AI_REVIEW_MODEL`: defaults to `openrouter/free`; alternatively use an
      exact catalog ID ending in `:free`.
    - `FREE_AI_REVIEW_ENABLED`: set to `false` to disable; unset or `true` to enable.
-6. Open a non-draft same-repository PR to `main` changing a source file. Inspect
+6. Open a non-draft same-repository PR to `master` changing a source file. Inspect
    the two jobs and the single advisory comment. Also verify a docs-only PR skips
    inference and a subsequent commit updates the existing comment.
 7. Keep **Quality gates** checks required under branch protection. Keep the AI

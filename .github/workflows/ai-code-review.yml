@@ -2,7 +2,7 @@ name: Free AI code review
 
 on:
   pull_request_target:
-    branches: [main]
+    branches: [master]
     types: [opened, reopened, synchronize, ready_for_review]
 
 permissions: {}

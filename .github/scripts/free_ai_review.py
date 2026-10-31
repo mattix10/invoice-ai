@@ -286,7 +286,7 @@ def eligible(pr, repo, expected):
     return (
         pr["state"] == "open"
         and not pr["draft"]
-        and pr["base"]["ref"] == "main"
+        and pr["base"]["ref"] == "master"
         and pr["head"].get("repo", {}).get("full_name") == repo
         and revision(pr) == expected
     )

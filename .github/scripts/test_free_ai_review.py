@@ -18,7 +18,7 @@ PR = {
     "draft": False,
     "changed_files": 1,
     "head": {"sha": "a" * 40, "repo": {"full_name": "owner/repo"}},
-    "base": {"sha": "b" * 40, "ref": "main"},
+    "base": {"sha": "b" * 40, "ref": "master"},
 }
 EMPTY = {"summary": "Nothing found", "findings": []}
 CATALOG = {
@@ -350,10 +350,11 @@ class LifecycleTests(unittest.TestCase):
         self.assertTrue(report["incomplete"])
 
     @patch.object(review, "request_json")
-    def test_fork_draft_closed_or_stale_pr_cannot_infer(self, http):
+    def test_fork_draft_closed_stale_or_wrong_base_pr_cannot_infer(self, http):
         for change in [
             {"draft": True},
             {"state": "closed"},
+            {"base": {**PR["base"], "ref": "main"}},
             {"head": {**PR["head"], "repo": {"full_name": "fork/repo"}}},
             {"head": {**PR["head"], "sha": "c" * 40}},
         ]:
