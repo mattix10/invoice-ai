@@ -66,6 +66,7 @@ def test_incomplete_and_invalid_input_rolls_back():
 def test_persistence_failure_rolls_back():
     repository = Mock()
     repository.lock_invoice.return_value = invoice()
+    repository.active_snapshot.return_value = repository.lock_invoice.return_value.po_snapshot
     repository.reconciliation.return_value = None
     repository.next_revision.return_value = 1
     repository.commit.side_effect = RuntimeError("failure")

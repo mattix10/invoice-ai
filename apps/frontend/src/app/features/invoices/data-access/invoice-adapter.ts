@@ -60,7 +60,7 @@ export function detailView(
     invoice: {
       id: invoice.id,
       vendor: invoice.vendor,
-      purchaseOrder: invoice.purchaseOrder ?? 'Unavailable',
+      purchaseOrder: comparison.purchaseOrder,
       issued: invoice.issued ?? 'Unavailable',
       due: invoice.due,
       currency: invoice.currency,

@@ -1,50 +1,46 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { InvestigationPage } from './investigation-page';
 
 describe('InvestigationPage', () => {
-  it('should associate invoice and purchase order totals with their labels', async () => {
-    // Arrange
+  it('shows recorded amounts and missing receipt for the selected invoice', async () => {
     TestBed.configureTestingModule({
       imports: [InvestigationPage],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: new BehaviorSubject(convertToParamMap({ id: 'INV-2026-9999' })) },
+        },
+      ],
     });
     const fixture = TestBed.createComponent(InvestigationPage);
-
-    // Act
-    await fixture.whenStable();
-
-    // Assert
-    const summary = (fixture.nativeElement as HTMLElement).querySelector(
-      '[aria-label="Invoice summary"]',
-    );
-    const values = Array.from(summary!.querySelectorAll('div'), (item) => [
-      item.querySelector('span')?.textContent?.trim(),
-      item.querySelector('strong')?.textContent?.trim(),
-    ]);
-    expect(values).toEqual(
-      expect.arrayContaining([
-        ['Invoice total', 'PLN12,915.00'],
-        ['PO total', 'PLN12,300.00'],
-      ]),
-    );
-  });
-
-  it('should provide a link back to the featured invoice', async () => {
-    // Arrange
-    TestBed.configureTestingModule({
-      imports: [InvestigationPage],
-      providers: [provideRouter([])],
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne('/api/v1/invoices/INV-2026-9999/reconciliations/latest').flush({
+      revision: 1,
+      isCurrent: true,
+      algorithmVersion: 'deterministic-v2',
+      evidenceRefs: [],
+      result: {
+        inputs: { purchaseOrder: 'PO-1', currency: 'PLN', deliveryReceiptId: null },
+        invoiceTotals: { gross: '123.00' },
+        poTotals: { gross: '110.70' },
+        difference: { net: '10.00', vat: '2.30', gross: '12.30' },
+      },
     });
-    const fixture = TestBed.createComponent(InvestigationPage);
-
-    // Act
     await fixture.whenStable();
-
-    // Assert
-    const link = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('a')).find(
-      (element) => element.textContent?.trim() === 'Back to invoice',
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('PLN12.30');
+    expect(text).toContain('Receipt: Unavailable');
+    expect(fixture.nativeElement.querySelector('a').getAttribute('href')).toBe(
+      '/invoices/INV-2026-9999',
     );
-    expect(link?.getAttribute('href')).toBe('/invoices/INV-2026-1042');
+    http.verify();
   });
 });

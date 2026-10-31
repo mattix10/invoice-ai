@@ -5,6 +5,12 @@ import type {
   InvoiceComparison as InvoiceComparisonDto,
   InvoiceDetail as InvoiceDetailDto,
   InvoicePage as InvoicePageDto,
+  LinkRead as PurchaseOrderLink,
+  LinkRequest as PurchaseOrderLinkRequest,
+  PoFields as PurchaseOrderFields,
+  PoRead as PurchaseOrder,
+  ReconciliationRead,
+  ReconciliationResult,
   operations,
 } from '../../../core/api/schema';
 
@@ -13,6 +19,10 @@ export type {
   InvoiceDetail as InvoiceDetailDto,
   InvoiceSummary as InvoiceSummaryDto,
   InvoicePage as InvoicePageDto,
+  LinkRead as PurchaseOrderLink,
+  LinkRequest as PurchaseOrderLinkRequest,
+  PoFields as PurchaseOrderFields,
+  PoRead as PurchaseOrder,
 } from '../../../core/api/schema';
 
 export type InvoiceListQuery = NonNullable<operations['listInvoices']['parameters']['query']>;
@@ -47,6 +57,48 @@ export class InvoiceApi {
 
   detail(id: string): Observable<InvoiceDetailDto> {
     return this.http.get<InvoiceDetailDto>(`/api/v1/invoices/${encodeURIComponent(id)}`);
+  }
+
+  purchaseOrders(): Observable<PurchaseOrder[]> {
+    return this.http.get<PurchaseOrder[]>('/api/v1/purchase-orders');
+  }
+
+  purchaseOrderLink(id: string): Observable<PurchaseOrderLink> {
+    return this.http.get<PurchaseOrderLink>(
+      `/api/v1/invoices/${encodeURIComponent(id)}/purchase-order-link`,
+    );
+  }
+
+  savePurchaseOrder(
+    order: PurchaseOrderFields,
+    existing?: PurchaseOrder,
+  ): Observable<PurchaseOrder> {
+    return existing
+      ? this.http.put<PurchaseOrder>(`/api/v1/purchase-orders/${encodeURIComponent(existing.id)}`, {
+          ...order,
+          expectedVersion: existing.version,
+        })
+      : this.http.post<PurchaseOrder>('/api/v1/purchase-orders', order);
+  }
+
+  linkPurchaseOrder(id: string, request: PurchaseOrderLinkRequest): Observable<PurchaseOrderLink> {
+    return this.http.put<PurchaseOrderLink>(
+      `/api/v1/invoices/${encodeURIComponent(id)}/purchase-order-link`,
+      request,
+    );
+  }
+
+  reconcile(id: string): Observable<ReconciliationResult> {
+    return this.http.post<ReconciliationResult>(
+      `/api/v1/invoices/${encodeURIComponent(id)}/reconciliation`,
+      {},
+    );
+  }
+
+  latestReconciliation(id: string): Observable<ReconciliationRead> {
+    return this.http.get<ReconciliationRead>(
+      `/api/v1/invoices/${encodeURIComponent(id)}/reconciliations/latest`,
+    );
   }
 
   comparison(id: string): Observable<InvoiceComparisonDto> {

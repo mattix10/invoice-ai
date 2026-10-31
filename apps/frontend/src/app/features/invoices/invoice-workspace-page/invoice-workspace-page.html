@@ -19,9 +19,9 @@
         {{ gross() }}
       </p>
     </div>
-    @if (invoice.id === 'INV-2026-1042') {
+    @if (view()) {
       <a class="btn btn-primary" [routerLink]="['/invoices', invoice.id, 'investigation']"
-        >View demo investigation</a
+        >Investigate</a
       >
     }
   </header>
@@ -35,6 +35,11 @@
       <p>Document preview unavailable for this invoice.</p>
     }
     <div class="details">
+      <app-purchase-order-link
+        [invoice]="invoice"
+        [comparisonAvailable]="!!view()"
+        (linked)="load()"
+      />
       @if (view(); as data) {
         <app-invoice-fields [data]="data" /><app-invoice-comparison [data]="data" />
       } @else {

@@ -55,12 +55,27 @@ class InvoiceRepository:
             select(Invoice).where(Invoice.id == invoice_id).with_for_update()
         )
 
+    def active_snapshot(self, invoice):
+        from invoiceflow.modules.purchase_orders.repository import PurchaseOrderRepository
+
+        repository = PurchaseOrderRepository(self.session)
+        link = repository.link(invoice.id)
+        return repository.snapshot(link.snapshot_id) if link else invoice.po_snapshot
+
     def reconciliation(self, invoice_id: str, input_hash: str) -> Reconciliation | None:
         return self.session.scalar(
             select(Reconciliation).where(
                 Reconciliation.invoice_id == invoice_id, Reconciliation.input_hash == input_hash
             )
         )
+
+    def completed_reconciliation(self, invoice_id: str, revision: int | None):
+        query = select(Reconciliation).where(
+            Reconciliation.invoice_id == invoice_id, Reconciliation.state == "completed"
+        )
+        if revision is not None:
+            query = query.where(Reconciliation.revision == revision)
+        return self.session.scalar(query.order_by(Reconciliation.revision.desc()).limit(1))
 
     def next_revision(self, invoice_id: str) -> int:
         return (

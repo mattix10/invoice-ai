@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from invoiceflow.core.database import DatabaseSession
 from invoiceflow.modules.invoices.reconciliation import (
     ReconciliationConflict,
+    ReconciliationNotFound,
     ReconciliationService,
 )
 from invoiceflow.modules.invoices.repository import InvoiceRepository
@@ -16,6 +17,7 @@ from invoiceflow.modules.invoices.schemas import (
     InvoiceDetail,
     InvoicePage,
     InvoiceQuery,
+    ReconciliationRead,
     ReconciliationRequest,
     ReconciliationResult,
 )
@@ -65,7 +67,34 @@ def reconcile_invoice(
     return ReconciliationService(InvoiceRepository(session)).reconcile(invoice_id)
 
 
+@router.get(
+    "/{invoice_id}/reconciliations/latest", operation_id="getLatestReconciliation", responses=errors
+)
+def get_latest_reconciliation(invoice_id: Id, session: DatabaseSession) -> ReconciliationRead:
+    return ReconciliationService(InvoiceRepository(session)).read(invoice_id)
+
+
+@router.get(
+    "/{invoice_id}/reconciliations/{revision}",
+    operation_id="getReconciliationRevision",
+    responses=errors,
+)
+def get_reconciliation_revision(
+    invoice_id: Id, revision: Annotated[int, Path(gt=0)], session: DatabaseSession
+) -> ReconciliationRead:
+    return ReconciliationService(InvoiceRepository(session)).read(invoice_id, revision)
+
+
 def register_exception_handlers(app):
+    @app.exception_handler(ReconciliationNotFound)
+    async def reconciliation_not_found(request, exc):
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": {"code": "reconciliation_not_found", "message": "Reconciliation not found"}
+            },
+        )
+
     @app.exception_handler(ReconciliationConflict)
     async def reconciliation_conflict(request, exc):
         return JSONResponse(

@@ -12,6 +12,8 @@ from invoiceflow.modules.intake.router import register_intake_handlers
 from invoiceflow.modules.intake.router import router as intake_router
 from invoiceflow.modules.invoices.router import register_exception_handlers
 from invoiceflow.modules.invoices.router import router as invoices_router
+from invoiceflow.modules.purchase_orders.router import register_purchase_order_handlers
+from invoiceflow.modules.purchase_orders.router import router as purchase_orders_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -31,6 +33,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health_router)
     app.include_router(invoices_router)
     app.include_router(intake_router)
+    app.include_router(purchase_orders_router)
+    register_purchase_order_handlers(app)
     register_intake_handlers(app)
     register_exception_handlers(app)
     return app

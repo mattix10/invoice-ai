@@ -9,7 +9,11 @@ from invoiceflow.modules.invoices.calculations import (
     line_net,
 )
 from invoiceflow.modules.invoices.models import Reconciliation
-from invoiceflow.modules.invoices.schemas import ReconciliationResult
+from invoiceflow.modules.invoices.schemas import (
+    EvidenceReference,
+    ReconciliationRead,
+    ReconciliationResult,
+)
 from invoiceflow.modules.invoices.service import InvoiceNotFound, checked_totals, money, totals_dto
 
 
@@ -17,8 +21,12 @@ class ReconciliationConflict(Exception):
     pass
 
 
-def reconcile_inputs(invoice) -> dict:
-    po = invoice.po_snapshot
+class ReconciliationNotFound(Exception):
+    pass
+
+
+def reconcile_inputs(invoice, po=None) -> dict:
+    po = po if po is not None else invoice.po_snapshot
     if (
         po is None
         or invoice.vat_rate is None
@@ -84,6 +92,53 @@ def reconcile_inputs(invoice) -> dict:
     }
 
 
+def fingerprint(invoice, po):
+    result = reconcile_inputs(invoice, po)
+    snapshot_id = getattr(po, "id", None) if po is not None else None
+    algorithm = "deterministic-v2" if snapshot_id else "deterministic-v1"
+    if snapshot_id:
+        result["inputs"]["source_snapshot_id"] = snapshot_id
+    encoded = json.dumps(
+        {"algorithm": algorithm, "inputs": result["inputs"]}, sort_keys=True, separators=(",", ":")
+    ).encode()
+    return result, algorithm, hashlib.sha256(encoded).hexdigest(), snapshot_id
+
+
+def evidence_references(result, snapshot_id):
+    invoice_id, revision = result.invoice_id, result.revision
+    prefix = f"invoice:{invoice_id}"
+    snapshot = f"{prefix}:po-snapshot:{snapshot_id or 'legacy'}"
+    reconciliation = f"{prefix}:reconciliation:{revision}"
+    refs = []
+
+    def add(kind, evidence_id, label, line_position=None):
+        refs.append(
+            EvidenceReference(
+                kind=kind,
+                invoice_id=invoice_id,
+                reconciliation_revision=revision,
+                line_position=line_position,
+                evidence_id=evidence_id,
+                label=label,
+            )
+        )
+
+    add("invoice", prefix, "Invoice")
+    add("po_snapshot", snapshot, "Purchase order snapshot")
+    add("reconciliation", reconciliation, "Reconciliation")
+    for line in result.lines:
+        position = line.position
+        add("invoice_line", f"{prefix}:line:{position}", f"Invoice line {position}", position)
+        add("po_line", f"{snapshot}:line:{position}", f"Purchase order line {position}", position)
+        add(
+            "discrepancy_line",
+            f"{reconciliation}:line:{position}",
+            f"Difference line {position}",
+            position,
+        )
+    return refs
+
+
 def complete_processing(result: Reconciliation) -> None:
     if result.state != "processing":
         raise ValueError("Invalid processing transition")
@@ -100,16 +155,10 @@ class ReconciliationService:
             if invoice is None:
                 raise InvoiceNotFound
             try:
-                result = reconcile_inputs(invoice)
+                po = self.repository.active_snapshot(invoice)
+                result, algorithm, input_hash, snapshot_id = fingerprint(invoice, po)
             except ValueError as exc:
                 raise ReconciliationConflict from exc
-            algorithm = "deterministic-v1"
-            encoded = json.dumps(
-                {"algorithm": algorithm, "inputs": result["inputs"]},
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode()
-            input_hash = hashlib.sha256(encoded).hexdigest()
             existing = self.repository.reconciliation(invoice_id, input_hash)
             if existing is not None:
                 response = ReconciliationResult.model_validate(existing.payload)
@@ -124,6 +173,7 @@ class ReconciliationService:
                 )
                 record = Reconciliation(
                     invoice_id=invoice_id,
+                    source_snapshot_id=snapshot_id,
                     revision=response.revision,
                     input_hash=input_hash,
                     state="processing",
@@ -136,3 +186,36 @@ class ReconciliationService:
         except Exception:
             self.repository.rollback()
             raise
+
+    def read(self, invoice_id: str, revision: int | None = None) -> ReconciliationRead:
+        invoice = self.repository.get(invoice_id)
+        if invoice is None:
+            raise InvoiceNotFound
+        record = self.repository.completed_reconciliation(invoice_id, revision)
+        if record is None:
+            raise ReconciliationNotFound
+        result = ReconciliationResult.model_validate(record.payload)
+        if (result.invoice_id, result.revision, result.input_hash) != (
+            invoice_id,
+            record.revision,
+            record.input_hash,
+        ):
+            raise ValueError("Invalid stored reconciliation")
+        if (result.algorithm == "deterministic-v2") != (record.source_snapshot_id is not None):
+            raise ValueError("Invalid stored reconciliation source")
+        if result.inputs.source_snapshot_id != record.source_snapshot_id:
+            raise ValueError("Invalid stored reconciliation source")
+        try:
+            po = self.repository.active_snapshot(invoice)
+            _, algorithm, input_hash, _ = fingerprint(invoice, po)
+            is_current = (result.algorithm, record.input_hash) == (algorithm, input_hash)
+        except ValueError:
+            is_current = False
+        return ReconciliationRead(
+            revision=record.revision,
+            input_hash=record.input_hash,
+            algorithm_version=result.algorithm,
+            result=result,
+            evidence_refs=evidence_references(result, record.source_snapshot_id),
+            is_current=is_current,
+        )

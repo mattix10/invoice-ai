@@ -111,10 +111,11 @@ class InvoiceService:
         if invoice is None:
             raise InvoiceNotFound
         totals = checked_totals(invoice) if invoice.vat_rate is not None else None
+        po = self.repository.active_snapshot(invoice)
         return InvoiceDetail(
             **summary(invoice).model_dump(),
             issued=invoice.issued,
-            purchase_order=invoice.po_snapshot.purchase_order if invoice.po_snapshot else None,
+            purchase_order=po.purchase_order if po else None,
             vat_rate=str(invoice.vat_rate) if invoice.vat_rate is not None else None,
             items=[
                 InvoiceItem(
@@ -133,7 +134,7 @@ class InvoiceService:
         invoice = self.repository.get(invoice_id)
         if invoice is None:
             raise InvoiceNotFound
-        po = invoice.po_snapshot
+        po = self.repository.active_snapshot(invoice)
         if po is None:
             raise ComparisonNotFound
         if (
@@ -143,8 +144,9 @@ class InvoiceService:
         ):
             raise ValueError("Invoice and purchase order terms do not match")
         po_items = {item.position: item for item in po.items}
-        if set(po_items) != {item.position for item in invoice.items} or any(
-            po_items[item.position].quantity != item.quantity for item in invoice.items
+        if set(po_items) != {item.position for item in invoice.items} or (
+            not hasattr(po, "id")
+            and any(po_items[item.position].quantity != item.quantity for item in invoice.items)
         ):
             raise ValueError("Invoice and purchase order items do not match")
         invoice_totals = checked_totals(invoice)

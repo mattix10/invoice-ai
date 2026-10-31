@@ -116,6 +116,10 @@ class Reconciliation(Base):
     __tablename__ = "invoice_reconciliations"
     __table_args__ = (
         UniqueConstraint("invoice_id", "input_hash"),
+        ForeignKeyConstraint(
+            ["source_snapshot_id", "invoice_id"],
+            ["invoice_po_snapshot_versions.id", "invoice_po_snapshot_versions.invoice_id"],
+        ),
         CheckConstraint("revision > 0", name="revision_positive"),
         CheckConstraint("state IN ('processing', 'completed')", name="state"),
     )
@@ -124,6 +128,7 @@ class Reconciliation(Base):
         ForeignKey("invoices.id", ondelete="CASCADE"), primary_key=True
     )
     revision: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_snapshot_id: Mapped[str | None] = mapped_column(String(36))
     input_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     state: Mapped[str] = mapped_column(String(16), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False)

@@ -142,6 +142,7 @@ class ReconciliationInputLine(ApiSchema):
 
 
 class ReconciliationInputs(ApiSchema):
+    source_snapshot_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     invoice_id: InvoiceId
     purchase_order: str
     delivery_receipt_id: str | None
@@ -155,7 +156,7 @@ class ReconciliationResult(ApiSchema):
     invoice_id: InvoiceId
     revision: int
     state: Literal["completed"]
-    algorithm: Literal["deterministic-v1"]
+    algorithm: Literal["deterministic-v1", "deterministic-v2"]
     input_hash: str
     inputs: ReconciliationInputs
     lines: list[ReconciliationLine]
@@ -163,3 +164,23 @@ class ReconciliationResult(ApiSchema):
     po_totals: InvoiceTotals
     difference: InvoiceTotals
     difference_percent: str | None
+
+
+class EvidenceReference(ApiSchema):
+    kind: Literal[
+        "invoice", "invoice_line", "po_snapshot", "po_line", "reconciliation", "discrepancy_line"
+    ]
+    invoice_id: InvoiceId
+    reconciliation_revision: int | None
+    line_position: int | None
+    evidence_id: str
+    label: str
+
+
+class ReconciliationRead(ApiSchema):
+    revision: int
+    input_hash: str
+    algorithm_version: Literal["deterministic-v1", "deterministic-v2"]
+    result: ReconciliationResult
+    evidence_refs: list[EvidenceReference]
+    is_current: bool

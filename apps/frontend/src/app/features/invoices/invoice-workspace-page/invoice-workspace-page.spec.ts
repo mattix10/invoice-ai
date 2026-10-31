@@ -42,6 +42,11 @@ describe('InvoiceWorkspacePage', () => {
       .expectOne('/api/v1/invoices/large/comparison')
       .flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
+    http.expectOne('/api/v1/purchase-orders').flush([]);
+    http
+      .expectOne('/api/v1/invoices/large/purchase-order-link')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
 
     // Assert
     expect(fixture.nativeElement.textContent).toContain('PLN100,000,000,000,000.01');
@@ -78,6 +83,11 @@ describe('InvoiceWorkspacePage', () => {
     });
     http
       .expectOne('/api/v1/invoices/INV-2026-1041/comparison')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    http.expectOne('/api/v1/purchase-orders').flush([]);
+    http
+      .expectOne('/api/v1/invoices/INV-2026-1041/purchase-order-link')
       .flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Comparison unavailable');
@@ -140,6 +150,11 @@ describe('InvoiceWorkspacePage', () => {
       difference: { net: '500.00', vat: '115.00', gross: '615.00' },
       differencePercent: '5.0',
     });
+    await fixture.whenStable();
+    http.expectOne('/api/v1/purchase-orders').flush([]);
+    http
+      .expectOne('/api/v1/invoices/INV-2026-1042/purchase-order-link')
+      .flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('PLN12,915.00');
     expect(fixture.nativeElement.textContent).toContain('PLN615.00');
