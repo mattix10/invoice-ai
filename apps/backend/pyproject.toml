@@ -11,6 +11,8 @@ dependencies = [
     "pydantic-settings>=2.7,<3",
     "sqlalchemy>=2.0,<2.1",
     "uvicorn>=0.34,<1",
+    "python-multipart==0.0.32",
+    "pypdf==6.21.4",
 ]
 
 [dependency-groups]

@@ -21,6 +21,7 @@ class Invoice(Base):
     __tablename__ = "invoices"
     __table_args__ = (
         UniqueConstraint("id", "currency"),
+        UniqueConstraint("vendor", "supplier_invoice_number"),
         CheckConstraint("status IN ('needs_review', 'approved', 'processing')", name="status"),
         CheckConstraint("currency ~ '^[A-Z]{3}$'", name="currency"),
         CheckConstraint("gross_amount >= 0", name="gross_nonnegative"),
@@ -37,6 +38,7 @@ class Invoice(Base):
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     vendor: Mapped[str] = mapped_column(String(255), nullable=False)
+    supplier_invoice_number: Mapped[str | None] = mapped_column(String(255))
     issued: Mapped[date | None] = mapped_column(Date)
     due: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)

@@ -107,6 +107,8 @@ class InvoiceComparison(BaseModel):
 class ErrorDetail(BaseModel):
     code: str
     message: str
+    current_revision: int | None = None
+    existing_document_id: str | None = None
 
 
 class ApiError(BaseModel):

@@ -27,10 +27,9 @@
       >
     }
   </header>
-  <p class="notice">
-    Synthetic sample data. No upload, OCR or automatic extraction has taken place. Human review is
-    required.
-  </p>
+  @if (invoice.id === 'INV-2026-1042') {
+    <p class="notice">Synthetic sample data. Human review is required.</p>
+  }
   <div class="workspace">
     @if (invoice.id === 'INV-2026-1042') {
       <app-invoice-document />
@@ -46,7 +45,7 @@
           <p>Status: {{ statusLabels[invoice.status] }}</p>
           <p>Due: {{ invoice.due }}</p>
           <p>Purchase order: {{ invoice.purchase_order || 'Unavailable' }}</p>
-          <p>Comparison unavailable.</p>
+          <p>Comparison unavailable / Awaiting PO.</p>
           @if (invoice.items.length === 0) {
             <p>Line items unavailable.</p>
           } @else {

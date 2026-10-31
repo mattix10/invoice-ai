@@ -1,3 +1,5 @@
+import { UploadPage } from './features/intake/upload-page/upload-page';
+import { DraftPage } from './features/intake/draft-page/draft-page';
 import { Routes } from '@angular/router';
 import { AppShell } from './core/layout/app-shell/app-shell';
 import { OverviewPage } from './features/overview/overview-page/overview-page';
@@ -10,6 +12,8 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'overview' },
       { path: 'overview', component: OverviewPage },
+      { path: 'invoices/new', component: UploadPage },
+      { path: 'intake/:documentId', component: DraftPage },
       {
         path: 'invoices/:id/investigation',
         component: InvestigationPage,

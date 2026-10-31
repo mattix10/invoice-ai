@@ -1,0 +1,22 @@
+<form (submit)="$event.preventDefault(); submit()">
+  <label for="pdf">PDF file</label
+  ><input id="pdf" type="file" accept=".pdf,application/pdf" (change)="select($event)" />
+  @if (validation()) {
+    <p role="alert">{{ validation() }}</p>
+  }
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (duplicate()) {
+    <p>
+      A matching document already exists.
+      <a [routerLink]="['/intake', duplicate()]">Open existing document</a>
+    </p>
+    <button type="button" [disabled]="busy()" (click)="duplicateSubmit()">
+      Create a separate document anyway
+    </button>
+  }
+  <button class="btn btn-primary" type="submit" [disabled]="busy()">
+    {{ busy() ? 'Uploading…' : 'Upload invoice' }}
+  </button>
+</form>

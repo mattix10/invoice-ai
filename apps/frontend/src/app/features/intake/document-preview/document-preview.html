@@ -1,0 +1,6 @@
+<section>
+  <h2>Uploaded document: {{ name() }}</h2>
+  @if (url(); as source) {
+    <iframe [src]="source" title="Uploaded PDF preview"></iframe>
+  }
+</section>

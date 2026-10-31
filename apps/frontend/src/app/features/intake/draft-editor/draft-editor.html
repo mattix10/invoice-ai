@@ -1,0 +1,77 @@
+<section>
+  <h2>Invoice details</h2>
+  <p>Enter the invoice details manually. Saving does not approve the invoice.</p>
+  <form #editor="ngForm" (ngSubmit)="save.emit(form())">
+    <fieldset [disabled]="busy()">
+      <legend>Editable invoice details</legend>
+      <label>Vendor <input name="vendor" [(ngModel)]="form().vendor" /></label>
+      <label
+        >Supplier invoice number
+        <input name="supplier_invoice_number" [(ngModel)]="form().supplier_invoice_number"
+      /></label>
+      <label>Issue date <input type="date" name="issued" [(ngModel)]="form().issued" /></label>
+      <label>Due date <input type="date" name="due" [(ngModel)]="form().due" /></label>
+      <label>Currency <input name="currency" maxlength="3" [(ngModel)]="form().currency" /></label>
+      <label
+        >VAT rate (decimal, e.g. 0.23)
+        <input name="vat_rate" inputmode="decimal" [(ngModel)]="form().vat_rate"
+      /></label>
+      <h3>Line items</h3>
+      @for (item of form().items; track $index; let i = $index) {
+        <fieldset>
+          <legend>Item {{ i + 1 }}</legend>
+          <label>Name <input [name]="'name' + i" [(ngModel)]="item.name" /></label
+          ><label
+            >Quantity
+            <input
+              type="number"
+              min="1"
+              step="1"
+              [name]="'quantity' + i"
+              [(ngModel)]="item.quantity" /></label
+          ><label
+            >Unit net
+            <input inputmode="decimal" [name]="'unit_net' + i" [(ngModel)]="item.unit_net" /></label
+          ><button type="button" (click)="removeItem(i)">Remove item</button>
+        </fieldset>
+      }
+      <button type="button" (click)="addItem()">Add item</button>
+      <h3>Declared totals (optional)</h3>
+      @if (form().declared_totals; as totals) {
+        <label
+          >Net <input name="declared_net" inputmode="decimal" [(ngModel)]="totals.net"
+        /></label>
+        <label
+          >VAT <input name="declared_vat" inputmode="decimal" [(ngModel)]="totals.vat"
+        /></label>
+        <label
+          >Gross <input name="declared_gross" inputmode="decimal" [(ngModel)]="totals.gross"
+        /></label>
+        <button type="button" (click)="removeTotals()">Remove declared totals</button>
+      } @else {
+        <button type="button" (click)="addTotals()">Add declared totals</button>
+      }
+      @if (validation().errors.length) {
+        <div role="status">
+          <p>To confirm, resolve:</p>
+          <ul>
+            @for (error of validation().errors; track $index) {
+              <li>{{ error }}</li>
+            }
+          </ul>
+        </div>
+      }
+      <div>
+        <button class="btn" type="submit" [disabled]="busy()">Save draft</button>
+        <button
+          class="btn btn-primary"
+          type="button"
+          [disabled]="busy()"
+          (click)="confirm.emit(form())"
+        >
+          Confirm invoice
+        </button>
+      </div>
+    </fieldset>
+  </form>
+</section>

@@ -21,6 +21,9 @@ services:
     build: ./apps/backend
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      INTAKE_STORAGE_DIR: /var/lib/invoiceflow/documents
+    volumes:
+      - intake-data:/var/lib/invoiceflow/documents
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -46,3 +49,4 @@ services:
 
 volumes:
   postgres-data:
+  intake-data:

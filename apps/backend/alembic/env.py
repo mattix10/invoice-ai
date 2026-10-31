@@ -3,6 +3,7 @@ from sqlalchemy.engine import Connection
 
 from invoiceflow.core.config import Settings
 from invoiceflow.core.database import Base, create_database_engine
+from invoiceflow.modules.intake import models as intake_models  # noqa: F401
 from invoiceflow.modules.invoices import models  # noqa: F401
 
 config = context.config

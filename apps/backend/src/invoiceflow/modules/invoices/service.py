@@ -1,10 +1,14 @@
+from datetime import UTC, datetime
 from decimal import Decimal
+from uuid import uuid4
 
 from invoiceflow.modules.invoices.calculations import (
     calculate_difference,
     calculate_totals,
     line_net,
 )
+from invoiceflow.modules.invoices.models import Invoice
+from invoiceflow.modules.invoices.models import InvoiceItem as InvoiceItemModel
 from invoiceflow.modules.invoices.repository import InvoiceRepository
 from invoiceflow.modules.invoices.schemas import (
     ComparisonItem,
@@ -59,6 +63,39 @@ def summary(invoice) -> InvoiceSummary:
 class InvoiceService:
     def __init__(self, repository: InvoiceRepository):
         self.repository = repository
+
+    def create_from_draft(self, draft):
+        items = [
+            InvoiceItemModel(
+                position=item.position,
+                name=item.name.strip(),
+                quantity=item.quantity,
+                unit_net=Decimal(item.unit_net),
+            )
+            for item in draft.items
+        ]
+        totals = calculate_totals(items, Decimal(draft.vat_rate), draft.currency)
+        if draft.declared_totals:
+            for field in ("net", "vat", "gross"):
+                value = getattr(draft.declared_totals, field)
+                if value is not None and Decimal(value) != getattr(totals, field):
+                    raise ValueError("Declared totals do not match calculated totals")
+        invoice = Invoice(
+            id=f"INV-{datetime.now(UTC).year}-{uuid4().int}",
+            vendor=draft.vendor.strip(),
+            supplier_invoice_number=draft.supplier_invoice_number.strip(),
+            issued=draft.issued,
+            due=draft.due,
+            currency=draft.currency,
+            status="needs_review",
+            vat_rate=Decimal(draft.vat_rate),
+            net_amount=totals.net,
+            vat_amount=totals.vat,
+            gross_amount=totals.gross,
+            items=items,
+        )
+        self.repository.session.add(invoice)
+        return invoice
 
     def list(self, query: InvoiceQuery) -> InvoicePage:
         invoices, total = self.repository.list(query)

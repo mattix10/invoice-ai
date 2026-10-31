@@ -4,6 +4,7 @@
     <h1>Overview</h1>
     <p class="subtitle">Your priority today: resolve the exceptions that need human review.</p>
   </div>
+  <a class="btn" routerLink="/invoices/new">Upload invoice</a>
   @if (reviewResource.isLoading()) {
     <p role="status">Loading review queue…</p>
   } @else if (reviewResource.error()) {

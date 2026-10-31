@@ -10,3 +10,4 @@ tests
 dist
 build
 *.egg-info
+.invoiceflow-storage
