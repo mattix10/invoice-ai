@@ -1,4 +1,4 @@
-from pydantic import SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
@@ -9,6 +9,12 @@ class Settings(BaseSettings):
 
     database_url: SecretStr
     ai_provider: str = "demo"
+    cloudflare_account_id: str | None = None
+    cloudflare_api_token: SecretStr | None = None
+    cloudflare_ai_model: str = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+    cloudflare_timeout_seconds: float = Field(default=15, gt=0, le=30)
+    cloudflare_local_enabled: bool = False
+    cloudflare_local_secret: SecretStr | None = None
     intake_storage_dir: str = ".invoiceflow-storage"
     intake_ocr_spool_dir: str | None = None
 
