@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,7 +6,7 @@ import { catchError, forkJoin, map, of, Subject, switchMap, startWith, throwErro
 import { InvoiceApi, InvoiceDetailDto } from '../data-access/invoice-api';
 import {
   detailView,
-  minorUnits,
+  formatInvoiceAmount,
   statusLabels,
   InvoiceWorkspaceView,
 } from '../data-access/invoice-adapter';
@@ -17,7 +16,7 @@ import { InvoiceComparison } from '../invoice-comparison/invoice-comparison';
 
 @Component({
   selector: 'app-invoice-workspace-page',
-  imports: [CurrencyPipe, RouterLink, InvoiceDocument, InvoiceFields, InvoiceComparison],
+  imports: [RouterLink, InvoiceDocument, InvoiceFields, InvoiceComparison],
   templateUrl: './invoice-workspace-page.html',
   styleUrl: './invoice-workspace-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,7 +29,7 @@ export class InvoiceWorkspacePage {
   protected readonly state = signal<'loading' | 'ready' | 'not-found' | 'error'>('loading');
   protected readonly invoice = signal<InvoiceDetailDto | null>(null);
   protected readonly view = signal<InvoiceWorkspaceView | null>(null);
-  protected readonly gross = signal(0);
+  protected readonly gross = signal('');
   protected readonly statusLabels = statusLabels;
 
   constructor() {
@@ -76,7 +75,7 @@ export class InvoiceWorkspacePage {
           return;
         }
         try {
-          this.gross.set(minorUnits(result.invoice.gross_amount) / 100);
+          this.gross.set(formatInvoiceAmount(result.invoice.gross_amount, result.invoice.currency));
           this.invoice.set(result.invoice);
           this.view.set(result.comparison ? detailView(result.invoice, result.comparison) : null);
           this.state.set('ready');

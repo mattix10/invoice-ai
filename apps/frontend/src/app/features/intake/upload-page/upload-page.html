@@ -1,0 +1,10 @@
+<h1>Upload invoice</h1>
+<p>Choose a digital PDF of up to 10 MiB and 20 pages.</p>
+<app-upload-form
+  [busy]="busy()"
+  [error]="error()"
+  [duplicate]="duplicate()"
+  (upload)="upload($event)"
+  (uploadDuplicate)="upload($event, true)"
+  (selectionChanged)="duplicate.set('')"
+/>

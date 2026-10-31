@@ -19,6 +19,12 @@ Invoke-RestMethod http://localhost:8000/health/ready
 
 Both health endpoints return `{"status":"ok"}` when PostgreSQL is available. `/health` is process liveness; `/health/ready` checks PostgreSQL and returns 503 when unavailable. Readiness does not assert schema version; apply migrations explicitly before using business APIs. Open `http://localhost:8000/docs` or `/openapi.json` for the invoice and reconciliation routes. The container runs as a non-root user; only the backend and PostgreSQL development ports are exposed on loopback.
 
+Document intake is for local development only until Task 09 adds authorization. Compose stores uploaded PDFs in the private `intake-data` volume; it survives container restarts. Local non-container runs use `.invoiceflow-storage` in the backend working directory by default; `INTAKE_STORAGE_DIR` overrides it. Keep this directory private and outside static hosting. Do not commit documents or expose the unauthenticated application publicly.
+
+The upload accepts PDF files up to 10 MiB and 20 pages. It validates structure in a resource-limited subprocess, but is not a malware scanner. Duplicate file content produces a conflict offering the existing document or explicit creation of a separate one; duplicate supplier invoice numbers are rejected at confirmation. Drafts use revision checks and confirmation creates a `needs_review` invoice without inventing a purchase order.
+
+Upload failures remove staged files when possible. A process crash between file placement and database commit can leave an orphan in storage; recovery requires an operator to compare generated storage names with `intake_documents.storage_name` before removing any unreferenced file. There is no automatic deletion of stored documents or volumes.
+
 `.env.example` contains fictional local-only credentials, not production secrets. Change credentials before creating a fresh volume if desired. Compose interpolation assumes URL-safe username/password; percent-encode credentials in a manually provided DATABASE_URL if special characters are needed. Changing POSTGRES_PASSWORD after initializing a volume does not rotate the existing database role password.
 
 ## Backend without an application container

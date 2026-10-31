@@ -9,6 +9,14 @@ export function minorUnits(value: string): number {
   return Number(units);
 }
 
+export function formatInvoiceAmount(value: string, currency: string): string {
+  const match = /^(-?)(\d+)\.(\d{2})$/.exec(value);
+  if (!match) throw new Error('Invalid monetary amount');
+  const [, sign, integer, fraction] = match;
+  const groupedInteger = new Intl.NumberFormat('en-US').format(BigInt(integer));
+  return `${sign}${currency}${groupedInteger}.${fraction}`;
+}
+
 export const statusLabels = {
   needs_review: 'Needs review',
   approved: 'Approved',
@@ -26,7 +34,7 @@ export function summaryView(invoice: InvoiceSummaryDto) {
       year: 'numeric',
       timeZone: 'UTC',
     }).format(new Date(Date.UTC(year, month - 1, day))),
-    amountGrosz: minorUnits(invoice.gross_amount),
+    amount: formatInvoiceAmount(invoice.gross_amount, invoice.currency),
     currency: invoice.currency,
     status: statusLabels[invoice.status],
   };

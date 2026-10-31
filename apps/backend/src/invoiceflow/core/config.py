@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
 
     database_url: SecretStr
+    intake_storage_dir: str = ".invoiceflow-storage"
 
     @field_validator("database_url")
     @classmethod

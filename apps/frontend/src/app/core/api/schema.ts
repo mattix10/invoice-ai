@@ -89,6 +89,108 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/invoices/{invoice_id}/reconciliation': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reconcile Invoice */
+    post: operations['reconcileInvoice'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Upload Document */
+    post: operations['upload_document_api_v1_intake_documents_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents/{document_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Document */
+    get: operations['get_document_api_v1_intake_documents__document_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents/{document_id}/file': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Document File */
+    get: operations['get_document_file_api_v1_intake_documents__document_id__file_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents/{document_id}/draft': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Save Draft */
+    put: operations['save_draft_api_v1_intake_documents__document_id__draft_put'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/intake/documents/{document_id}/confirm': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Confirm Document */
+    post: operations['confirm_document_api_v1_intake_documents__document_id__confirm_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -96,6 +198,16 @@ export interface components {
     /** ApiError */
     ApiError: {
       error: components['schemas']['ErrorDetail'];
+    };
+    /** Body_upload_document_api_v1_intake_documents_post */
+    Body_upload_document_api_v1_intake_documents_post: {
+      /** File */
+      file: string;
+      /**
+       * Allow Duplicate
+       * @default false
+       */
+      allow_duplicate: boolean;
     };
     /** ComparisonItem */
     ComparisonItem: {
@@ -114,12 +226,107 @@ export interface components {
       /** Po Net */
       po_net: string;
     };
+    /** ConfirmRequest */
+    ConfirmRequest: {
+      /** Expected Revision */
+      expected_revision: number;
+    };
+    /** ConfirmResponse */
+    ConfirmResponse: {
+      /** Invoice Id */
+      invoice_id: string;
+      /**
+       * Status
+       * @constant
+       */
+      status: 'confirmed';
+    };
+    /** DeclaredTotals */
+    DeclaredTotals: {
+      /** Net */
+      net: string | null;
+      /** Vat */
+      vat: string | null;
+      /** Gross */
+      gross: string | null;
+    };
+    /** DocumentResponse */
+    DocumentResponse: {
+      draft: components['schemas']['Draft'];
+      /** Revision */
+      revision: number;
+      validation: components['schemas']['Validation'];
+      /** Document Id */
+      document_id: string;
+      /** Invoice Id */
+      invoice_id: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: 'uploaded' | 'draft' | 'confirmed';
+      /** Original Name */
+      original_name: string;
+      /** Size Bytes */
+      size_bytes: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** Draft */
+    Draft: {
+      /** Vendor */
+      vendor: string | null;
+      /** Supplier Invoice Number */
+      supplier_invoice_number: string | null;
+      /** Issued */
+      issued: string | null;
+      /** Due */
+      due: string | null;
+      /** Currency */
+      currency: string | null;
+      /** Vat Rate */
+      vat_rate: string | null;
+      /** Items */
+      items: components['schemas']['DraftItem'][];
+      declared_totals?: components['schemas']['DeclaredTotals'] | null;
+    };
+    /** DraftItem */
+    DraftItem: {
+      /** Position */
+      position: number | null;
+      /** Name */
+      name: string | null;
+      /** Quantity */
+      quantity: number | null;
+      /** Unit Net */
+      unit_net: string | null;
+    };
+    /** DraftRequest */
+    DraftRequest: {
+      /** Expected Revision */
+      expected_revision: number;
+      draft: components['schemas']['Draft'];
+    };
+    /** DraftResponse */
+    DraftResponse: {
+      draft: components['schemas']['Draft'];
+      /** Revision */
+      revision: number;
+      validation: components['schemas']['Validation'];
+    };
     /** ErrorDetail */
     ErrorDetail: {
       /** Code */
       code: string;
       /** Message */
       message: string;
+      /** Current Revision */
+      current_revision?: number | null;
+      /** Existing Document Id */
+      existing_document_id?: string | null;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -234,6 +441,127 @@ export interface components {
       vat: string;
       /** Gross */
       gross: string;
+    };
+    /** ReconciliationInputLine */
+    ReconciliationInputLine: {
+      /** Position */
+      position: number;
+      /** Name */
+      name: string;
+      /** Invoice Quantity */
+      invoice_quantity: number;
+      /** Po Quantity */
+      po_quantity: number;
+      /** Invoice Unit Net */
+      invoice_unit_net: string;
+      /** Po Unit Net */
+      po_unit_net: string;
+    };
+    /** ReconciliationInputs */
+    ReconciliationInputs: {
+      /** Invoice Id */
+      invoice_id: string;
+      /** Purchase Order */
+      purchase_order: string;
+      /** Delivery Receipt Id */
+      delivery_receipt_id: string | null;
+      /** Currency */
+      currency: string;
+      /** Vat Rate */
+      vat_rate: string;
+      /** Lines */
+      lines: components['schemas']['ReconciliationInputLine'][];
+      stored_invoice_totals: components['schemas']['InvoiceTotals'];
+    };
+    /** ReconciliationLine */
+    ReconciliationLine: {
+      /** Position */
+      position: number;
+      /** Name */
+      name: string;
+      /** Invoice Quantity */
+      invoice_quantity: number;
+      /** Po Quantity */
+      po_quantity: number;
+      /** Invoice Unit Net */
+      invoice_unit_net: string;
+      /** Po Unit Net */
+      po_unit_net: string;
+      /** Invoice Net */
+      invoice_net: string;
+      /** Po Net */
+      po_net: string;
+      /** Difference Net */
+      difference_net: string;
+    };
+    /** ReconciliationRequest */
+    ReconciliationRequest: Record<string, never>;
+    /** ReconciliationResult */
+    ReconciliationResult: {
+      /** Invoice Id */
+      invoice_id: string;
+      /** Revision */
+      revision: number;
+      /**
+       * State
+       * @constant
+       */
+      state: 'completed';
+      /**
+       * Algorithm
+       * @constant
+       */
+      algorithm: 'deterministic-v1';
+      /** Input Hash */
+      input_hash: string;
+      inputs: components['schemas']['ReconciliationInputs'];
+      /** Lines */
+      lines: components['schemas']['ReconciliationLine'][];
+      invoice_totals: components['schemas']['InvoiceTotals'];
+      po_totals: components['schemas']['InvoiceTotals'];
+      difference: components['schemas']['InvoiceTotals'];
+      /** Difference Percent */
+      difference_percent: string | null;
+    };
+    /** RequestValidationDetail */
+    RequestValidationDetail: {
+      /** Loc */
+      loc: (string | number)[];
+      /** Msg */
+      msg: string;
+      /** Type */
+      type: string;
+    };
+    /** RequestValidationError */
+    RequestValidationError: {
+      /** Detail */
+      detail: components['schemas']['RequestValidationDetail'][];
+    };
+    /** UploadResponse */
+    UploadResponse: {
+      /** Document Id */
+      document_id: string;
+      /**
+       * Status
+       * @constant
+       */
+      status: 'uploaded';
+      /** Original Name */
+      original_name: string;
+      /** Size Bytes */
+      size_bytes: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** Validation */
+    Validation: {
+      /** Complete */
+      complete: boolean;
+      /** Errors */
+      errors: string[];
     };
     /** ValidationError */
     ValidationError: {
@@ -435,6 +763,390 @@ export interface operations {
         };
       };
       /** @description Database unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  reconcileInvoice: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        invoice_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ReconciliationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ReconciliationResult'];
+        };
+      };
+      /** @description Invoice or comparison not found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Incomplete or invalid inputs */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Internal error */
+      500: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Database unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  upload_document_api_v1_intake_documents_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['Body_upload_document_api_v1_intake_documents_post'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['UploadResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  get_document_api_v1_intake_documents__document_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['DocumentResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  get_document_file_api_v1_intake_documents__document_id__file_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': unknown;
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  save_draft_api_v1_intake_documents__document_id__draft_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DraftRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['DraftResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  confirm_document_api_v1_intake_documents__document_id__confirm_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ConfirmRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ConfirmResponse'];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Content Too Large */
+      413: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unsupported Media Type */
+      415: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Unprocessable Content */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json':
+            components['schemas']['ApiError'] | components['schemas']['RequestValidationError'];
+        };
+      };
+      /** @description Service Unavailable */
       503: {
         headers: Record<string, unknown>;
         content: {

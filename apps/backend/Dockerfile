@@ -12,7 +12,9 @@ COPY alembic ./alembic
 COPY alembic.ini ./
 RUN uv sync --locked --no-dev --no-editable \
     && groupadd --system invoiceflow \
-    && useradd --system --gid invoiceflow invoiceflow
+    && useradd --system --gid invoiceflow invoiceflow \
+    && mkdir -p /var/lib/invoiceflow/documents \
+    && chown -R invoiceflow:invoiceflow /var/lib/invoiceflow
 
 USER invoiceflow
 EXPOSE 8000

@@ -1,0 +1,39 @@
+<div>
+  <div class="file-selection">
+    <input
+      id="pdf"
+      class="file-input"
+      type="file"
+      accept=".pdf,application/pdf"
+      [disabled]="busy()"
+      (change)="selectFile($event)"
+      aria-describedby="selected-file"
+    />
+    <label class="btn btn-primary file-button" for="pdf">
+      {{ busy() ? 'Uploading…' : 'Upload invoice' }}
+    </label>
+    <span id="selected-file" class="file-name" aria-live="polite">
+      {{ selectedFile()?.name || 'No file selected' }}
+    </span>
+  </div>
+  @if (validation()) {
+    <p role="alert">{{ validation() }}</p>
+  }
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (duplicate()) {
+    <p>
+      A matching document already exists.
+      <a [routerLink]="['/intake', duplicate()]">Open existing document</a>
+    </p>
+    <button type="button" [disabled]="busy()" (click)="uploadSeparateDocument()">
+      Create a separate document anyway
+    </button>
+  }
+  @if (error() && !duplicate() && selectedFile()) {
+    <button class="btn" type="button" [disabled]="busy()" (click)="submitUpload()">
+      Retry upload
+    </button>
+  }
+</div>

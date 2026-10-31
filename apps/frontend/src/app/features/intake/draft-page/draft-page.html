@@ -1,0 +1,57 @@
+<h1>Manual invoice draft</h1>
+@if (document.isLoading()) {
+  <p role="status">Loading draft…</p>
+} @else if (document.error()) {
+  <p role="alert">
+    Could not load the draft. <button type="button" (click)="document.reload()">Retry</button>
+  </p>
+} @else if (document.hasValue()) {
+  @if (document.value(); as doc) {
+    @if (doc.status === 'confirmed') {
+      <p>This document has already been confirmed.</p>
+      @if (doc.invoice_id) {
+        <a [routerLink]="['/invoices', doc.invoice_id]">Open invoice</a>
+      }
+    } @else {
+      <div class="layout">
+        <div>
+          @if (file.isLoading()) {
+            <p role="status">Loading PDF…</p>
+          } @else if (file.error()) {
+            <p role="alert">
+              Could not load the PDF. <button type="button" (click)="file.reload()">Retry</button>
+            </p>
+          } @else if (file.hasValue()) {
+            <app-document-preview [file]="file.value()" [name]="doc.original_name" />
+          }
+        </div>
+        <div>
+          @if (message()) {
+            <p role="alert">{{ message() }}</p>
+          }
+          @if (conflict()) {
+            <button type="button" (click)="reload()">
+              Discard local changes and load latest draft
+            </button>
+          }
+          @if (pendingConfirmation() !== null) {
+            <p role="status">
+              The confirmation outcome is unknown. Retry confirmation or reload the document.
+            </p>
+            <button type="button" [disabled]="busy()" (click)="retryConfirmation()">
+              Retry confirmation
+            </button>
+            <button type="button" [disabled]="busy()" (click)="reload()">Reload document</button>
+          }
+          <app-draft-editor
+            [draft]="doc.draft"
+            [validation]="doc.validation"
+            [busy]="busy() || conflict() || pendingConfirmation() !== null"
+            (save)="saveDraft($event)"
+            (confirm)="confirmInvoice($event)"
+          />
+        </div>
+      </div>
+    }
+  }
+}

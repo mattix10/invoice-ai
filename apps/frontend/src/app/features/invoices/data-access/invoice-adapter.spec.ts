@@ -1,12 +1,41 @@
-import { detailView, minorUnits, summaryView } from './invoice-adapter';
+import { detailView, formatInvoiceAmount, minorUnits, summaryView } from './invoice-adapter';
 
 describe('invoice adapter', () => {
+  it('should preserve every decimal digit when formatting a large amount', () => {
+    // Arrange
+    const amount = '100000000000000.01';
+
+    // Act
+    const formatted = formatInvoiceAmount(amount, 'PLN');
+
+    // Assert
+    expect(formatted).toBe('PLN100,000,000,000,000.01');
+  });
+
   it('preserves exact minor units and rejects unsafe or malformed values', () => {
     expect(minorUnits('12915.00')).toBe(1291500);
     expect(minorUnits('-615.00')).toBe(-61500);
     expect(() => minorUnits('90071992547409.92')).toThrow();
     expect(() => minorUnits('1.001')).toThrow();
   });
+  it('should map a large invoice amount without losing precision', () => {
+    // Arrange
+    const invoice = {
+      id: 'large',
+      vendor: 'Vendor',
+      due: '2026-11-21',
+      currency: 'PLN',
+      status: 'needs_review' as const,
+      gross_amount: '100000000000000.01',
+    };
+
+    // Act
+    const view = summaryView(invoice);
+
+    // Assert
+    expect(view.amount).toBe('PLN100,000,000,000,000.01');
+  });
+
   it('maps status, ISO date and currency', () => {
     expect(
       summaryView({
@@ -23,7 +52,7 @@ describe('invoice adapter', () => {
       due: '21 Nov 2026',
       currency: 'PLN',
       status: 'Needs review',
-      amountGrosz: 1291500,
+      amount: 'PLN12,915.00',
     });
   });
   it('maps canonical totals and the fractional VAT rate', () => {
