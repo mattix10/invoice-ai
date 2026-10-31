@@ -1,53 +1,62 @@
-# Backend 05 — Evidence-backed investigation foundation
+# Task 05 — Context-aware AI Financial Copilot (revised parent task)
 
-## 1. Business objective
+**Status:** specification, not implemented. **Priority:** next after verified Task 04.
+**Business objective:** reduce manual navigation and communication preparation across invoice data; **do not** use LLM to recalculate discrepancies the deterministic engine already explains.
 
-Provide traceable investigation recommendations grounded in actual reconciliation evidence, while keeping humans responsible for financial decisions.
+## Use cases
 
-## 2. Technical scope
+1. **Ask Your Invoices:** user asks plain-language questions (e.g. “Show invoices needing review” or “What is wrong with INV-2026-1042?”). Model chooses from approved read-only tools; API returns only real, available records.
+2. **Investigate Discrepancy:** for a chosen invoice/reconciliation revision, model assembles a concise explanation with verified evidence links and possible next human actions; it does not decide approval.
+3. **Draft Supplier Inquiry:** a **draft** that cites verified discrepancies and requests clarification, for human copy/edit only; no mail API, sending, or contact automation.
 
-Prerequisite: Task 04 verified. Implement one investigation use case with a clearly labelled deterministic demonstration provider and a narrow replaceable provider boundary. No paid/live model calls by default. A real provider requires separately authorized credentials, costs and privacy requirements.
+**Do not fabricate:** historical vendor analysis, document confidence percentages, PO/delivery records, decisions, accounting conclusions, or source IDs that are not present in persisted data.
 
-## 3. Components and dependencies
+## Provider decision and operational modes
 
-Reuse invoices/reconciliation results. Add focused investigation orchestration, validated output/provenance schema and persistence only for actual saved results. No multi-agent framework, broker or provider SDK without concrete approval/justification.
+- `AI_PROVIDER=demo` (default): deterministic, explicitly labelled demo; never represented as live inference.
+- `AI_PROVIDER=cloudflare` (explicit local-only opt-in): Cloudflare Workers AI REST API using `@cf/meta/llama-3.3-70b-instruct-fp8-fast` as the *initial model candidate*; verify current model's function-calling, request/response and JSON support before implementation. Configuration via server-only environment variables.
+- `AI_PROVIDER=disabled`: a documented unavailable state; **no silent fallback** to demo.
+- No payment method/paid fallback, no inference in CI, no real customer data, no logging full prompts, no raw reasoning. Account Free limits are not guaranteed: handle 403/429/timeouts explicitly.
+- This FastAPI backend currently lacks production auth: **do not allow unauthenticated remote/public live inference**. Constrain local execution to loopback + intentional opt-in; Task 09 is a production prerequisite.
 
-## 4. Expected files
+## Architecture
 
-Allowed: `apps/backend/src/invoiceflow/modules/investigations/` with exact files defined after inspecting existing modules; minimal router registration, migration if persisting results, backend tests, API/backend/database/local docs, this task and progress. No frontend rewrite or unrelated infrastructure.
+`Angular contextual panel` → `FastAPI Copilot API` → `CopilotService` → allowlisted `ToolRegistry` → existing invoice/reconciliation services → PostgreSQL. Provider boundary translates model tool call/result into internal typed commands. LLM sees only minimal bounded tool outputs. Validation verifies source IDs and all monetary facts against deterministic service results.
 
-## 5. Architecture constraints
+- Read-only tools: `search_invoices`, `get_invoice_details`, `get_reconciliation_evidence` (only if a valid revision/result exists). The same application services later power MCP.
+- Task 05a first adds the read-only latest/by-revision reconciliation service and structured `EvidenceReference` contract in `docs/architecture/api-contract.md`. `latest` may be historical/stale; an AI claim about current facts requires `is_current=true` and a final recheck. Missing/stale current evidence produces an explicit conflict, never an implicit POST reconciliation. Angular resolves validated refs to existing invoice, comparison and investigation routes; the model never supplies URLs.
+- Per-turn budget: **max 3 tool calls**, **max 2 model rounds**, **max 20 rows returned per search**, and bounded answer/context lengths. Treat these as initial limits; document adjustments if empirical tests require.
+- `CopilotAnswer` uses `answer`, `citations`, `suggested_questions`, `generation_mode`, `provider`, `model`, `prompt_version`, `incomplete_context`, `human_review_required`, and `unavailable_reason` as appropriate; use validated Pydantic types, not free-form arbitrary JSON.
+- If there is no supporting evidence, respond with a grounded “not available” answer. Do not fill gaps from pretrained model knowledge.
 
-Provider interface takes bounded structured evidence, returns validated structured recommendation; orchestration contains no HTTP/provider transport details. No private chain-of-thought logging. Evidence references must resolve to supplied persisted facts. Demo output must say demo; disabled provider is an explicit unavailable state, not a fake live AI success.
+## API contracts (proposals; implement in OpenAPI before wiring UI)
 
-## 6. Acceptance criteria
+- `POST /api/v1/copilot/queries`: `{ question: string, invoice_id?: string }` with strict max length, optional selected context; returns `CopilotAnswer` or documented 400/404/422/429/503 errors. Should not automatically persist all user conversations; memory/history optional and bounded.
+- `POST /api/v1/invoices/{invoice_id}/investigations`: `{ reconciliation_revision?: integer }`, returns evidence-backed `InvestigationResult`; if a completed reconciliation is missing, return a clear prerequisite error (e.g. 409) rather than synthesizing facts.
+- `GET /api/v1/invoices/{invoice_id}/investigations/{investigation_id}` if persisting investigation results is actually justified in 05a/05b; demonstrate deterministic idempotency tied to revision + provider + prompt_version, and declare retention. Do not create a table merely because this endpoint is mentioned here.
+- `POST /api/v1/invoices/{invoice_id}/supplier-inquiry-drafts`: generates `SupplierInquiryDraft` (subject/body/evidence references/`send_enabled=false`); does not send email or change invoice status. Gate by correct reconciliation facts.
 
-- Specify and encode create/read investigation HTTP DTOs, bounded input, evidence IDs, generation mode, provider/version/time metadata and errors in OpenAPI before wiring endpoints.
-- Canonical explanation cites invoice/PO/delivery evidence and exact 615.00 discrepancy; recommendation is request supplier confirmation, not approval/payment.
-- Reject unsupported evidence references or inconsistent amounts; no invented confidence scores. Recommendation requires human review and does not contact vendors.
-- Disabled/live-provider-not-configured state is explicit; tests use deterministic provider doubles and never real credentials/costs. Repeated operation/idempotency and persisted provenance are documented.
-- Treat document text as untrusted data; it cannot override instructions, call tools or authorize external actions. Bound stored/output sizes and return safe provider failures.
+## Subtasks — execute ONE per Codex session
 
-## 7. Required unit tests
+- **05a** [`05a-copilot-contracts.md`](05a-copilot-contracts.md): schemas, grounded evidence context, deterministic demo provider and tests (no remote inference).
+- **05b** [`05b-cloudflare-tool-calling.md`](05b-cloudflare-tool-calling.md): tool loop, provider adapter, quotas/security, structured outputs and unit/integration tests.
+- **05c** [`05c-angular-copilot.md`](05c-angular-copilot.md): wire existing Angular Investigation to API; no shell redesign.
+- **05d** [`05d-supplier-inquiry.md`](05d-supplier-inquiry.md): draft with confirmed facts, copy/edit but never send.
+- **05e** [`05e-ai-evals-and-smoke.md`](05e-ai-evals-and-smoke.md): golden scenarios, cost/error telemetry and opt-in live smoke.
 
-Evidence resolution, canonical factual output, invalid/hallucinated evidence, incorrect amounts, disabled provider, timeout/failure/invalid schema, untrusted instruction text and no automatic decision/action.
+## Global acceptance and negative tests
 
-## 8. Required integration tests
+- For `INV-2026-1042`, facts: invoice `12915.00` PLN, PO `12300.00` PLN, difference `615.00` gross (net `500.00`, VAT `115.00`), 10 monitors at 820 vs 770 net; recommendation is supplier confirmation, not approval.
+- Data-based questions return actual persisted records, not an invented vendor history; empty results explicitly reported.
+- Valid outputs cite exact invoice/reconciliation IDs; invalid citations, model-invented numbers, wrong currencies and unsupported suggestions fail validation or are replaced with deterministic facts, never silently accepted.
+- Reject unknown tools, invalid arguments, attempts to modify DB, prompt injection embedded in invoice data, quota/timeouts and missing credentials safely.
+- Deterministic unit tests + real PostgreSQL tests for changed persistence; mocked provider HTTP. No real model calls in GitHub Actions.
+- All existing CI checks pass and source code diff is limited to this task's subscope. No automatic public deployment.
 
-Real PostgreSQL investigation/provenance/result linkage and isolation, unknown invoice/result, safe errors and idempotency. HTTP tests use deterministic provider override. Migration round trip/check if schema changes. No network/paid calls in CI.
+## Out of scope
 
-## 9. Verification commands
+OCR/upload, broad BI analytics, RAG/vector DB, arbitrary SQL, model-managed tool execution, sending emails, MCP, payment and approval APIs, Azure provisioning, new auth stubs.
 
-Backend locked install, Ruff, full unit/integration suites, Alembic upgrade/check, Docker image and local HTTP smoke with explicitly labelled demo provider. Inspect OpenAPI and stored evidence references; confirm no secret/raw private reasoning in responses/logs.
+## Recommended models
 
-## 10. Explicitly out of scope
-
-Paid inference, autonomous vendor messaging/actions, approvals/payments, general chatbot/MCP/multi-agent framework, frontend redesign and Azure deployment. Do not begin 06.
-
-## 11. Definition of Done
-
-Auditable evidence-backed demo investigation works and is unmistakably labelled, provider boundary validated without paid calls, quality gates pass, progress/final diff reviewed. Real model integration remains a separately authorized follow-up.
-
-## 12. Model recommendation
-
-GPT-6.1 Sol High for evidence, security and orchestration design; Sol Medium for routine persistence. No Astra/automatic switching.
+Sol High for 05a design, 05b safety and 05e review; Sol Medium for backend implementation; Terra for 05c frontend under existing Angular rules; Luna for low-risk mechanical fixes only. **No Astra.**
