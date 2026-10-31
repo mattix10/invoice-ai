@@ -4,9 +4,24 @@
     <h1>Overview</h1>
     <p class="subtitle">Your priority today: resolve the exceptions that need human review.</p>
   </div>
-  <a class="btn btn-primary" [routerLink]="invoiceLink"
-    >Review next invoice <span aria-hidden="true">→</span></a
-  >
+  @if (reviewResource.isLoading()) {
+    <p role="status">Loading review queue…</p>
+  } @else if (reviewResource.error()) {
+    <p role="alert">
+      Review queue could not be loaded.
+      <button type="button" (click)="reviewResource.reload()">Retry</button>
+    </p>
+  } @else if (reviewResource.hasValue()) {
+    @if (reviewResource.value(); as id) {
+      <a class="btn btn-primary" [routerLink]="['/invoices', id]"
+        >Review next invoice <span aria-hidden="true">→</span></a
+      >
+    } @else {
+      <p>No invoices need review.</p>
+    }
+  } @else {
+    <p role="status">Loading review queue…</p>
+  }
 </div>
 <app-overview-kpis [kpis]="data.kpis" />
 <p>Historical metrics and the highlighted investigation below are synthetic demo content.</p>
@@ -19,16 +34,21 @@
   [investigationLink]="investigationLink"
 />
 <div class="dashboard-grid">
-  @if (state() === 'loading') {
+  @if (invoiceResource.isLoading()) {
     <p role="status">Loading invoices…</p>
-  } @else if (state() === 'error') {
+  } @else if (invoiceResource.error()) {
     <p role="alert">
-      Invoices could not be loaded. <button type="button" (click)="load()">Retry</button>
+      Invoices could not be loaded.
+      <button type="button" (click)="invoiceResource.reload()">Retry</button>
     </p>
-  } @else if (invoices().length === 0) {
-    <p>No invoices found.</p>
+  } @else if (invoiceResource.hasValue()) {
+    @if (invoiceResource.value().length === 0) {
+      <p>No invoices found.</p>
+    } @else {
+      <app-recent-invoices-table [invoices]="invoiceResource.value()" />
+    }
   } @else {
-    <app-recent-invoices-table [invoices]="invoices()" />
+    <p role="status">Loading invoices…</p>
   }
   <div class="side-stack">
     <app-processing-volume-chart

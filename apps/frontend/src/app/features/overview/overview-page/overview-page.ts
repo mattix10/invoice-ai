@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { InvoiceApi } from '../../invoices/data-access/invoice-api';
 import { summaryView } from '../../invoices/data-access/invoice-adapter';
 import { RouterLink } from '@angular/router';
@@ -25,27 +25,14 @@ import { AttentionQueue } from '../attention-queue/attention-queue';
 })
 export class OverviewPage {
   private readonly api = inject(InvoiceApi);
-  protected readonly invoices = signal<ReturnType<typeof summaryView>[]>([]);
-  protected readonly state = signal<'loading' | 'ready' | 'error'>('loading');
+  protected readonly invoiceResource = this.api.listResource({}, (page) =>
+    page.items.map(summaryView),
+  );
+  protected readonly reviewResource = this.api.listResource(
+    { status: 'needs_review', page_size: 1, sort: '-id' },
+    (page) => page.items[0]?.id ?? null,
+  );
   protected readonly data = OVERVIEW_DEMO_DATA;
   protected readonly invoiceLink = ['/invoices', OVERVIEW_DEMO_DATA.invoice.id];
   protected readonly investigationLink = [...this.invoiceLink, 'investigation'];
-
-  constructor() {
-    this.load();
-  }
-  protected load() {
-    this.state.set('loading');
-    this.api.list().subscribe({
-      next: (page) => {
-        try {
-          this.invoices.set(page.items.map(summaryView));
-          this.state.set('ready');
-        } catch {
-          this.state.set('error');
-        }
-      },
-      error: () => this.state.set('error'),
-    });
-  }
 }
