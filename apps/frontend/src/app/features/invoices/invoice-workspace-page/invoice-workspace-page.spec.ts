@@ -7,6 +7,7 @@ import { InvoiceWorkspacePage } from './invoice-workspace-page';
 
 describe('InvoiceWorkspacePage', () => {
   it('should show an error when the comparison request fails', async () => {
+    // Arrange
     TestBed.configureTestingModule({
       imports: [InvoiceWorkspacePage],
       providers: [
@@ -22,6 +23,7 @@ describe('InvoiceWorkspacePage', () => {
     const fixture = TestBed.createComponent(InvoiceWorkspacePage);
     const http = TestBed.inject(HttpTestingController);
 
+    // Act
     fixture.detectChanges();
     const invoiceRequest = http.expectOne('/api/v1/invoices/invoice-1');
     http
@@ -29,12 +31,14 @@ describe('InvoiceWorkspacePage', () => {
       .flush({}, { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
 
+    // Assert
     expect(invoiceRequest.cancelled).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Invoice could not be loaded.');
     http.verify({ ignoreCancelled: true });
   });
 
   it('should cancel pending requests when the invoice route changes', async () => {
+    // Arrange
     const params = new BehaviorSubject(convertToParamMap({ id: 'first' }));
     TestBed.configureTestingModule({
       imports: [InvoiceWorkspacePage],
@@ -48,6 +52,7 @@ describe('InvoiceWorkspacePage', () => {
     const fixture = TestBed.createComponent(InvoiceWorkspacePage);
     const http = TestBed.inject(HttpTestingController);
 
+    // Act
     fixture.detectChanges();
     const firstInvoice = http.expectOne('/api/v1/invoices/first');
     const firstComparison = http.expectOne('/api/v1/invoices/first/comparison');
@@ -56,6 +61,7 @@ describe('InvoiceWorkspacePage', () => {
     http.expectOne('/api/v1/invoices/second').flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
 
+    // Assert
     expect(firstInvoice.cancelled).toBe(true);
     expect(firstComparison.cancelled).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Invoice not found');
@@ -105,11 +111,28 @@ describe('InvoiceWorkspacePage', () => {
     await fixture.whenStable();
 
     // Assert
+    const element = fixture.nativeElement as HTMLElement;
+    const sectionButtons = Array.from(
+      element.querySelectorAll<HTMLButtonElement>('.section-switcher button'),
+    );
+    const purchaseOrderButton = sectionButtons.find(
+      (button) => button.textContent?.trim() === 'Purchase order',
+    )!;
+    const comparisonButton = sectionButtons.find(
+      (button) => button.textContent?.trim() === 'Comparison',
+    )!;
+    expect(purchaseOrderButton.getAttribute('aria-pressed')).toBe('true');
+    comparisonButton.click();
+    fixture.detectChanges();
+    expect(comparisonButton.getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('[hidden] app-purchase-order-link')).not.toBeNull();
+    expect(element.textContent).not.toContain('Synthetic sample data. Human review is required.');
     expect(fixture.nativeElement.textContent).toContain('PLN100,000,000,000,000.01');
     http.verify();
   });
 
   it('should load changed route IDs and show missing comparison honestly', async () => {
+    // Arrange
     const params = new BehaviorSubject(convertToParamMap({ id: 'INV-2026-1041' }));
     TestBed.configureTestingModule({
       imports: [InvoiceWorkspacePage],
@@ -122,8 +145,14 @@ describe('InvoiceWorkspacePage', () => {
     });
     const fixture = TestBed.createComponent(InvoiceWorkspacePage);
     const http = TestBed.inject(HttpTestingController);
+
+    // Act
     fixture.detectChanges();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('Loading invoice');
+
+    // Act
     http.expectOne('/api/v1/invoices/INV-2026-1041').flush({
       id: 'INV-2026-1041',
       vendor: 'Example',
@@ -146,40 +175,59 @@ describe('InvoiceWorkspacePage', () => {
       .expectOne('/api/v1/invoices/INV-2026-1041/purchase-order-link')
       .flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('Comparison unavailable');
     expect(fixture.nativeElement.textContent).toContain('Line items unavailable');
     expect(fixture.nativeElement.querySelector('app-invoice-document')).toBeNull();
+
+    // Act
     params.next(convertToParamMap({ id: 'INV-2026-9999' }));
     fixture.detectChanges();
     http
       .expectOne('/api/v1/invoices/INV-2026-9999')
       .flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('Invoice not found');
     http.verify({ ignoreCancelled: true });
   });
 
   it('should display canonical amounts from the API after retrying an outage', async () => {
+    // Arrange
     const params = new BehaviorSubject(convertToParamMap({ id: 'INV-2026-1042' }));
+    const fragment = new BehaviorSubject<string | null>(null);
+    const queryParamMap = new BehaviorSubject(convertToParamMap({}));
     TestBed.configureTestingModule({
       imports: [InvoiceWorkspacePage],
       providers: [
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: ActivatedRoute, useValue: { paramMap: params } },
+        { provide: ActivatedRoute, useValue: { paramMap: params, fragment, queryParamMap } },
       ],
     });
     const fixture = TestBed.createComponent(InvoiceWorkspacePage);
     const http = TestBed.inject(HttpTestingController);
+
+    // Act
     fixture.detectChanges();
     const firstComparison = http.expectOne('/api/v1/invoices/INV-2026-1042/comparison');
     http
       .expectOne('/api/v1/invoices/INV-2026-1042')
       .flush({}, { status: 503, statusText: 'Unavailable' });
+
+    // Assert
     expect(firstComparison.cancelled).toBe(true);
+
+    // Act
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('could not be loaded');
+
+    // Act
     (fixture.nativeElement as HTMLElement).querySelector('button')!.click();
     fixture.detectChanges();
     const totals = { net: '10500.00', vat: '2415.00', gross: '12915.00' };
@@ -214,11 +262,39 @@ describe('InvoiceWorkspacePage', () => {
       .expectOne('/api/v1/invoices/INV-2026-1042/purchase-order-link')
       .flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('PLN12,915.00');
     expect(fixture.nativeElement.textContent).toContain('PLN615.00');
     expect(fixture.nativeElement.textContent).toContain('5.0%');
     expect(fixture.nativeElement.textContent).toContain('VAT 23%');
     expect(fixture.nativeElement.querySelector('app-invoice-document')).toBeTruthy();
+    const element = fixture.nativeElement as HTMLElement;
+    const invoiceButton = Array.from(element.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Invoice details',
+    );
+
+    // Act
+    invoiceButton?.click();
+    fixture.detectChanges();
+
+    // Assert
+    expect(invoiceButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('app-invoice-document')?.parentElement?.hidden).toBe(true);
+    expect(element.querySelector('app-invoice-fields')?.parentElement?.hidden).toBe(false);
+    expect(element.querySelector('app-purchase-order-link')?.parentElement?.hidden).toBe(false);
+
+    // Act
+    fragment.next('comparison-line-1');
+    fixture.detectChanges();
+    const comparisonButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.section-switcher button',
+      ),
+    ).find((button) => button.textContent?.includes('Comparison'));
+
+    // Assert
+    expect(comparisonButton?.getAttribute('aria-pressed')).toBe('true');
     http.verify({ ignoreCancelled: true });
   });
 });

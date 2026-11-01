@@ -27,7 +27,8 @@ const order = {
 };
 
 describe('PurchaseOrderLinkComponent', () => {
-  it('maps different line positions explicitly and links the selected PO', async () => {
+  it('reloads orders after a version conflict while linking', async () => {
+    // Arrange
     TestBed.configureTestingModule({
       imports: [PurchaseOrderLinkComponent],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -35,6 +36,59 @@ describe('PurchaseOrderLinkComponent', () => {
     const fixture = TestBed.createComponent(PurchaseOrderLinkComponent);
     const http = TestBed.inject(HttpTestingController);
     fixture.componentRef.setInput('invoice', invoice);
+
+    // Act
+    fixture.detectChanges();
+    http.expectOne('/api/v1/purchase-orders').flush([order]);
+    http
+      .expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    const selector = fixture.nativeElement.querySelector('#po-select') as HTMLSelectElement;
+    selector.value = 'po-1';
+    selector.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    const line = fixture.nativeElement.querySelectorAll('select')[1] as HTMLSelectElement;
+    line.selectedIndex = 1;
+    line.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+    Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button'))
+      .find((button) => button.textContent?.trim() === 'Link PO')
+      ?.click();
+    http
+      .expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link')
+      .flush({}, { status: 409, statusText: 'Conflict' });
+    await fixture.whenStable();
+
+    // Assert
+    expect(fixture.nativeElement.textContent).toContain('Could not link the PO');
+
+    // Act
+    Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('button'))
+      .find((button) => button.textContent?.trim() === 'Reload purchase orders')
+      ?.click();
+    http.expectOne('/api/v1/purchase-orders').flush([{ ...order, version: 2 }]);
+    http
+      .expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+
+    // Assert
+    expect(fixture.nativeElement.textContent).not.toContain('Could not link the PO');
+    http.verify();
+  });
+
+  it('maps different line positions explicitly and links the selected PO', async () => {
+    // Arrange
+    TestBed.configureTestingModule({
+      imports: [PurchaseOrderLinkComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    const fixture = TestBed.createComponent(PurchaseOrderLinkComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('invoice', invoice);
+
+    // Act
     fixture.detectChanges();
     http.expectOne('/api/v1/purchase-orders').flush([order]);
     http
@@ -54,12 +108,16 @@ describe('PurchaseOrderLinkComponent', () => {
     ) as HTMLButtonElement;
     button.click();
     const request = http.expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link');
+
+    // Assert
     expect(request.request.body).toEqual({
       poId: 'po-1',
       poVersion: 1,
       expectedLinkRevision: 0,
       mappings: [{ invoiceLinePosition: 1, poLinePosition: 5 }],
     });
+
+    // Act
     request.flush({
       poId: 'po-1',
       poVersion: 1,
@@ -73,6 +131,7 @@ describe('PurchaseOrderLinkComponent', () => {
   });
 
   it('shows an error and permits reloading when orders are unavailable', async () => {
+    // Arrange
     TestBed.configureTestingModule({
       imports: [PurchaseOrderLinkComponent],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -80,24 +139,34 @@ describe('PurchaseOrderLinkComponent', () => {
     const fixture = TestBed.createComponent(PurchaseOrderLinkComponent);
     const http = TestBed.inject(HttpTestingController);
     fixture.componentRef.setInput('invoice', invoice);
+
+    // Act
     fixture.detectChanges();
     http.expectOne('/api/v1/purchase-orders').flush({}, { status: 503, statusText: 'Unavailable' });
     expect(http.expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link').cancelled).toBe(
       true,
     );
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('Purchase orders could not be loaded');
+    expect(fixture.nativeElement.querySelector('#po-select')).toBeNull();
+
+    // Act
     (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
     http.expectOne('/api/v1/purchase-orders').flush([]);
     http
       .expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link')
       .flush({}, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('Awaiting PO');
     http.verify({ ignoreCancelled: true });
   });
 
   it('submits the selected version when editing a PO', async () => {
+    // Arrange
     TestBed.configureTestingModule({
       imports: [PurchaseOrderLinkComponent],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -105,6 +174,8 @@ describe('PurchaseOrderLinkComponent', () => {
     const fixture = TestBed.createComponent(PurchaseOrderLinkComponent);
     const http = TestBed.inject(HttpTestingController);
     fixture.componentRef.setInput('invoice', invoice);
+
+    // Act
     fixture.detectChanges();
     http.expectOne('/api/v1/purchase-orders').flush([order]);
     http
@@ -130,16 +201,23 @@ describe('PurchaseOrderLinkComponent', () => {
       new Event('submit'),
     );
     const request = http.expectOne('/api/v1/purchase-orders/po-1');
+
+    // Assert
     expect(request.request.method).toBe('PUT');
     expect(request.request.body.expectedVersion).toBe(1);
     expect(request.request.body.externalReference).toBe('PO-UPDATED');
+
+    // Act
     request.flush({ ...order, externalReference: 'PO-UPDATED', version: 2 });
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('PO-UPDATED');
     http.verify();
   });
 
   it('closes the editor when the selected PO changes', async () => {
+    // Arrange
     TestBed.configureTestingModule({
       imports: [PurchaseOrderLinkComponent],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -147,6 +225,8 @@ describe('PurchaseOrderLinkComponent', () => {
     const fixture = TestBed.createComponent(PurchaseOrderLinkComponent);
     const http = TestBed.inject(HttpTestingController);
     fixture.componentRef.setInput('invoice', invoice);
+
+    // Act
     fixture.detectChanges();
     http
       .expectOne('/api/v1/purchase-orders')
@@ -164,31 +244,78 @@ describe('PurchaseOrderLinkComponent', () => {
     ) as HTMLButtonElement;
     edit.click();
     await fixture.whenStable();
+
+    // Assert
     expect(
       (fixture.nativeElement.querySelector('input[name="reference"]') as HTMLInputElement).value,
     ).toBe('PO-1');
 
     selector.value = 'po-2';
+
+    // Act
     selector.dispatchEvent(new Event('change'));
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
 
+    // Act
     (
       [...fixture.nativeElement.querySelectorAll('button')].find(
         (button) => (button as HTMLElement).textContent?.trim() === 'Edit PO',
       ) as HTMLButtonElement
     ).click();
     await fixture.whenStable();
+
+    // Assert
     expect(
       (fixture.nativeElement.querySelector('input[name="reference"]') as HTMLInputElement).value,
     ).toBe('PO-2');
 
     selector.value = '';
+
+    // Act
     selector.dispatchEvent(new Event('change'));
     await fixture.whenStable();
+
+    // Assert
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
     http.expectNone('/api/v1/purchase-orders/po-1');
     http.expectNone('/api/v1/purchase-orders/po-2');
+    http.verify();
+  });
+
+  it('cancels the previous invoice request when the invoice changes', async () => {
+    // Arrange
+    TestBed.configureTestingModule({
+      imports: [PurchaseOrderLinkComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    const fixture = TestBed.createComponent(PurchaseOrderLinkComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('invoice', invoice);
+
+    // Act
+    fixture.detectChanges();
+    const previousOrders = http.expectOne('/api/v1/purchase-orders');
+    const previousLink = http.expectOne('/api/v1/invoices/INV-2026-9999/purchase-order-link');
+
+    fixture.componentRef.setInput('invoice', { ...invoice, id: 'INV-2026-8888' });
+    fixture.detectChanges();
+
+    // Assert
+    expect(previousOrders.cancelled).toBe(true);
+    expect(previousLink.cancelled).toBe(true);
+
+    // Act
+    http.expectOne('/api/v1/purchase-orders').flush([]);
+    http
+      .expectOne('/api/v1/invoices/INV-2026-8888/purchase-order-link')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+
+    // Assert
+    expect(fixture.nativeElement.textContent).toContain('Awaiting PO');
     http.verify();
   });
 });

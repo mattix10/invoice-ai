@@ -25,45 +25,90 @@
       >
     }
   </header>
-  @if (invoice.id === 'INV-2026-1042') {
-    <p class="notice">Synthetic sample data. Human review is required.</p>
+  @if (view(); as comparison) {
+    <app-invoice-difference [data]="comparison" />
   }
   <div class="workspace">
-    @if (invoice.id === 'INV-2026-1042') {
-      <app-invoice-document />
-    } @else {
-      <p>Document preview unavailable for this invoice.</p>
-    }
-    <div class="details">
-      <app-purchase-order-link
-        [invoice]="invoice"
-        [comparisonAvailable]="!!view()"
-        (linked)="load()"
-      />
-      @if (view(); as data) {
-        <app-invoice-fields [data]="data" /><app-invoice-comparison [data]="data" />
-      } @else {
-        <section>
-          <h2>Invoice fields</h2>
-          <p>Status: {{ statusLabels[invoice.status] }}</p>
-          <p>Due: {{ invoice.due }}</p>
-          <p>Purchase order: {{ invoice.purchaseOrder || 'Unavailable' }}</p>
-          <p>Comparison unavailable / Awaiting PO.</p>
-          @if (invoice.items.length === 0) {
-            <p>Line items unavailable.</p>
+    <div class="document-pane">
+      <div class="section-switcher" role="group" aria-label="Invoice section">
+        <button
+          type="button"
+          [attr.aria-pressed]="documentSection() === 'document'"
+          (click)="documentSection.set('document')"
+        >
+          Document preview
+        </button>
+        <button
+          type="button"
+          [attr.aria-pressed]="documentSection() === 'invoice'"
+          (click)="documentSection.set('invoice')"
+        >
+          Invoice details
+        </button>
+      </div>
+      <div class="document-content" role="region" aria-label="Invoice information" tabindex="0">
+        <div [hidden]="documentSection() !== 'document'">
+          @if (invoice.id === 'INV-2026-1042') {
+            <app-invoice-document />
           } @else {
-            <ul>
-              @for (item of invoice.items; track item.position) {
-                <li>{{ item.name }} · {{ item.quantity }}</li>
-              }
-            </ul>
+            <p>Document preview unavailable for this invoice.</p>
           }
-        </section>
-      }
-      <div class="actions" aria-label="Unavailable prototype actions">
-        <button class="btn" disabled>Save</button><button class="btn" disabled>Export</button
-        ><button class="btn" disabled>Request clarification</button
-        ><span>Actions unavailable in this prototype.</span>
+        </div>
+        <div [hidden]="documentSection() !== 'invoice'">
+          @if (view(); as data) {
+            <app-invoice-fields [data]="data" />
+          } @else {
+            <section>
+              <h2>Invoice fields</h2>
+              <p>Status: {{ statusLabels[invoice.status] }}</p>
+              <p>Due: {{ invoice.due }}</p>
+              <p>Purchase order: {{ invoice.purchaseOrder || 'Unavailable' }}</p>
+              @if (invoice.items.length === 0) {
+                <p>Line items unavailable.</p>
+              } @else {
+                <ul>
+                  @for (item of invoice.items; track item.position) {
+                    <li>{{ item.name }} · {{ item.quantity }}</li>
+                  }
+                </ul>
+              }
+            </section>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="details">
+      <div class="section-switcher" role="group" aria-label="Workspace section">
+        <button
+          type="button"
+          [attr.aria-pressed]="section() === 'purchase-order'"
+          (click)="section.set('purchase-order')"
+        >
+          Purchase order
+        </button>
+        <button
+          type="button"
+          [attr.aria-pressed]="section() === 'comparison'"
+          (click)="section.set('comparison')"
+        >
+          Comparison
+        </button>
+      </div>
+      <div class="section-content" role="region" aria-label="Workspace details" tabindex="0">
+        <div [hidden]="section() !== 'purchase-order'">
+          <app-purchase-order-link
+            [invoice]="invoice"
+            [comparisonAvailable]="!!view()"
+            (linked)="load()"
+          />
+        </div>
+        <div [hidden]="section() !== 'comparison'">
+          @if (view(); as data) {
+            <app-invoice-comparison id="comparison" [data]="data" />
+          } @else {
+            <p>Comparison unavailable / Awaiting PO.</p>
+          }
+        </div>
       </div>
     </div>
   </div>

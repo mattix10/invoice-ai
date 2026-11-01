@@ -140,6 +140,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/copilot/queries': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Query Copilot */
+    post: operations['queryCopilot'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/invoices/{invoice_id}/investigations': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Investigate Invoice */
+    post: operations['investigateInvoice'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/intake/documents': {
     parameters: {
       query?: never;
@@ -433,6 +467,41 @@ export interface components {
        */
       status: 'confirmed';
     };
+    /** CopilotAnswer */
+    CopilotAnswer: {
+      /** Answer */
+      answer: string;
+      /** Citations */
+      citations: components['schemas']['EvidenceReference'][];
+      /** Findings */
+      findings: components['schemas']['Finding'][];
+      /** Suggestedquestions */
+      suggestedQuestions: string[];
+      /**
+       * Generationmode
+       * @enum {string}
+       */
+      generationMode: 'demo' | 'live' | 'disabled';
+      /** Provider */
+      provider: string;
+      /** Model */
+      model: string | null;
+      /** Promptversion */
+      promptVersion: string;
+      /** Incompletecontext */
+      incompleteContext: boolean;
+      /** Humanreviewrequired */
+      humanReviewRequired: boolean;
+      /** Unavailablereason */
+      unavailableReason: string | null;
+    };
+    /** CopilotQuery */
+    CopilotQuery: {
+      /** Question */
+      question: string;
+      /** Invoiceid */
+      invoiceId?: string | null;
+    };
     /** DeclaredTotals */
     DeclaredTotals: {
       /** Net */
@@ -588,6 +657,21 @@ export interface components {
       /** Warnings */
       warnings: string[];
     };
+    /** Finding */
+    Finding: {
+      /** Description */
+      description: string;
+      /** Currency */
+      currency: string;
+      /** Net */
+      net: string;
+      /** Vat */
+      vat: string;
+      /** Gross */
+      gross: string;
+      /** Evidenceids */
+      evidenceIds: string[];
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -600,6 +684,11 @@ export interface components {
        * @enum {string}
        */
       status: 'ok' | 'unavailable';
+    };
+    /** InvestigationRequest */
+    InvestigationRequest: {
+      /** Reconciliationrevision */
+      reconciliationRevision?: number | null;
     };
     /** InvoiceComparison */
     InvoiceComparison: {
@@ -1081,6 +1170,8 @@ export type BodyUploadDocumentApiV1IntakeDocumentsPost =
 export type ComparisonItem = components['schemas']['ComparisonItem'];
 export type ConfirmRequest = components['schemas']['ConfirmRequest'];
 export type ConfirmResponse = components['schemas']['ConfirmResponse'];
+export type CopilotAnswer = components['schemas']['CopilotAnswer'];
+export type CopilotQuery = components['schemas']['CopilotQuery'];
 export type DeclaredTotals = components['schemas']['DeclaredTotals'];
 export type DocumentResponse = components['schemas']['DocumentResponse'];
 export type Draft = components['schemas']['Draft'];
@@ -1091,8 +1182,10 @@ export type ErrorDetail = components['schemas']['ErrorDetail'];
 export type EvidenceReference = components['schemas']['EvidenceReference'];
 export type ExtractedPageResponse = components['schemas']['ExtractedPageResponse'];
 export type FieldProposal = components['schemas']['FieldProposal'];
+export type Finding = components['schemas']['Finding'];
 export type HttpValidationError = components['schemas']['HTTPValidationError'];
 export type HealthResponse = components['schemas']['HealthResponse'];
+export type InvestigationRequest = components['schemas']['InvestigationRequest'];
 export type InvoiceComparison = components['schemas']['InvoiceComparison'];
 export type InvoiceDetail = components['schemas']['InvoiceDetail'];
 export type InvoiceItem = components['schemas']['InvoiceItem'];
@@ -1441,6 +1534,128 @@ export interface operations {
       };
       /** @description Invoice or comparison not found */
       404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Internal error */
+      500: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Database unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  queryCopilot: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Required only for local Cloudflare inference */
+        'X-InvoiceFlow-Local-Secret'?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CopilotQuery'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['CopilotAnswer'];
+        };
+      };
+      /** @description Invoice or comparison not found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Current reconciliation required */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Internal error */
+      500: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Database unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  investigateInvoice: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Required only for local Cloudflare inference */
+        'X-InvoiceFlow-Local-Secret'?: string | null;
+      };
+      path: {
+        invoice_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['InvestigationRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['CopilotAnswer'];
+        };
+      };
+      /** @description Invoice or comparison not found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Current reconciliation required */
+      409: {
         headers: Record<string, unknown>;
         content: {
           'application/json': components['schemas']['ApiError'];

@@ -1,12 +1,12 @@
 import { Panel } from '../../../shared/ui/panel/panel';
-import { CurrencyPipe, formatCurrency } from '@angular/common';
+import { formatCurrency } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { InvoiceWorkspaceView } from '../data-access/invoice-adapter';
 import { InvoiceComparisonTable } from '../invoice-comparison-table/invoice-comparison-table';
 
 @Component({
   selector: 'app-invoice-comparison',
-  imports: [Panel, CurrencyPipe, InvoiceComparisonTable],
+  imports: [Panel, InvoiceComparisonTable],
 
   templateUrl: './invoice-comparison.html',
   styleUrl: './invoice-comparison.scss',
@@ -36,13 +36,15 @@ export class InvoiceComparison {
     this.data().items.map((item) => [
       item.name,
       String(item.quantity),
-      String(item.poQuantity),
+      item.poQuantity === null ? 'Unavailable' : String(item.poQuantity),
       this.money(item.invoiceUnitNet),
       this.money(item.poUnitNet),
       this.money(item.invoiceNet),
       this.money(item.poNet),
     ]),
   );
+
+  protected readonly itemPositions = computed(() => this.data().items.map((item) => item.position));
 
   protected readonly totalRows = computed(() => {
     const data = this.data();

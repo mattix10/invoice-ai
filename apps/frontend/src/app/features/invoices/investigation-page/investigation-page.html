@@ -1,42 +1,30 @@
 <header class="page-header">
   <div>
     <h1>AI investigation</h1>
-    <p>Recorded deterministic evidence · Human review required</p>
+    <p>Review reconciliation evidence with your invoice copilot.</p>
   </div>
-  <a [routerLink]="['/invoices', invoiceId()]">Back to invoice</a>
+  <a class="back-link" [routerLink]="['/invoices', session.invoiceId()]">← Back to invoice</a>
 </header>
-@if (state() === 'loading') {
-  <p role="status">Loading reconciliation…</p>
-} @else if (state() === 'error') {
-  <p role="alert">Reconciliation unavailable. Run it in the invoice workspace or retry.</p>
-  <button type="button" (click)="load()">Retry</button>
-} @else if (result(); as record) {
-  <section aria-label="Reconciliation result">
-    <h2>Revision {{ record.revision }}</h2>
-    <p>
-      {{ record.isCurrent ? 'Current snapshot' : 'Historical snapshot' }} ·
-      {{ record.algorithmVersion }}
-    </p>
-    <p>Purchase order: {{ record.result.inputs.purchaseOrder }}</p>
-    <p>Receipt: {{ record.result.inputs.deliveryReceiptId || 'Unavailable' }}</p>
-    <p>
-      Invoice total: {{ amount(record.result.invoiceTotals.gross, record.result.inputs.currency) }}
-    </p>
-    <p>PO total: {{ amount(record.result.poTotals.gross, record.result.inputs.currency) }}</p>
-    <p>
-      Difference: {{ amount(record.result.difference.net, record.result.inputs.currency) }} net ·
-      {{ amount(record.result.difference.vat, record.result.inputs.currency) }} VAT ·
-      {{ amount(record.result.difference.gross, record.result.inputs.currency) }} gross
-    </p>
-    <h3>Recorded evidence</h3>
-    <ul>
-      @for (evidence of record.evidenceRefs; track evidence.evidenceId) {
-        <li>{{ evidence.label }} · {{ evidence.evidenceId }}</li>
-      }
-    </ul>
-    <p>
-      Results describe the captured snapshot. A changed PO must be linked again before comparing its
-      latest version.
-    </p>
-  </section>
-}
+<div class="layout">
+  <app-reconciliation-evidence-card
+    [invoiceId]="session.invoiceId()"
+    [state]="session.state()"
+    [reconciliationMissing]="session.reconciliationMissing()"
+    [result]="session.result()"
+    [selectedRevision]="session.selectedRevision()"
+    (retry)="session.load()"
+  />
+  <app-copilot-panel
+    [answer]="session.answer()"
+    [sources]="session.sources()"
+    [state]="session.answerState()"
+    [error]="session.answerError()"
+    [historical]="
+      session.selectedRevision() || (!!session.result() && !session.result()?.isCurrent)
+    "
+    [evidenceLoading]="session.state() === 'loading'"
+    [lastQuestion]="session.lastQuestion()"
+    (submitted)="session.ask($event)"
+    (retry)="session.retryAnswer()"
+  />
+</div>

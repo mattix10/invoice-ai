@@ -57,8 +57,9 @@ export const INVOICE_WORKSPACE_DATA = {
   invoice: DEMO_INVOICE,
   deliveryReceiptId: 'DR-2026-1042',
   differencePercent: (DEMO_INVOICE.differenceGrossGrosz / DEMO_INVOICE.poGrossGrosz) * 100,
-  items: DEMO_INVOICE.items.map((item) => ({
+  items: DEMO_INVOICE.items.map((item, index) => ({
     ...item,
+    position: index + 1,
     poQuantity: item.quantity,
     invoiceUnitNet: item.invoiceUnitNetGrosz / 100,
     poUnitNet: item.poUnitNetGrosz / 100,

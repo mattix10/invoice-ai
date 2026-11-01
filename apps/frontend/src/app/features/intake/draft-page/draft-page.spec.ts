@@ -390,6 +390,7 @@ describe('DraftPage', () => {
   });
 
   it('should preserve decisions from multiple suggestion versions when saving', async () => {
+    // Arrange
     const params = convertToParamMap({ documentId: 'doc-1' });
     TestBed.configureTestingModule({
       providers: [
@@ -463,8 +464,12 @@ describe('DraftPage', () => {
     (panel.querySelector('input') as HTMLInputElement).click();
     await fixture.whenStable();
     panel.querySelectorAll('button')[3].click();
+
+    // Act
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     const request = http.expectOne('/api/v1/intake/documents/doc-1/draft');
+
+    // Assert
     expect(request.request.body.suggestionDecisionBatches).toEqual([
       { suggestionVersion: 1, decisions: [{ field: 'vendor', decision: 'applied' }] },
       { suggestionVersion: 2, decisions: [{ field: 'vendor', decision: 'rejected' }] },

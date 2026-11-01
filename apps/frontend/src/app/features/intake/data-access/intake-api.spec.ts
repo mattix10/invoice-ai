@@ -48,16 +48,26 @@ describe('IntakeApi', () => {
   });
 
   it('should request text extraction for the selected document', () => {
-    intakeApi.extractText('document/1').subscribe();
+    // Arrange
+    const documentId = 'document/1';
 
+    // Act
+    intakeApi.extractText(documentId).subscribe();
+
+    // Assert
     const extraction = http.expectOne('/api/v1/intake/documents/document%2F1/text-extractions');
     expect(extraction.request.method).toBe('POST');
     extraction.flush({ documentId: 'document/1', version: 1, status: 'completed', pages: [] });
   });
 
   it('should retrieve the latest saved text extraction', () => {
-    intakeApi.latestText('document/1').subscribe();
+    // Arrange
+    const documentId = 'document/1';
 
+    // Act
+    intakeApi.latestText(documentId).subscribe();
+
+    // Assert
     const extraction = http.expectOne(
       '/api/v1/intake/documents/document%2F1/text-extractions/latest',
     );

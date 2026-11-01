@@ -7,6 +7,7 @@ import { DraftReview } from './draft-review';
 
 describe('DraftReview', () => {
   it('should save edited values with the document revision', async () => {
+    // Arrange
     const document = {
       documentId: 'doc-1',
       status: 'draft',
@@ -41,11 +42,14 @@ describe('DraftReview', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const vendor = fixture.nativeElement.querySelector('[name="vendor"]') as HTMLInputElement;
+
+    // Act
     vendor.value = 'Updated';
     vendor.dispatchEvent(new Event('input'));
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     const request = http.expectOne('/api/v1/intake/documents/doc-1/draft');
 
+    // Assert
     expect(request.request.body.expectedRevision).toBe(2);
     expect(request.request.body.draft.vendor).toBe('Updated');
     request.flush({

@@ -258,7 +258,16 @@ class CopilotService:
             },
             {
                 "role": "user",
-                "content": question + (f" Selected invoice: {invoice_id}." if invoice_id else ""),
+                "content": (
+                    question
+                    + (f" Selected invoice: {invoice_id}." if invoice_id else "")
+                    + (
+                        " Call get_reconciliation_evidence for the selected invoice with "
+                        f"revision {investigation_revision}."
+                        if investigation and investigation_revision is not None
+                        else ""
+                    )
+                ),
             },
         ]
         refs = {}

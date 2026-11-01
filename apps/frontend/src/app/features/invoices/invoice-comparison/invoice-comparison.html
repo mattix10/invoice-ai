@@ -1,4 +1,4 @@
-<app-panel
+<app-panel class="comparison-card"
   ><section class="panel" aria-labelledby="comparison-title">
     <h2 id="comparison-title">Line items and PO comparison</h2>
     <p class="section-note">Net amounts · {{ data().invoice.purchaseOrder }}</p>
@@ -6,28 +6,15 @@
       label="Line items and purchase order comparison"
       [headers]="itemHeaders"
       [rows]="itemRows()"
+      [positions]="itemPositions()"
     />
-    <app-invoice-comparison-table
-      class="comparison-totals"
-      label="Invoice and purchase order totals"
-      [headers]="totalHeaders"
-      [rows]="totalRows()"
-    /></section
+    <details class="comparison-totals">
+      <summary>Invoice and purchase order totals</summary>
+      <app-invoice-comparison-table
+        class="comparison-totals"
+        label="Invoice and purchase order totals"
+        [headers]="totalHeaders"
+        [rows]="totalRows()"
+      />
+    </details></section
 ></app-panel>
-<app-panel variant="warning" class="discrepancy"
-  ><section class="panel" aria-labelledby="difference-title">
-    <h2 id="difference-title">Invoice and purchase order difference</h2>
-    <p>
-      {{ data().differenceNet | currency: data().invoice.currency : 'code' }} net, plus
-      {{ data().differenceVat | currency: data().invoice.currency : 'code' }} VAT.
-    </p>
-    <p>
-      Gross difference:
-      <strong>{{ data().differenceGross | currency: data().invoice.currency : 'code' }}</strong>
-      @if (data().differencePercent !== null) {
-        ({{ data().differencePercent }}% of PO gross)
-      }
-      .
-    </p>
-  </section></app-panel
->

@@ -68,9 +68,10 @@ export function detailView(
       vatRate: Number(comparison.vatRate) * 100,
     },
     items: comparison.items.map((item) => ({
+      position: item.position,
       name: item.name,
       quantity: item.quantity,
-      poQuantity: item.poQuantity,
+      poQuantity: item.poQuantity ?? null,
       invoiceUnitNet: amount(item.invoiceUnitNet),
       poUnitNet: amount(item.poUnitNet),
       invoiceNet: amount(item.invoiceNet),
@@ -101,9 +102,10 @@ export interface InvoiceWorkspaceView {
     vatRate: number;
   };
   items: {
+    position: number;
     name: string;
     quantity: number;
-    poQuantity: number;
+    poQuantity: number | null;
     invoiceUnitNet: number;
     poUnitNet: number;
     invoiceNet: number;
