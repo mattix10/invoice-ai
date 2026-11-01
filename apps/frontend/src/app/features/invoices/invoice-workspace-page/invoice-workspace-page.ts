@@ -17,6 +17,7 @@ import { detailView, formatInvoiceAmount, statusLabels } from '../data-access/in
 import { InvoiceDocument } from '../invoice-document/invoice-document';
 import { InvoiceFields } from '../invoice-fields/invoice-fields';
 import { InvoiceComparison } from '../invoice-comparison/invoice-comparison';
+import { InvoiceDifference } from '../invoice-difference/invoice-difference';
 import { LoadError } from '../../../shared/ui/load-error/load-error';
 import { PurchaseOrderLinkComponent } from '../purchase-order-link/purchase-order-link';
 
@@ -27,6 +28,7 @@ import { PurchaseOrderLinkComponent } from '../purchase-order-link/purchase-orde
     InvoiceDocument,
     InvoiceFields,
     InvoiceComparison,
+    InvoiceDifference,
     LoadError,
     PurchaseOrderLinkComponent,
   ],
@@ -40,7 +42,8 @@ export class InvoiceWorkspacePage {
   private readonly injector = inject(Injector);
   private readonly document = inject(DOCUMENT);
   private readonly routeParams = toSignal(this.route.paramMap);
-  protected readonly section = signal<'purchase-order' | 'invoice' | 'comparison'>(
+  protected readonly documentSection = signal<'document' | 'invoice'>('document');
+  protected readonly section = signal<'purchase-order' | 'comparison'>(
     this.route.snapshot?.fragment?.startsWith('comparison') ? 'comparison' : 'purchase-order',
   );
   protected readonly workspace = rxResource({

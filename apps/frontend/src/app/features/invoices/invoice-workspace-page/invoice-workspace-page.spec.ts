@@ -109,10 +109,16 @@ describe('InvoiceWorkspacePage', () => {
     const sectionButtons = Array.from(
       element.querySelectorAll<HTMLButtonElement>('.section-switcher button'),
     );
-    expect(sectionButtons[0].getAttribute('aria-pressed')).toBe('true');
-    sectionButtons[2].click();
+    const purchaseOrderButton = sectionButtons.find(
+      (button) => button.textContent?.trim() === 'Purchase order',
+    )!;
+    const comparisonButton = sectionButtons.find(
+      (button) => button.textContent?.trim() === 'Comparison',
+    )!;
+    expect(purchaseOrderButton.getAttribute('aria-pressed')).toBe('true');
+    comparisonButton.click();
     fixture.detectChanges();
-    expect(sectionButtons[2].getAttribute('aria-pressed')).toBe('true');
+    expect(comparisonButton.getAttribute('aria-pressed')).toBe('true');
     expect(element.querySelector('[hidden] app-purchase-order-link')).not.toBeNull();
     expect(element.textContent).not.toContain('Synthetic sample data. Human review is required.');
     expect(fixture.nativeElement.textContent).toContain('PLN100,000,000,000,000.01');
@@ -231,6 +237,16 @@ describe('InvoiceWorkspacePage', () => {
     expect(fixture.nativeElement.textContent).toContain('5.0%');
     expect(fixture.nativeElement.textContent).toContain('VAT 23%');
     expect(fixture.nativeElement.querySelector('app-invoice-document')).toBeTruthy();
+    const element = fixture.nativeElement as HTMLElement;
+    const invoiceButton = Array.from(element.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Invoice details',
+    );
+    invoiceButton?.click();
+    fixture.detectChanges();
+    expect(invoiceButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('app-invoice-document')?.parentElement?.hidden).toBe(true);
+    expect(element.querySelector('app-invoice-fields')?.parentElement?.hidden).toBe(false);
+    expect(element.querySelector('app-purchase-order-link')?.parentElement?.hidden).toBe(false);
     fragment.next('comparison-line-1');
     fixture.detectChanges();
     const comparisonButton = Array.from(

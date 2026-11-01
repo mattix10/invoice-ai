@@ -43,7 +43,7 @@ h2 {
 .document {
   display: block;
   width: 100%;
-  height: clamp(330px, calc(100vh - 291px), 1000px);
+  height: var(--invoice-document-height, clamp(330px, calc(100vh - 291px), 1000px));
   margin: 12px 0 0;
   border: 1px solid var(--border);
   background: var(--surface);

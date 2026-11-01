@@ -49,6 +49,23 @@ h1 {
   gap: 20px;
   align-items: start;
 }
+.workspace {
+  --invoice-document-height: clamp(280px, calc(100vh - 351px), 1000px);
+}
+.workspace.has-comparison {
+  --invoice-document-height: clamp(240px, calc(100vh - 405px), 1000px);
+}
+.document-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.document-content {
+  min-width: 0;
+}
+.document-content > [hidden] {
+  display: none;
+}
 .details {
   display: flex;
   flex-direction: column;
@@ -96,9 +113,14 @@ h1 {
   gap: 16px;
 }
 @media (min-width: 1000px) and (min-height: 650px) {
-  .section-content {
+  .section-content,
+  .document-content {
     max-height: calc(100vh - 255px);
     overflow: auto;
+  }
+  .has-comparison .section-content,
+  .has-comparison .document-content {
+    max-height: calc(100vh - 309px);
   }
 }
 @media (max-width: 999px) {

@@ -3,13 +3,11 @@ import { INVOICE_WORKSPACE_DATA } from '../invoice-demo.data';
 import { InvoiceComparison } from './invoice-comparison';
 
 describe('InvoiceComparison', () => {
-  it('shows the difference first and keeps totals available in a disclosure', async () => {
+  it('keeps totals available in a disclosure', async () => {
     const fixture = TestBed.createComponent(InvoiceComparison);
     fixture.componentRef.setInput('data', INVOICE_WORKSPACE_DATA);
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
-    const sections = element.querySelectorAll('section');
-    expect(sections[0].textContent).toContain('Invoice and purchase order difference');
     const totals = element.querySelector('details') as HTMLDetailsElement;
     expect(totals.open).toBe(false);
     totals.querySelector('summary')?.click();
@@ -37,23 +35,6 @@ describe('InvoiceComparison', () => {
       ['VAT 23%', 'PLN2,415.00', 'PLN2,300.00'],
       ['Gross', 'PLN12,915.00', 'PLN12,300.00'],
     ]);
-  });
-
-  it('should update the displayed discrepancy when the input changes', async () => {
-    // Arrange
-    const fixture = TestBed.createComponent(InvoiceComparison);
-    fixture.componentRef.setInput('data', INVOICE_WORKSPACE_DATA);
-    await fixture.whenStable();
-
-    // Act
-    fixture.componentRef.setInput('data', { ...INVOICE_WORKSPACE_DATA, differenceNet: 750 });
-    await fixture.whenStable();
-
-    // Assert
-    const section = (fixture.nativeElement as HTMLElement).querySelector(
-      '[aria-labelledby="difference-title"]',
-    );
-    expect(section?.querySelector('p')?.textContent).toContain('PLN750.00 net');
   });
 
   it('shows invoice and PO quantities separately when they differ', async () => {

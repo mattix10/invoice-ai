@@ -25,47 +25,36 @@
       >
     }
   </header>
-  <div class="workspace">
-    <div class="document-pane" tabindex="0" role="region" aria-label="Document preview">
-      @if (invoice.id === 'INV-2026-1042') {
-        <app-invoice-document />
-      } @else {
-        <p>Document preview unavailable for this invoice.</p>
-      }
-    </div>
-    <div class="details">
-      <div class="section-switcher" role="group" aria-label="Workspace section">
+  @if (view(); as comparison) {
+    <app-invoice-difference [data]="comparison" />
+  }
+  <div class="workspace" [class.has-comparison]="!!view()">
+    <div class="document-pane">
+      <div class="section-switcher" role="group" aria-label="Invoice section">
         <button
           type="button"
-          [attr.aria-pressed]="section() === 'purchase-order'"
-          (click)="section.set('purchase-order')"
+          [attr.aria-pressed]="documentSection() === 'document'"
+          (click)="documentSection.set('document')"
         >
-          Purchase order
+          Document preview
         </button>
         <button
           type="button"
-          [attr.aria-pressed]="section() === 'invoice'"
-          (click)="section.set('invoice')"
+          [attr.aria-pressed]="documentSection() === 'invoice'"
+          (click)="documentSection.set('invoice')"
         >
           Invoice details
         </button>
-        <button
-          type="button"
-          [attr.aria-pressed]="section() === 'comparison'"
-          (click)="section.set('comparison')"
-        >
-          Comparison
-        </button>
       </div>
-      <div class="section-content" role="region" aria-label="Workspace details" tabindex="0">
-        <div [hidden]="section() !== 'purchase-order'">
-          <app-purchase-order-link
-            [invoice]="invoice"
-            [comparisonAvailable]="!!view()"
-            (linked)="load()"
-          />
+      <div class="document-content" role="region" aria-label="Invoice information" tabindex="0">
+        <div [hidden]="documentSection() !== 'document'">
+          @if (invoice.id === 'INV-2026-1042') {
+            <app-invoice-document />
+          } @else {
+            <p>Document preview unavailable for this invoice.</p>
+          }
         </div>
-        <div [hidden]="section() !== 'invoice'">
+        <div [hidden]="documentSection() !== 'invoice'">
           @if (view(); as data) {
             <app-invoice-fields [data]="data" />
           } @else {
@@ -85,6 +74,33 @@
               }
             </section>
           }
+        </div>
+      </div>
+    </div>
+    <div class="details">
+      <div class="section-switcher" role="group" aria-label="Workspace section">
+        <button
+          type="button"
+          [attr.aria-pressed]="section() === 'purchase-order'"
+          (click)="section.set('purchase-order')"
+        >
+          Purchase order
+        </button>
+        <button
+          type="button"
+          [attr.aria-pressed]="section() === 'comparison'"
+          (click)="section.set('comparison')"
+        >
+          Comparison
+        </button>
+      </div>
+      <div class="section-content" role="region" aria-label="Workspace details" tabindex="0">
+        <div [hidden]="section() !== 'purchase-order'">
+          <app-purchase-order-link
+            [invoice]="invoice"
+            [comparisonAvailable]="!!view()"
+            (linked)="load()"
+          />
         </div>
         <div [hidden]="section() !== 'comparison'">
           @if (view(); as data) {
