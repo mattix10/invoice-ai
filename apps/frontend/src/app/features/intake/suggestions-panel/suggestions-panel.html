@@ -1,15 +1,17 @@
-<section aria-labelledby="suggestions-heading">
+<section class="suggestions" aria-labelledby="suggestions-heading">
   <h2 id="suggestions-heading">Extraction suggestions</h2>
   <p>
     First extract document text, then run suggestions. Select and review each suggestion before
     saving.
   </p>
-  <button type="button" [disabled]="busy() || disabled()" (click)="load(false)">
-    Load latest suggestions
-  </button>
-  <button type="button" [disabled]="busy() || disabled()" (click)="load(true)">
-    Run suggestions
-  </button>
+  <div class="button-group">
+    <button type="button" [disabled]="busy() || disabled()" (click)="load(false)">
+      Load latest suggestions
+    </button>
+    <button type="button" [disabled]="busy() || disabled()" (click)="load(true)">
+      Run suggestions
+    </button>
+  </div>
   @if (busy()) {
     <p role="status">Loading suggestions…</p>
   }
@@ -17,13 +19,13 @@
     <p role="alert">{{ error() }}</p>
   }
   @if (suggestions(); as result) {
-    <p>Suggestion version {{ result.version }}</p>
+    <p class="suggestion-version">Suggestion version {{ result.version }}</p>
     @for (warning of result.warnings; track $index) {
-      <p>{{ warning }}</p>
+      <p class="proposal-warning">{{ warning }}</p>
     }
     @for (proposal of result.proposals; track $index; let i = $index) {
       <div class="proposal">
-        <label
+        <label class="proposal-label"
           ><input
             type="checkbox"
             [disabled]="disabled() || busy() || !available(proposal)"
@@ -32,32 +34,34 @@
           />
           {{ proposal.field }}</label
         >
-        <p>Current: {{ display(draft()[proposal.field]) }}</p>
-        <p>Suggested: {{ display(proposal.value) }}</p>
+        <p class="proposal-value"><span>Current:</span> {{ display(draft()[proposal.field]) }}</p>
+        <p class="proposal-value"><span>Suggested:</span> {{ display(proposal.value) }}</p>
         @if (proposal.source; as source) {
           <p>Page {{ source.pageNumber }} · {{ source.extractionMethod }}: {{ source.excerpt }}</p>
         }
         @if (!available(proposal)) {
-          <p>Unavailable: source evidence is missing or invalid.</p>
+          <p class="proposal-warning">Unavailable: source evidence is missing or invalid.</p>
         }
         @for (warning of proposal.warnings; track $index) {
-          <p>{{ warning }}</p>
+          <p class="proposal-warning">{{ warning }}</p>
         }
       </div>
     }
-    <button
-      type="button"
-      [disabled]="disabled() || busy() || selected().length === 0"
-      (click)="applySelected()"
-    >
-      Apply selected suggestions
-    </button>
-    <button
-      type="button"
-      [disabled]="disabled() || busy() || selected().length === 0"
-      (click)="rejectSelected()"
-    >
-      Reject selected suggestions
-    </button>
+    <div class="button-group">
+      <button
+        type="button"
+        [disabled]="disabled() || busy() || selected().length === 0"
+        (click)="applySelected()"
+      >
+        Apply selected suggestions
+      </button>
+      <button
+        type="button"
+        [disabled]="disabled() || busy() || selected().length === 0"
+        (click)="rejectSelected()"
+      >
+        Reject selected suggestions
+      </button>
+    </div>
   }
 </section>

@@ -1,4 +1,74 @@
+.suggestions {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.suggestions h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.suggestions > p {
+  color: var(--text-2);
+}
+
+.suggestion-version {
+  margin: 20px 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .proposal {
-  border-top: 1px solid var(--border-color, #dce3ee);
-  padding-block: 0.75rem;
+  min-width: 0;
+  margin-bottom: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--canvas);
+  overflow-wrap: anywhere;
+}
+
+.proposal-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.proposal-label input {
+  flex: 0 0 18px;
+  margin: 0;
+}
+
+.proposal-value,
+.proposal-source,
+.proposal-warning {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.proposal-value span {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.proposal-source {
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.proposal-warning {
+  color: var(--danger);
+}
+
+@media (max-width: 580px) {
+  .suggestions {
+    padding: 16px;
+  }
 }

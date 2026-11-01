@@ -101,6 +101,9 @@ h1 {
   background-color: #3730a3;
   color: white;
 }
+button:not(:disabled) {
+  cursor: pointer;
+}
 :where(button, input, select, textarea):disabled {
   cursor: not-allowed;
   opacity: 0.6;
@@ -126,4 +129,14 @@ h1 {
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.button-group > button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }

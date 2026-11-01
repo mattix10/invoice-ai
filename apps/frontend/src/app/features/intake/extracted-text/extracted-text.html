@@ -1,8 +1,10 @@
 <section>
   <h2>Document text</h2>
   <p>Text is provided for review and does not change the draft.</p>
-  <button type="button" [disabled]="busy()" (click)="extract.emit()">Extract text</button>
-  <button type="button" [disabled]="busy()" (click)="loadLatest.emit()">Load latest text</button>
+  <div class="button-group">
+    <button type="button" [disabled]="busy()" (click)="extract.emit()">Extract text</button>
+    <button type="button" [disabled]="busy()" (click)="loadLatest.emit()">Load latest text</button>
+  </div>
   @if (busy()) {
     <p role="status">Processing document…</p>
   }
