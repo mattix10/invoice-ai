@@ -1,20 +1,49 @@
-pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
-
+.heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+}
 h2 {
   margin: 0;
   font-size: 16px;
 }
-p {
-  color: var(--text-2);
+.document-state {
+  color: var(--muted);
+  font-size: 11px;
 }
-section {
-  margin-bottom: 20px;
+p {
+  margin: 4px 0 8px;
+  color: var(--text-2);
+  font-size: 12px;
 }
 summary {
   cursor: pointer;
+  color: var(--primary);
+  font-size: 12px;
   font-weight: 600;
-  margin-top: 12px;
+}
+.text-actions {
+  margin-bottom: 6px;
+}
+.button-group {
+  gap: 6px;
+  margin: 8px 0;
+}
+.button-group button {
+  min-height: 32px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
 }

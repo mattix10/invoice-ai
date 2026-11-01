@@ -1,5 +1,22 @@
 <div>
-  <div class="file-selection">
+  @if (duplicate()) {
+    <div class="duplicate-alert" role="alert">
+      <strong>A matching document already exists.</strong>
+      <div class="duplicate-actions">
+        <a [routerLink]="['/overview/intake', duplicate()]">Open existing document</a>
+        <button type="button" [disabled]="busy()" (click)="uploadSeparateDocument()">
+          Create a separate document anyway
+        </button>
+      </div>
+    </div>
+  }
+  <div
+    class="file-selection"
+    [class.dragging]="dragging()"
+    (dragover)="dragOver($event)"
+    (dragleave)="dragLeave($event)"
+    (drop)="dropFile($event)"
+  >
     <input
       id="pdf"
       class="file-input"
@@ -9,29 +26,21 @@
       (change)="selectFile($event)"
       aria-describedby="selected-file"
     />
-    <span class="document-icon" aria-hidden="true">PDF</span>
-    <strong>Choose your invoice</strong>
+    <span class="document-icon" aria-hidden="true"><span>PDF</span></span>
+    <strong>Drop invoice here</strong>
+    <span class="or">or</span>
     <label class="btn btn-primary file-button" for="pdf">
-      {{ busy() ? 'Uploading…' : 'Upload invoice' }}
+      {{ busy() ? 'Uploading…' : 'Choose PDF' }}
     </label>
     <span id="selected-file" class="file-name" aria-live="polite">
-      {{ selectedFile()?.name || 'No file selected' }}
+      {{ selectedFile()?.name || 'PDF, JPG or PNG · Max 10 MiB · 1 file at a time' }}
     </span>
   </div>
   @if (validation()) {
     <p role="alert">{{ validation() }}</p>
   }
-  @if (error()) {
+  @if (error() && !duplicate()) {
     <p role="alert">{{ error() }}</p>
-  }
-  @if (duplicate()) {
-    <p>
-      A matching document already exists.
-      <a [routerLink]="['/overview/intake', duplicate()]">Open existing document</a>
-    </p>
-    <button type="button" [disabled]="busy()" (click)="uploadSeparateDocument()">
-      Create a separate document anyway
-    </button>
   }
   @if (error() && !duplicate() && selectedFile()) {
     <button class="btn" type="button" [disabled]="busy()" (click)="submitUpload()">

@@ -1,73 +1,83 @@
 nav {
-  background: var(--surface);
+  margin: 12px 0;
+  padding: 12px 18px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 24px;
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 4px 20px rgba(16, 24, 40, 0.025);
 }
 ol {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 li {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: 9px;
-  flex: 1;
-  color: var(--muted);
-  font-weight: 600;
   min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
 }
 li:not(:last-child)::after {
-  content: '';
-  height: 1px;
-  background: var(--border);
   flex: 1;
-  margin-left: 8px;
+  height: 1px;
+  margin: 0 10px;
+  background: var(--border);
+  content: '';
 }
 .number {
   display: grid;
+  flex: 0 0 28px;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
   border: 1px solid var(--border);
+  border-radius: 50%;
+  background: #f2f4f7;
+  color: var(--muted);
+  font-size: 12px;
 }
 .active {
-  color: var(--primary);
+  color: var(--text);
 }
 .active .number {
-  background: var(--primary);
   border-color: var(--primary);
+  background: var(--primary);
   color: white;
 }
 .complete .number {
-  border-color: var(--primary);
+  border-color: #c7c5ff;
+  background: var(--primary-bg);
   color: var(--primary);
+}
+.complete::after {
+  background: var(--primary) !important;
 }
 @media (max-width: 700px) {
   nav {
-    padding: 14px;
+    padding: 10px 8px;
   }
   ol {
-    gap: 5px;
+    gap: 2px;
   }
   li {
-    gap: 4px;
-    font-size: 11px;
     flex-direction: column;
+    gap: 3px;
     text-align: center;
+    font-size: 10px;
   }
   li:not(:last-child)::after {
     display: none;
   }
   .number {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
+    flex-basis: 26px;
+    width: 26px;
+    height: 26px;
   }
 }

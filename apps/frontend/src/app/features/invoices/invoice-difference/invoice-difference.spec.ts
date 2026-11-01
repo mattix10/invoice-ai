@@ -13,9 +13,9 @@ describe('InvoiceDifference', () => {
     const text = fixture.nativeElement.textContent;
 
     // Assert
-    expect(text).toContain('PLN500.00');
-    expect(text).toContain('PLN115.00');
-    expect(text).toContain('PLN615.00');
+    expect(text).toContain('500,00\u00a0zł');
+    expect(text).toContain('115,00\u00a0zł');
+    expect(text).toContain('615,00\u00a0zł');
     expect(text).toContain('5% of PO gross');
   });
 

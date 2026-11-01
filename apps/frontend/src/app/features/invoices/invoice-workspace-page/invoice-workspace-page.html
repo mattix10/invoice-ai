@@ -1,18 +1,34 @@
 @if (workspace.isLoading() || workspace.status() === 'idle') {
-  <h1>Invoice workspace</h1>
-  <p role="status">Loading invoice…</p>
+  <section class="page-state" role="status">
+    <span class="empty-icon" aria-hidden="true">▤</span>
+    <h1>Loading invoice</h1>
+    <p>Fetching invoice details and comparison data…</p>
+  </section>
 } @else if (invoiceNotFound()) {
-  <h1>Invoice workspace</h1>
-  <p role="alert">Invoice not found.</p>
+  <section class="page-state" role="alert">
+    <span class="empty-icon" aria-hidden="true">!</span>
+    <h1>Invoice not found</h1>
+    <p>Check the invoice link or return to the overview.</p>
+    <a class="btn" routerLink="/overview">Go to overview</a>
+  </section>
 } @else if (workspace.error()) {
-  <h1>Invoice workspace</h1>
-  <app-load-error class="workspace-error" message="Invoice could not be loaded." (retry)="load()" />
+  <section class="page-state">
+    <h1>Invoice workspace</h1>
+    <app-load-error
+      class="workspace-error"
+      message="Invoice could not be loaded."
+      (retry)="load()"
+    />
+  </section>
 } @else if (invoice(); as invoice) {
   <header class="page-header">
     <div>
       <h1>
-        <span class="eyebrow">Invoice workspace</span> {{ invoice.id }}
-        <span class="status">{{ statusLabels[invoice.status] }}</span>
+        <span class="eyebrow">Invoice workspace</span>
+        <span class="invoice-title-row">
+          <span class="invoice-id">{{ invoice.id }}</span>
+          <span class="status">{{ statusLabels[invoice.status] }}</span>
+        </span>
       </h1>
       <p class="subtitle">
         {{ invoice.vendor }} · Issued {{ invoice.issued || 'Unavailable' }} ·
@@ -57,27 +73,75 @@
               (error)="previewFailed.set(invoice.id)"
             />
           } @else {
-            <p>Document preview unavailable for this invoice.</p>
+            <div class="preview-unavailable" role="status">
+              <span class="empty-icon" aria-hidden="true">▤</span>
+              <strong>Preview unavailable</strong>
+              <p>
+                The uploaded document cannot be displayed here. Review the invoice details instead.
+              </p>
+              <button type="button" class="btn" (click)="documentSection.set('invoice')">
+                View invoice details
+              </button>
+            </div>
           }
         </div>
         <div [hidden]="documentSection() !== 'invoice'">
           @if (view(); as data) {
             <app-invoice-fields [data]="data" />
           } @else {
-            <section>
-              <h2>Invoice fields</h2>
-              <p>Status: {{ statusLabels[invoice.status] }}</p>
-              <p>Due: {{ invoice.due }}</p>
-              <p>Purchase order: {{ invoice.purchaseOrder || 'Unavailable' }}</p>
-              @if (invoice.items.length === 0) {
-                <p>Line items unavailable.</p>
-              } @else {
-                <ul>
-                  @for (item of invoice.items; track item.position) {
-                    <li>{{ item.name }} · {{ item.quantity }}</li>
-                  }
-                </ul>
-              }
+            <section class="fallback-fields" aria-labelledby="fields-heading">
+              <div class="card-heading">
+                <div>
+                  <span class="section-eyebrow">INVOICE DATA</span>
+                  <h2 id="fields-heading">Invoice details</h2>
+                </div>
+                <span class="field-count"
+                  >{{ invoice.items.length }}
+                  {{ invoice.items.length === 1 ? 'line item' : 'line items' }}</span
+                >
+              </div>
+              <p class="card-description">Details recorded from the uploaded invoice.</p>
+              <dl class="field-grid">
+                <div>
+                  <dt>Supplier</dt>
+                  <dd>{{ invoice.vendor }}</dd>
+                </div>
+                <div>
+                  <dt>Invoice number</dt>
+                  <dd>{{ invoice.id }}</dd>
+                </div>
+                <div>
+                  <dt>Issued</dt>
+                  <dd>{{ invoice.issued || 'Unavailable' }}</dd>
+                </div>
+                <div>
+                  <dt>Due</dt>
+                  <dd>{{ invoice.due || 'Unavailable' }}</dd>
+                </div>
+                <div>
+                  <dt>Gross total</dt>
+                  <dd class="amount">{{ gross() }}</dd>
+                </div>
+                <div>
+                  <dt>Purchase order</dt>
+                  <dd>{{ invoice.purchaseOrder || 'Not linked' }}</dd>
+                </div>
+              </dl>
+              <div class="line-item-section">
+                <h3>Line items</h3>
+                @if (invoice.items.length === 0) {
+                  <p class="muted">Line items unavailable.</p>
+                } @else {
+                  <ul class="item-list">
+                    @for (item of invoice.items; track item.position) {
+                      <li>
+                        <span>{{ item.name }}</span
+                        ><span class="item-quantity">Qty {{ item.quantity }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
             </section>
           }
         </div>
@@ -112,7 +176,17 @@
           @if (view(); as data) {
             <app-invoice-comparison id="comparison" [data]="data" />
           } @else {
-            <p>Comparison unavailable / Awaiting PO.</p>
+            <section class="comparison-empty" aria-labelledby="comparison-empty-title">
+              <span class="empty-icon" aria-hidden="true">⇄</span>
+              <span class="section-eyebrow">AWAITING PURCHASE ORDER</span>
+              <h2 id="comparison-empty-title">Comparison unavailable</h2>
+              <p>
+                Link a purchase order to compare quantities, prices and totals with this invoice.
+              </p>
+              <button type="button" class="btn btn-primary" (click)="section.set('purchase-order')">
+                Go to purchase order <span aria-hidden="true">→</span>
+              </button>
+            </section>
           }
         </div>
       </div>

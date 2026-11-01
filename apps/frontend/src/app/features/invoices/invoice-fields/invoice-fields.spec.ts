@@ -24,7 +24,7 @@ describe('InvoiceFields', () => {
       ['Purchase order', 'PO-2026-0871'],
       ['Issued', '2026-10-22'],
       ['Due', '2026-11-21'],
-      ['Gross total', 'PLN12,915.00'],
+      ['Gross total', '12\u00a0915,00\u00a0zł'],
     ]);
   });
 

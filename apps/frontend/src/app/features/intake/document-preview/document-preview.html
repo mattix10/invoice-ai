@@ -1,6 +1,29 @@
 <section>
-  <h2>Uploaded document: {{ name() }}</h2>
+  <div class="toolbar">
+    <h2>{{ name() }}</h2>
+    <div class="zoom-controls" aria-label="Document zoom">
+      <button
+        type="button"
+        aria-label="Zoom out"
+        [disabled]="zoom() <= 75"
+        (click)="changeZoom(-25)"
+      >
+        −
+      </button>
+      <output aria-live="polite">{{ zoom() }}%</output>
+      <button
+        type="button"
+        aria-label="Zoom in"
+        [disabled]="zoom() >= 200"
+        (click)="changeZoom(25)"
+      >
+        +
+      </button>
+    </div>
+  </div>
   @if (url(); as source) {
-    <img [src]="source" [alt]="'Preview of ' + name()" />
+    <div class="paper-area">
+      <img [src]="source" [style.width.%]="zoom()" [alt]="'Preview of ' + name()" />
+    </div>
   }
 </section>

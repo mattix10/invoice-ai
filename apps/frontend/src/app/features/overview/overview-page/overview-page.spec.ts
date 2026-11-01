@@ -177,7 +177,7 @@ describe('OverviewPage', () => {
     await fixture.whenStable();
 
     // Assert
-    expect(fixture.nativeElement.textContent).toContain('PLN3,444.00');
+    expect(fixture.nativeElement.textContent).toContain('3\u00a0444,00\u00a0zł');
     expect(fixture.nativeElement.querySelector('a[href="/invoices/INV-2026-1041"]')).toBeTruthy();
   });
 });

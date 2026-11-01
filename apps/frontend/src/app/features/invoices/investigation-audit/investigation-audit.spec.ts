@@ -4,9 +4,9 @@ import { InvestigationAudit } from './investigation-audit';
 
 describe('InvestigationAudit', () => {
   it.each([
-    ['Net difference', 'PLN500.00'],
-    ['VAT difference', 'PLN115.00'],
-    ['Gross difference', 'PLN615.00'],
+    ['Net difference', '500,00\u00a0zł'],
+    ['VAT difference', '115,00\u00a0zł'],
+    ['Gross difference', '615,00\u00a0zł'],
     ['Of PO gross total', '5.0%'],
   ])('should display %s as %s', async (label, expected) => {
     // Arrange

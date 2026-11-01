@@ -24,7 +24,7 @@
       <p class="proposal-warning">{{ warning }}</p>
     }
     @for (proposal of result.proposals; track $index; let i = $index) {
-      <div class="proposal">
+      <div class="proposal" [attr.data-field]="proposal.field">
         <label class="proposal-label"
           ><input
             type="checkbox"

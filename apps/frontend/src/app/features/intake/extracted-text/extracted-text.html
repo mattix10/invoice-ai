@@ -1,10 +1,17 @@
 <section>
-  <h2>Document preview</h2>
-  <p>Extract text before requesting suggestions. It does not change the draft.</p>
-  <div class="button-group">
-    <button type="button" [disabled]="busy()" (click)="extract.emit()">Extract text</button>
-    <button type="button" [disabled]="busy()" (click)="loadLatest.emit()">Load latest text</button>
+  <div class="heading-row">
+    <h2>Text extraction</h2>
+    <span class="document-state">Source document</span>
   </div>
+  <details class="text-actions" [open]="!extraction()">
+    <summary>Text extraction</summary>
+    <p>Extract text before requesting suggestions. This does not change the draft.</p>
+    <div class="button-group">
+      <button type="button" [disabled]="busy()" (click)="loadLatest.emit()">
+        Load latest text
+      </button>
+    </div>
+  </details>
   @if (busy()) {
     <p role="status">Processing document…</p>
   }

@@ -1,4 +1,10 @@
-import { detailView, formatInvoiceAmount, minorUnits, summaryView } from './invoice-adapter';
+import {
+  detailView,
+  formatInvoiceAmount,
+  formatMinorAmount,
+  minorUnits,
+  summaryView,
+} from './invoice-adapter';
 
 describe('invoice adapter', () => {
   it('should preserve every decimal digit when formatting a large amount', () => {
@@ -9,7 +15,10 @@ describe('invoice adapter', () => {
     const formatted = formatInvoiceAmount(amount, 'PLN');
 
     // Assert
-    expect(formatted).toBe('PLN100,000,000,000,000.01');
+    expect(formatted).toBe('100\u00a0000\u00a0000\u00a0000\u00a0000,01\u00a0zł');
+    expect(formatInvoiceAmount('18.70', 'EUR')).toBe('18,70\u00a0€');
+    expect(formatInvoiceAmount('18.70', 'USD')).toBe('18,70\u00a0$');
+    expect(formatMinorAmount(61500, 'PLN')).toBe('615,00\u00a0zł');
   });
 
   it('preserves exact minor units and rejects unsafe or malformed values', () => {
@@ -36,7 +45,7 @@ describe('invoice adapter', () => {
     const view = summaryView(invoice);
 
     // Assert
-    expect(view.amount).toBe('PLN100,000,000,000,000.01');
+    expect(view.amount).toBe('100\u00a0000\u00a0000\u00a0000\u00a0000,01\u00a0zł');
   });
 
   it('maps status, ISO date and currency', () => {
@@ -56,7 +65,7 @@ describe('invoice adapter', () => {
       due: '21 Nov 2026',
       currency: 'PLN',
       status: 'Needs review',
-      amount: 'PLN12,915.00',
+      amount: '12\u00a0915,00\u00a0zł',
     });
   });
 

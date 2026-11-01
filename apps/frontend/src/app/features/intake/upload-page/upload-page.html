@@ -1,10 +1,10 @@
-<h1>Invoice intake</h1>
-<p class="subtitle">Turn an invoice into a draft for human review.</p>
+<h1>Overview</h1>
+<p class="subtitle">Turn invoices into structured data, ready for review.</p>
 <app-intake-stepper [step]="1" />
 <div class="upload-layout">
   <section class="card">
     <h2>Upload your invoice</h2>
-    <p>Choose a PDF, JPEG or PNG up to 10 MiB.</p>
+    <p>Select a PDF invoice to extract key information.</p>
     <app-upload-form
       [busy]="busy()"
       [error]="error()"
@@ -16,13 +16,51 @@
   </section>
   <section class="card">
     <h2>What happens next</h2>
+    <p class="card-intro">
+      We'll extract the key details from your invoice and guide you through a quick review.
+    </p>
     <ol>
-      <li>Extract document text and review suggestions.</li>
-      <li>Check invoice fields and line items.</li>
-      <li>Confirm the draft for further review.</li>
+      <li>
+        <span class="step-icon" aria-hidden="true">▤</span
+        ><span
+          ><strong>Extract information</strong
+          ><small
+            >Read your PDF and extract details like vendor, dates, amounts and line items.</small
+          ></span
+        >
+      </li>
+      <li>
+        <span class="step-icon" aria-hidden="true">✎</span
+        ><span
+          ><strong>Review fields</strong
+          ><small
+            >Review and correct the extracted fields to make sure everything is accurate.</small
+          ></span
+        >
+      </li>
+      <li>
+        <span class="step-icon" aria-hidden="true">▣</span
+        ><span
+          ><strong>Confirm and save</strong
+          ><small
+            >Once you confirm, the invoice is ready to be recorded in your system.</small
+          ></span
+        >
+      </li>
     </ol>
     <p class="notice">
-      Human review is required. Confirming an invoice does not approve a payment.
+      <span aria-hidden="true">●</span
+      ><span
+        ><strong>Human review required</strong
+        ><small
+          >AI can make mistakes. Please review all extracted information before confirming the
+          invoice.</small
+        ></span
+      >
     </p>
   </section>
+</div>
+<div class="upload-footer" aria-label="Intake navigation">
+  <button type="button" disabled>← Back</button>
+  <button type="button" disabled>Next →</button>
 </div>

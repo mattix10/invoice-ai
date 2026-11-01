@@ -12,6 +12,5 @@ export class ExtractedText {
   readonly extraction = input<TextExtractionResponse | null>(null);
   readonly busy = input(false);
   readonly error = input('');
-  readonly extract = output<void>();
   readonly loadLatest = output<void>();
 }

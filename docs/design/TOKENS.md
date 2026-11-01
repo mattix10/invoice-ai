@@ -39,8 +39,8 @@ Font stack: `Inter`, with `system-ui`, `Segoe UI`, `Roboto`, `Arial` fallbacks. 
 
 ## Dimensions
 
-- Sidebar: **232px** desktop, 68px icon rail at narrower widths; same across all views.
-- Topbar: **66px** desktop; same across all views.
+- Sidebar: **192px** desktop, 68px icon rail at narrower widths; same across all views.
+- Topbar: **54px** desktop; same across all views.
 - Content max width: 1550px, centered; 36px desktop horizontal padding.
 - Spacing rhythm: 4, 8, 12, 16, 24, 32 (most cards use 20–24px inner padding).
 - Card radius: 12px. Button/input radius: 7–9px.

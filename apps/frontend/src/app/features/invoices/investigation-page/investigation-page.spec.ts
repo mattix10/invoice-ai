@@ -437,8 +437,9 @@ describe('InvestigationPage', () => {
     const text = fixture.nativeElement.textContent;
 
     // Assert
-    expect(text).toContain('PLN12.30');
-    expect(text).toContain('Receipt: Unavailable');
+    expect(text).toContain('12,30\u00a0zł');
+    expect(text).toContain('Unavailable');
+    expect(text).not.toContain('deterministic-v2');
     expect(fixture.nativeElement.querySelector('a').getAttribute('href')).toBe(
       '/invoices/INV-2026-9999',
     );

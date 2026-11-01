@@ -2,15 +2,115 @@
   <fieldset [disabled]="busy()">
     <section [hidden]="step() !== 1" aria-labelledby="upload-heading">
       <h2 id="upload-heading" tabindex="-1">Invoice uploaded</h2>
-      <p class="intro">
-        The uploaded document remains available for review. Continue to edit your draft.
-      </p>
+      <p class="intro">Your document is ready. Continue to review its fields.</p>
     </section>
     <section [hidden]="step() !== 2" aria-labelledby="fields-heading">
-      <h2 id="fields-heading" tabindex="-1">Review invoice fields</h2>
-      <p class="intro">Review and edit the details before continuing.</p>
+      <h2 id="fields-heading" tabindex="-1">Extracted invoice data</h2>
+      <p class="intro">Review and edit the details below before continuing.</p>
+      <div class="fields">
+        <div class="field-row">
+          <label for="vendor">Vendor</label>
+          <div class="field-control">
+            <input id="vendor" name="vendor" [(ngModel)]="form().vendor" />
+            @if (documentId()) {
+              <button
+                type="button"
+                class="review-action"
+                aria-label="Review vendor suggestion"
+                (click)="openSuggestions('vendor')"
+              >
+                Review
+              </button>
+            }
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="supplier-number">Invoice number</label>
+          <div class="field-control">
+            <input
+              id="supplier-number"
+              name="supplier_invoice_number"
+              [(ngModel)]="form().supplierInvoiceNumber"
+            />
+            @if (documentId()) {
+              <button
+                type="button"
+                class="review-action"
+                aria-label="Review invoice number suggestion"
+                (click)="openSuggestions('supplierInvoiceNumber')"
+              >
+                Review
+              </button>
+            }
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="issued">Issue date</label>
+          <div class="field-control">
+            <input id="issued" type="date" name="issued" [(ngModel)]="form().issued" />
+            @if (documentId()) {
+              <button
+                type="button"
+                class="review-action"
+                aria-label="Review issue date suggestion"
+                (click)="openSuggestions('issued')"
+              >
+                Review
+              </button>
+            }
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="due">Due date</label>
+          <div class="field-control">
+            <input id="due" type="date" name="due" [(ngModel)]="form().due" />
+            @if (documentId()) {
+              <button
+                type="button"
+                class="review-action"
+                aria-label="Review due date suggestion"
+                (click)="openSuggestions('due')"
+              >
+                Review
+              </button>
+            }
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="currency">Currency</label>
+          <div class="field-control">
+            <input id="currency" name="currency" maxlength="3" [(ngModel)]="form().currency" />
+            @if (documentId()) {
+              <button
+                type="button"
+                class="review-action"
+                aria-label="Review currency suggestion"
+                (click)="openSuggestions('currency')"
+              >
+                Review
+              </button>
+            }
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="vat-rate">VAT rate (decimal, e.g. 0.23)</label>
+          <div class="field-control">
+            <input id="vat-rate" name="vat_rate" inputmode="decimal" [(ngModel)]="form().vatRate" />
+            @if (documentId()) {
+              <button
+                type="button"
+                class="review-action"
+                aria-label="Review VAT rate suggestion"
+                (click)="openSuggestions('vatRate')"
+              >
+                Review
+              </button>
+            }
+          </div>
+        </div>
+      </div>
       @if (documentId()) {
-        <details class="suggestions-details" open>
+        <details class="suggestions-details" #suggestionsDetails>
           <summary>Review extraction suggestions</summary>
           <app-suggestions-panel
             [documentId]="documentId()"
@@ -21,34 +121,26 @@
           />
         </details>
       }
-      <div class="fields">
-        <label>Vendor <input name="vendor" [(ngModel)]="form().vendor" /></label>
-        <label
-          >Supplier invoice number
-          <input name="supplier_invoice_number" [(ngModel)]="form().supplierInvoiceNumber"
-        /></label>
-        <label>Issue date <input type="date" name="issued" [(ngModel)]="form().issued" /></label>
-        <label>Due date <input type="date" name="due" [(ngModel)]="form().due" /></label>
-        <label
-          >Currency <input name="currency" maxlength="3" [(ngModel)]="form().currency"
-        /></label>
-        <label
-          >VAT rate (decimal, e.g. 0.23)
-          <input name="vat_rate" inputmode="decimal" [(ngModel)]="form().vatRate"
-        /></label>
-      </div>
     </section>
     <section [hidden]="step() !== 3" aria-labelledby="items-heading">
       <h2 id="items-heading" tabindex="-1">Line items</h2>
-      <p class="intro">Check each description, quantity and unit price against the document.</p>
-      @for (item of form().items; track $index; let i = $index) {
-        <fieldset class="item">
-          <legend>Item {{ i + 1 }}</legend>
-          <label>Name <input [name]="'name' + i" [(ngModel)]="item.name" /></label>
-          <div class="item-values">
+      <p class="intro">
+        Edit the extracted line items. Make sure all items, quantities and amounts are correct.
+      </p>
+      <div class="line-items">
+        <div class="line-heading">
+          <span>Description *</span><span>Qty *</span><span>Unit net *</span><span>Tax</span
+          ><span>Net amount</span><span></span>
+        </div>
+        @for (item of form().items; track $index; let i = $index) {
+          <fieldset class="item">
+            <legend>Item {{ i + 1 }}</legend>
             <label
-              >Quantity
-              <input
+              ><span>Description</span><input [name]="'name' + i" [(ngModel)]="item.name"
+            /></label>
+            <label
+              ><span>Quantity</span
+              ><input
                 type="number"
                 min="1"
                 step="1"
@@ -56,39 +148,64 @@
                 [(ngModel)]="item.quantity"
             /></label>
             <label
-              >Unit net
-              <input inputmode="decimal" [name]="'unit_net' + i" [(ngModel)]="item.unitNet"
+              ><span>Unit net</span
+              ><input inputmode="decimal" [name]="'unit_net' + i" [(ngModel)]="item.unitNet"
+            /></label>
+            <span class="tax-value">{{ formatVatRate(form().vatRate) }}</span>
+            <output class="line-amount">{{ lineNet(item) }}</output>
+            <button
+              type="button"
+              class="remove-item"
+              [attr.aria-label]="'Remove item ' + (i + 1)"
+              (click)="removeItem(i)"
+            >
+              ×
+            </button>
+          </fieldset>
+        }
+      </div>
+      <button type="button" class="add-item" (click)="addItem()">+ Add line item</button>
+      <div class="declared-totals">
+        <h3>Declared totals</h3>
+        @if (form().declaredTotals; as totals) {
+          <div class="totals">
+            <label
+              >Net <input name="declared_net" inputmode="decimal" [(ngModel)]="totals.net" /></label
+            ><label
+              >VAT <input name="declared_vat" inputmode="decimal" [(ngModel)]="totals.vat" /></label
+            ><label
+              >Gross <input name="declared_gross" inputmode="decimal" [(ngModel)]="totals.gross"
             /></label>
           </div>
-          <button type="button" (click)="removeItem(i)">Remove item</button>
-        </fieldset>
-      }
-      <button type="button" (click)="addItem()">+ Add line item</button>
-      <h3>Declared totals (optional)</h3>
-      @if (form().declaredTotals; as totals) {
-        <div class="totals">
-          <label
-            >Net <input name="declared_net" inputmode="decimal" [(ngModel)]="totals.net"
-          /></label>
-          <label
-            >VAT <input name="declared_vat" inputmode="decimal" [(ngModel)]="totals.vat"
-          /></label>
-          <label
-            >Gross <input name="declared_gross" inputmode="decimal" [(ngModel)]="totals.gross"
-          /></label>
-        </div>
-        <button type="button" (click)="removeTotals()">Remove declared totals</button>
-      } @else {
-        <button type="button" (click)="addTotals()">Add declared totals</button>
-      }
+          <button type="button" class="totals-action" (click)="removeTotals()">
+            Remove declared totals
+          </button>
+        } @else {
+          <button type="button" class="totals-action" (click)="addTotals()">
+            Add declared totals
+          </button>
+        }
+      </div>
       <p class="notice">
-        Check that the items and amounts match the invoice. Totals are validated by the server.
+        Line items must match the invoice. Check descriptions, quantity, unit price and tax.
       </p>
     </section>
     <section [hidden]="step() !== 4" aria-labelledby="summary-heading">
       <h2 id="summary-heading" tabindex="-1">Review summary</h2>
       <p class="intro">Check the details against the document before confirming.</p>
-      <h3>Invoice details</h3>
+      @if (validation().complete) {
+        <div class="ready-notice">
+          <span class="ready-icon" aria-hidden="true">✓</span
+          ><span
+            ><strong>Saved draft passed validation</strong
+            ><small>Check current edits against the document before confirming.</small></span
+          >
+        </div>
+      }
+      <h3>
+        Invoice details
+        <button type="button" class="edit-link" (click)="stepChange.emit(2)">✎ Edit</button>
+      </h3>
       <dl class="summary">
         <div>
           <dt>Vendor</dt>
@@ -112,49 +229,54 @@
         </div>
         <div>
           <dt>VAT rate</dt>
-          <dd>{{ form().vatRate || 'Not provided' }}</dd>
+          <dd>{{ form().vatRate ? formatVatRate(form().vatRate) : 'Not provided' }}</dd>
         </div>
       </dl>
-      <h3>Line items ({{ form().items.length }})</h3>
-      @for (item of form().items; track $index) {
-        <p class="summary-item">
-          {{ item.name || 'Unnamed item' }} · {{ item.quantity }} × {{ item.unitNet }}
-          {{ form().currency }}
-        </p>
-      } @empty {
-        <p>No line items added.</p>
-      }
+      <h3>
+        Line items ({{ form().items.length }})
+        <button type="button" class="edit-link" (click)="stepChange.emit(3)">✎ Edit</button>
+      </h3>
+      <div class="summary-table">
+        <div class="summary-table-heading">
+          <span>#</span><span>Description</span><span>Qty</span><span>Unit net</span
+          ><span>Net amount</span>
+        </div>
+        @for (item of form().items; track $index) {
+          <div class="summary-table-row">
+            <span>{{ item.position }}</span
+            ><span>{{ item.name || 'Unnamed item' }}</span
+            ><span>{{ item.quantity || '—' }}</span
+            ><span>{{ item.unitNet || '—' }}</span
+            ><span>{{ lineNet(item) }}</span>
+          </div>
+        } @empty {
+          <p>No line items added.</p>
+        }
+      </div>
       @if (form().declaredTotals; as totals) {
         <p class="summary-total">
-          Declared gross: {{ totals.gross || 'Not provided' }} {{ form().currency }}
+          Total ({{ form().currency }}) <strong>{{ totals.gross || 'Not provided' }}</strong>
         </p>
       }
       <p class="notice">
-        Human verification required. Confirming creates an invoice for review; it does not approve a
-        payment.
+        Human verification required. Check that details and line items match the invoice. Confirming
+        creates an invoice for review; it does not approve a payment.
       </p>
     </section>
     @if (validation().errors.length) {
-      <div role="status" class="validation">
-        <p>Last saved draft needs:</p>
-        <ul>
-          @for (error of validation().errors; track $index) {
-            <li>{{ error }}</li>
-          }
-        </ul>
-      </div>
+      <app-draft-validation [errors]="validation().errors" />
     }
     <div class="footer">
       @if (step() > 1) {
-        <button type="button" (click)="stepChange.emit(step() - 1)">Back</button>
+        <button type="button" (click)="stepChange.emit(step() - 1)">← Back</button>
       } @else {
-        <button type="button" disabled>Back</button>
+        <button type="button" disabled>← Back</button>
       }
       <div class="button-group">
         <button class="btn" type="submit" [disabled]="busy()">Save draft</button>
         @if (step() < 4) {
           <button class="btn btn-primary" type="button" (click)="stepChange.emit(step() + 1)">
-            Continue
+            Continue →
           </button>
         } @else {
           <button
@@ -163,7 +285,7 @@
             [disabled]="busy()"
             (click)="confirm.emit(form())"
           >
-            Confirm invoice
+            Confirm invoice →
           </button>
         }
       </div>

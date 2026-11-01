@@ -7,8 +7,8 @@ import { DraftPage } from './draft-page';
 
 async function goToConfirmation(fixture: ComponentFixture<DraftPage>): Promise<void> {
   for (let step = 0; step < 2; step++) {
-    const button = [...fixture.nativeElement.querySelectorAll('button')].find(
-      (element: Element) => element.textContent?.trim() === 'Continue',
+    const button = [...fixture.nativeElement.querySelectorAll('button')].find((element: Element) =>
+      element.textContent?.trim().startsWith('Continue'),
     ) as HTMLButtonElement;
     button.click();
     await fixture.whenStable();
