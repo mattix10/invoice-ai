@@ -7,19 +7,28 @@ describe('CopilotPanel', () => {
     // Arrange
     TestBed.configureTestingModule({ imports: [CopilotPanel], providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(CopilotPanel);
-    fixture.componentRef.setInput('answer', {
-      answer: '<img src=x onerror=alert(1)>',
-      citations: [],
-      findings: [],
-      suggestedQuestions: [],
-      generationMode: 'demo',
-      provider: 'demo',
-      model: null,
-      promptVersion: 'demo-v1',
-      incompleteContext: false,
-      humanReviewRequired: true,
-      unavailableReason: null,
-    });
+    fixture.componentRef.setInput('turns', [
+      {
+        id: 1,
+        question: 'What happened?',
+        answer: {
+          answer: '<img src=x onerror=alert(1)>',
+          citations: [],
+          findings: [],
+          suggestedQuestions: [],
+          generationMode: 'demo',
+          provider: 'demo',
+          model: null,
+          promptVersion: 'demo-v1',
+          incompleteContext: false,
+          humanReviewRequired: true,
+          unavailableReason: null,
+        },
+        sources: [],
+        error: '',
+        state: 'ready',
+      },
+    ]);
     const submitted = vi.fn();
     fixture.componentInstance.submitted.subscribe(submitted);
 
@@ -47,19 +56,28 @@ describe('CopilotPanel', () => {
     // Arrange
     TestBed.configureTestingModule({ imports: [CopilotPanel], providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(CopilotPanel);
-    fixture.componentRef.setInput('answer', {
-      answer: '',
-      citations: [],
-      findings: [],
-      suggestedQuestions: ['Explain the difference'],
-      generationMode: 'live',
-      provider: 'cloudflare',
-      model: 'model',
-      promptVersion: 'v1',
-      incompleteContext: false,
-      humanReviewRequired: true,
-      unavailableReason: null,
-    });
+    fixture.componentRef.setInput('turns', [
+      {
+        id: 1,
+        question: 'First question',
+        answer: {
+          answer: '',
+          citations: [],
+          findings: [],
+          suggestedQuestions: ['Explain the difference'],
+          generationMode: 'live',
+          provider: 'cloudflare',
+          model: 'model',
+          promptVersion: 'v1',
+          incompleteContext: false,
+          humanReviewRequired: true,
+          unavailableReason: null,
+        },
+        sources: [],
+        error: '',
+        state: 'ready',
+      },
+    ]);
     const submitted = vi.fn();
     fixture.componentInstance.submitted.subscribe(submitted);
 
@@ -84,7 +102,7 @@ describe('CopilotPanel', () => {
     // Arrange
     TestBed.configureTestingModule({ imports: [CopilotPanel], providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(CopilotPanel);
-    fixture.componentRef.setInput('answer', {
+    const answer = {
       answer: 'Evidence',
       citations: [],
       findings: [],
@@ -96,7 +114,7 @@ describe('CopilotPanel', () => {
       incompleteContext: false,
       humanReviewRequired: true,
       unavailableReason: null,
-    });
+    };
     const reference = {
       kind: 'reconciliation',
       invoiceId: 'INV-2026-1042',
@@ -105,7 +123,7 @@ describe('CopilotPanel', () => {
       evidenceId: 'invoice:INV-2026-1042:reconciliation:2',
       label: 'Reconciliation',
     };
-    fixture.componentRef.setInput('sources', [
+    const sources = [
       {
         reference,
         commands: ['/invoices', 'INV-2026-1042', 'investigation'],
@@ -114,6 +132,9 @@ describe('CopilotPanel', () => {
         historical: true,
       },
       { reference: { ...reference, label: 'Unverified' }, commands: null, historical: false },
+    ];
+    fixture.componentRef.setInput('turns', [
+      { id: 1, question: 'Show sources', answer, sources, error: '', state: 'ready' },
     ]);
 
     // Act

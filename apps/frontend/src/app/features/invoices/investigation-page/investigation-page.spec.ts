@@ -81,7 +81,7 @@ describe('InvestigationPage', () => {
       answer: 'The difference is PLN 12.30 gross.',
       citations: [reference],
       findings: [],
-      suggestedQuestions: [],
+      suggestedQuestions: ['Which line caused it?'],
       generationMode: 'demo',
       provider: 'demo',
       model: null,
@@ -100,6 +100,41 @@ describe('InvestigationPage', () => {
       '/invoices/INV-2026-1042/investigation?revision=1#reconciliation',
     );
     expect(element.textContent).toContain('The difference is PLN 12.30 gross.');
+    const followUp = Array.from(element.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Which line caused it?',
+    );
+
+    // Act
+    followUp?.click();
+    const followUpRequest = http.expectOne('/api/v1/copilot/queries');
+
+    // Assert
+    expect(followUpRequest.request.body.question).toBe('Which line caused it?');
+    expect(element.textContent).toContain('The difference is PLN 12.30 gross.');
+
+    // Act
+    followUpRequest.flush({
+      answer: 'The monitor line caused the difference.',
+      citations: [],
+      findings: [],
+      suggestedQuestions: [],
+      generationMode: 'demo',
+      provider: 'demo',
+      model: null,
+      promptVersion: 'demo-v1',
+      incompleteContext: false,
+      humanReviewRequired: true,
+      unavailableReason: null,
+    });
+    fixture.detectChanges();
+
+    // Assert
+    expect(
+      Array.from(element.querySelectorAll('.bubble.user')).map((bubble) => bubble.textContent),
+    ).toEqual(['Why is there a difference?', 'Which line caused it?']);
+    expect(element.textContent).toContain('The difference is PLN 12.30 gross.');
+    expect(element.textContent).toContain('The monitor line caused the difference.');
+    expect(element.querySelector('[role="log"]')).not.toBeNull();
     http.expectNone(
       (pending) => pending.method === 'POST' && pending.url.includes('/reconciliation'),
     );
@@ -394,6 +429,11 @@ describe('InvestigationPage', () => {
     // Act
     retries.at(-1)?.click();
     http.expectOne('/api/v1/copilot/queries').flush({}, { status: 503, statusText: 'Unavailable' });
+    fixture.detectChanges();
+
+    // Assert
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('.bubble.user')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('The investigation is unavailable');
     http.verify();
   });
 

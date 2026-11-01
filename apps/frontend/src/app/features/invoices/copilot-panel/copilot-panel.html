@@ -6,7 +6,7 @@
       <p>Evidence for your investigation</p>
     </div>
   </header>
-  <div class="conversation" aria-live="polite">
+  <div #conversation class="conversation" aria-live="polite" role="log" aria-label="Conversation">
     <div class="assistant-message">
       <span class="avatar" aria-hidden="true">✦</span>
       <div class="bubble assistant">
@@ -17,35 +17,39 @@
         </p>
       </div>
     </div>
-    @if (lastQuestion()) {
-      <div class="bubble user">{{ lastQuestion() }}</div>
-    }
-    @if (state() === 'loading') {
-      <div class="assistant-message">
-        <span class="avatar" aria-hidden="true">✦</span>
-        <p class="bubble assistant" role="status">Investigating…</p>
-      </div>
-    }
-    @if (state() === 'error') {
-      <div class="assistant-message">
-        <span class="avatar" aria-hidden="true">✦</span>
-        <div class="bubble assistant">
-          <p role="alert">{{ error() }}</p>
-          <button class="retry" type="button" (click)="retry.emit()">Retry</button>
+    @for (turn of turns(); track turn.id; let latest = $last) {
+      <div class="bubble user message-enter">{{ turn.question }}</div>
+      @if (turn.state === 'loading') {
+        <div class="assistant-message message-enter message-pending">
+          <span class="avatar" aria-hidden="true">✦</span>
+          <p class="bubble assistant" role="status">Investigating…</p>
         </div>
-      </div>
-    }
-    @if (answer(); as response) {
-      <app-copilot-answer [response]="response" [sources]="sources()" />
-      @for (suggestion of response.suggestedQuestions; track $index) {
-        <button
-          class="suggestion"
-          type="button"
-          [disabled]="historical() || evidenceLoading() || state() === 'loading'"
-          (click)="suggest(suggestion)"
-        >
-          {{ suggestion }}
-        </button>
+      }
+      @if (turn.state === 'error') {
+        <div class="assistant-message message-enter">
+          <span class="avatar" aria-hidden="true">✦</span>
+          <div class="bubble assistant">
+            <p role="alert">{{ turn.error }}</p>
+            @if (latest) {
+              <button class="retry" type="button" (click)="retry.emit()">Retry</button>
+            }
+          </div>
+        </div>
+      }
+      @if (turn.answer; as response) {
+        <app-copilot-answer class="message-enter" [response]="response" [sources]="turn.sources" />
+        @if (latest) {
+          @for (suggestion of response.suggestedQuestions; track $index) {
+            <button
+              class="suggestion"
+              type="button"
+              [disabled]="historical() || evidenceLoading() || state() === 'loading'"
+              (click)="suggest(suggestion)"
+            >
+              {{ suggestion }}
+            </button>
+          }
+        }
       }
     }
     @if (historical()) {

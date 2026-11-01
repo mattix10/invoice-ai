@@ -16,6 +16,7 @@ import type { Observable } from 'rxjs';
 import type { CopilotAnswer, ReconciliationRead } from '../../../core/api/schema';
 import { InvoiceApi } from './invoice-api';
 import { resolveEvidence } from './evidence-resolver';
+import type { ConversationTurn } from './conversation-turn';
 
 interface InvestigationRoute {
   id: string;
@@ -31,22 +32,16 @@ export class InvestigationSession {
   private readonly injector = inject(Injector);
   private readonly document = inject(DOCUMENT);
   private readonly retry = new Subject<void>();
-  private readonly questions = new Subject<string>();
+  private readonly questions = new Subject<{ id: number; question: string }>();
   private readonly cancelQuestion = new Subject<void>();
-  readonly lastQuestion = signal('');
+  private nextTurnId = 0;
+  readonly turns = signal<readonly ConversationTurn[]>([]);
   readonly invoiceId = signal('');
   readonly selectedRevision = signal(false);
   readonly result = signal<ReconciliationRead | null>(null);
   readonly state = signal<'loading' | 'ready' | 'error'>('loading');
   readonly reconciliationMissing = signal(false);
-  readonly answer = signal<CopilotAnswer | null>(null);
-  readonly answerState = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  readonly answerError = signal('');
-  readonly sources = computed(() =>
-    (this.answer()?.citations ?? []).map((ref) =>
-      resolveEvidence(ref, this.result(), this.invoiceId()),
-    ),
-  );
+  readonly answerState = computed(() => this.turns().at(-1)?.state ?? 'idle');
 
   constructor() {
     const routeState = combineLatest([this.route.paramMap, this.route.queryParamMap]).pipe(
@@ -83,9 +78,7 @@ export class InvestigationSession {
   private resetForRoute(route: InvestigationRoute): void {
     this.invoiceId.set(route.id);
     this.selectedRevision.set(route.revision !== null);
-    this.answer.set(null);
-    this.answerState.set('idle');
-    this.lastQuestion.set('');
+    this.turns.set([]);
   }
 
   private loadReconciliation(route: InvestigationRoute): Observable<ReconciliationRead | null> {
@@ -140,46 +133,72 @@ export class InvestigationSession {
     routeState
       .pipe(
         switchMap(({ id }) =>
-          this.questions.pipe(switchMap((question) => this.queryCopilot(id, question))),
+          this.questions.pipe(
+            switchMap(({ id: turnId, question }) => this.queryCopilot(id, turnId, question)),
+          ),
         ),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ answer, error }) => {
-        this.answer.set(answer);
-        this.answerError.set(error);
-        this.answerState.set(answer ? 'ready' : 'error');
+      .subscribe(({ turnId, answer, error }) => {
+        this.turns.update((turns) =>
+          turns.map((turn) =>
+            turn.id === turnId
+              ? {
+                  ...turn,
+                  answer,
+                  error,
+                  sources: (answer?.citations ?? []).map((ref) =>
+                    resolveEvidence(ref, this.result(), this.invoiceId()),
+                  ),
+                  state: answer ? 'ready' : 'error',
+                }
+              : turn,
+          ),
+        );
       });
   }
 
   private queryCopilot(
     invoiceId: string,
+    turnId: number,
     question: string,
-  ): Observable<{ answer: CopilotAnswer | null; error: string }> {
-    this.answer.set(null);
-    this.answerState.set('loading');
-
+  ): Observable<{ turnId: number; answer: CopilotAnswer | null; error: string }> {
     return this.api.queryCopilot({ question, invoiceId }).pipe(
       takeUntil(this.cancelQuestion),
-      map((answer) => ({ answer, error: '' })),
-      catchError((error: unknown) => of({ answer: null, error: this.errorMessage(error) })),
+      map((answer) => ({ turnId, answer, error: '' })),
+      catchError((error: unknown) => of({ turnId, answer: null, error: this.errorMessage(error) })),
     );
   }
 
   load(): void {
     this.cancelQuestion.next();
-    this.answer.set(null);
-    this.answerState.set('idle');
-    this.lastQuestion.set('');
+    this.turns.set([]);
     this.retry.next();
   }
 
   ask(question: string): void {
-    this.lastQuestion.set(question);
-    this.questions.next(question);
+    const turn: ConversationTurn = {
+      id: ++this.nextTurnId,
+      question,
+      answer: null,
+      sources: [],
+      error: '',
+      state: 'loading',
+    };
+    this.turns.update((turns) => [...turns, turn]);
+    this.questions.next({ id: turn.id, question });
   }
 
   retryAnswer(): void {
-    if (this.lastQuestion()) this.questions.next(this.lastQuestion());
+    const lastTurn = this.turns().at(-1);
+    if (!lastTurn || lastTurn.state !== 'error') return;
+
+    this.turns.update((turns) =>
+      turns.map((turn) =>
+        turn.id === lastTurn.id ? { ...turn, error: '', state: 'loading' } : turn,
+      ),
+    );
+    this.questions.next({ id: lastTurn.id, question: lastTurn.question });
   }
 
   private errorMessage(error: unknown): string {
