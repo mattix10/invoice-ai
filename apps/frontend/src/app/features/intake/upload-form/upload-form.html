@@ -9,6 +9,8 @@
       (change)="selectFile($event)"
       aria-describedby="selected-file"
     />
+    <span class="document-icon" aria-hidden="true">PDF</span>
+    <strong>Choose your invoice</strong>
     <label class="btn btn-primary file-button" for="pdf">
       {{ busy() ? 'Uploading…' : 'Upload invoice' }}
     </label>
@@ -25,7 +27,7 @@
   @if (duplicate()) {
     <p>
       A matching document already exists.
-      <a [routerLink]="['/intake', duplicate()]">Open existing document</a>
+      <a [routerLink]="['/overview/intake', duplicate()]">Open existing document</a>
     </p>
     <button type="button" [disabled]="busy()" (click)="uploadSeparateDocument()">
       Create a separate document anyway

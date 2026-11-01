@@ -5,7 +5,7 @@
     <p class="subtitle">Your priority today: resolve the exceptions that need human review.</p>
   </div>
   <div class="heading-actions">
-    <a class="btn" routerLink="/invoices/new">Upload invoice</a>
+    <a class="btn" routerLink="/overview/intake/new">Upload invoice</a>
     @if (nextInvoiceForReview.isLoading()) {
       <p role="status">Loading review queue…</p>
     } @else if (nextInvoiceForReview.hasValue()) {

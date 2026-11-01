@@ -3,3 +3,9 @@ img {
   height: auto;
   border: 1px solid var(--border, #ccc);
 }
+
+h2 {
+  font-size: 14px;
+  margin: 16px 0 10px;
+  overflow-wrap: anywhere;
+}

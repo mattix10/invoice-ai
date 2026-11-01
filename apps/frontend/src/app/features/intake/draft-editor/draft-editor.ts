@@ -17,6 +17,8 @@ import { SuggestionsPanel } from '../suggestions-panel/suggestions-panel';
 })
 export class DraftEditor {
   readonly draft = input.required<Draft>();
+  readonly step = input(2);
+  readonly stepChange = output<number>();
   readonly documentId = input('');
   readonly validation = input.required<Validation>();
   readonly busy = input(false);

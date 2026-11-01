@@ -1,5 +1,38 @@
+.subtitle {
+  margin: 6px 0 24px;
+  color: var(--text-2);
+}
 .layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+  height: max(320px, calc(100dvh - 300px));
+}
+.panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.text-details {
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+@media (max-width: 850px) {
+  .layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .panel {
+    max-height: 70vh;
+  }
 }

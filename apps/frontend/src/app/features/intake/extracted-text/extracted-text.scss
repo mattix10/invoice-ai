@@ -2,3 +2,19 @@ pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+h2 {
+  margin: 0;
+  font-size: 16px;
+}
+p {
+  color: var(--text-2);
+}
+section {
+  margin-bottom: 20px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 12px;
+}

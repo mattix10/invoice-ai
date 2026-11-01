@@ -1,0 +1,37 @@
+.subtitle {
+  color: var(--text-2);
+  margin: 6px 0 24px;
+}
+.upload-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+p,
+li {
+  color: var(--text-2);
+}
+li {
+  margin: 16px 0;
+}
+.notice {
+  background: var(--primary-bg);
+  border-radius: 8px;
+  padding: 16px;
+}
+@media (max-width: 850px) {
+  .upload-layout {
+    grid-template-columns: 1fr;
+  }
+}

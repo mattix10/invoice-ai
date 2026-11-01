@@ -11,7 +11,7 @@
       <a
         [routerLink]="item.path"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
+        [routerLinkActiveOptions]="{ exact: item.path !== '/overview' }"
         ariaCurrentWhenActive="page"
         [title]="item.label"
         ><svg

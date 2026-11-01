@@ -1,10 +1,28 @@
-<h1>Upload invoice</h1>
-<p>Choose a digital PDF of up to 10 MiB and 20 pages.</p>
-<app-upload-form
-  [busy]="busy()"
-  [error]="error()"
-  [duplicate]="duplicate()"
-  (upload)="upload($event)"
-  (uploadDuplicate)="upload($event, true)"
-  (selectionChanged)="duplicate.set('')"
-/>
+<h1>Invoice intake</h1>
+<p class="subtitle">Turn an invoice into a draft for human review.</p>
+<app-intake-stepper [step]="1" />
+<div class="upload-layout">
+  <section class="card">
+    <h2>Upload your invoice</h2>
+    <p>Choose a PDF, JPEG or PNG up to 10 MiB.</p>
+    <app-upload-form
+      [busy]="busy()"
+      [error]="error()"
+      [duplicate]="duplicate()"
+      (upload)="upload($event)"
+      (uploadDuplicate)="upload($event, true)"
+      (selectionChanged)="duplicate.set('')"
+    />
+  </section>
+  <section class="card">
+    <h2>What happens next</h2>
+    <ol>
+      <li>Extract document text and review suggestions.</li>
+      <li>Check invoice fields and line items.</li>
+      <li>Confirm the draft for further review.</li>
+    </ol>
+    <p class="notice">
+      Human review is required. Confirming an invoice does not approve a payment.
+    </p>
+  </section>
+</div>

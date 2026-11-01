@@ -1,23 +1,121 @@
+form > fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+h2 {
+  margin: 0;
+  font-size: 18px;
+}
+h3 {
+  margin: 24px 0 12px;
+  font-size: 15px;
+}
+.intro {
+  margin: 6px 0 20px;
+  color: var(--text-2);
+}
+.fields {
+  display: grid;
+  gap: 12px;
+}
 label {
   display: block;
-  margin-block: 0.75rem;
   color: var(--text-2);
   font-weight: 600;
 }
+.fields label {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--canvas);
+}
 input {
   display: block;
-  width: min(100%, 28rem);
-  margin-top: 4px;
+  width: 100%;
+  margin-top: 6px;
 }
-fieldset {
-  min-width: 0;
-  margin-block: 1rem;
+.item {
+  margin: 0 0 16px;
   padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
+  border-radius: 8px;
 }
-legend {
-  padding-inline: 6px;
+.item legend {
+  padding: 0 6px;
   font-weight: 700;
+}
+.item-values,
+.totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.totals {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.suggestions-details {
+  margin-top: 20px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.summary {
+  margin: 0;
+}
+.summary div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+dt {
+  color: var(--text-2);
+}
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.summary-item {
+  padding: 12px;
+  background: var(--canvas);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.summary-total {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.notice {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--primary-bg);
+  color: var(--text-2);
+}
+.validation {
+  color: var(--text-2);
+  font-size: 13px;
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  position: sticky;
+  bottom: -20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 16px 0 20px;
+  margin-top: 24px;
+}
+@media (max-width: 580px) {
+  .totals {
+    grid-template-columns: 1fr;
+  }
 }
