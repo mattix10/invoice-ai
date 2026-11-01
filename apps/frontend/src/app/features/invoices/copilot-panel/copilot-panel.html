@@ -36,48 +36,7 @@
       </div>
     }
     @if (answer(); as response) {
-      <div class="assistant-message">
-        <span class="avatar" aria-hidden="true">✦</span>
-        <div class="bubble assistant">
-          <span class="mode">{{
-            response.generationMode === 'demo'
-              ? 'Demo'
-              : response.generationMode === 'live'
-                ? 'Live'
-                : 'Unavailable'
-          }}</span>
-          <p>{{ response.answer || 'No answer was returned.' }}</p>
-          @if (response.unavailableReason) {
-            <p>{{ response.unavailableReason }}</p>
-          }
-          @if (response.incompleteContext) {
-            <p>Evidence coverage is incomplete.</p>
-          }
-          <h3>Sources</h3>
-          @if (sources().length === 0) {
-            <p>No sources were supplied.</p>
-          }
-          <ul>
-            @for (source of sources(); track $index) {
-              <li>
-                @if (source.commands; as commands) {
-                  <a
-                    [routerLink]="commands"
-                    [queryParams]="source.queryParams"
-                    [fragment]="source.fragment"
-                    >{{ source.reference.label }}</a
-                  >
-                } @else {
-                  <span>{{ source.reference.label }} (link unavailable)</span>
-                }
-                @if (source.historical) {
-                  <span> · Historical</span>
-                }
-              </li>
-            }
-          </ul>
-        </div>
-      </div>
+      <app-copilot-answer [response]="response" [sources]="sources()" />
       @for (suggestion of response.suggestedQuestions; track $index) {
         <button
           class="suggestion"

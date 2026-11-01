@@ -8,45 +8,67 @@ export interface EvidenceDestination {
   historical: boolean;
 }
 
+function isSelectedInvoice(reference: EvidenceReference, invoiceId: string): boolean {
+  return (
+    reference.kind === 'invoice' &&
+    reference.invoiceId === invoiceId &&
+    reference.reconciliationRevision === null &&
+    reference.linePosition === null &&
+    reference.evidenceId === `invoice:${invoiceId}`
+  );
+}
+
+function isRecordedReference(reference: EvidenceReference, record: ReconciliationRead): boolean {
+  return (
+    reference.invoiceId === record.result.invoiceId &&
+    reference.reconciliationRevision === record.revision &&
+    record.evidenceRefs.some(
+      (candidate) =>
+        candidate.kind === reference.kind &&
+        candidate.evidenceId === reference.evidenceId &&
+        candidate.invoiceId === reference.invoiceId &&
+        candidate.reconciliationRevision === reference.reconciliationRevision &&
+        candidate.linePosition === reference.linePosition,
+    )
+  );
+}
+
+function hasRecordedLine(reference: EvidenceReference, record: ReconciliationRead): boolean {
+  const position = reference.linePosition;
+
+  return (
+    position !== null &&
+    Number.isSafeInteger(position) &&
+    position > 0 &&
+    record.result.lines.some((line) => line.position === position)
+  );
+}
+
 export function resolveEvidence(
   reference: EvidenceReference,
   record: ReconciliationRead | null,
   selectedInvoiceId = record?.result.invoiceId ?? '',
 ): EvidenceDestination {
   const unresolved: EvidenceDestination = { reference, commands: null, historical: false };
-  if (
-    reference.kind === 'invoice' &&
-    reference.invoiceId === selectedInvoiceId &&
-    reference.reconciliationRevision === null &&
-    reference.linePosition === null &&
-    reference.evidenceId === `invoice:${selectedInvoiceId}`
-  ) {
+  if (isSelectedInvoice(reference, selectedInvoiceId)) {
     return { reference, commands: ['/invoices', selectedInvoiceId], historical: false };
   }
-  if (!record || reference.invoiceId !== record.result.invoiceId) return unresolved;
-  const verified = record.evidenceRefs.some(
-    (candidate) =>
-      candidate.kind === reference.kind &&
-      candidate.evidenceId === reference.evidenceId &&
-      candidate.invoiceId === reference.invoiceId &&
-      candidate.reconciliationRevision === reference.reconciliationRevision &&
-      candidate.linePosition === reference.linePosition,
-  );
-  if (!verified || reference.reconciliationRevision !== record.revision) return unresolved;
+
+  if (!record || !isRecordedReference(reference, record)) return unresolved;
+
   const historical = !record.isCurrent;
   const invoice = ['/invoices', reference.invoiceId];
+
   if (reference.kind === 'invoice') return { reference, commands: invoice, historical };
+
   if (reference.kind === 'po_snapshot' && record.isCurrent) {
     return { reference, commands: invoice, fragment: 'comparison', historical };
   }
+
   if ((reference.kind === 'invoice_line' || reference.kind === 'po_line') && record.isCurrent) {
     const position = reference.linePosition;
-    if (
-      position !== null &&
-      Number.isSafeInteger(position) &&
-      position > 0 &&
-      record.result.lines.some((line) => line.position === position)
-    ) {
+
+    if (position !== null && hasRecordedLine(reference, record)) {
       return {
         reference,
         commands: invoice,
@@ -56,13 +78,11 @@ export function resolveEvidence(
       };
     }
   }
+
   if (reference.kind === 'reconciliation' || reference.kind === 'discrepancy_line') {
     const position = reference.linePosition;
-    if (
-      reference.kind === 'discrepancy_line' &&
-      (!Number.isInteger(position) ||
-        !record.result.lines.some((line) => line.position === position))
-    )
+
+    if (reference.kind === 'discrepancy_line' && !hasRecordedLine(reference, record))
       return unresolved;
 
     return {

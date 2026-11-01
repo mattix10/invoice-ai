@@ -3,114 +3,28 @@
     <h1>AI investigation</h1>
     <p>Review reconciliation evidence with your invoice copilot.</p>
   </div>
-  <a class="back-link" [routerLink]="['/invoices', invoiceId()]">← Back to invoice</a>
+  <a class="back-link" [routerLink]="['/invoices', session.invoiceId()]">← Back to invoice</a>
 </header>
 <div class="layout">
-  <app-panel class="evidence-card">
-    <div class="section-heading">
-      <div>
-        <span class="eyebrow">INVESTIGATION CONTEXT</span>
-        <h2>Reconciliation evidence</h2>
-      </div>
-      <span class="evidence-icon" aria-hidden="true">≡</span>
-    </div>
-    <p class="intro">
-      Compare recorded invoice and purchase order amounts before reviewing the answer.
-    </p>
-    @if (state() === 'loading') {
-      <div class="empty-state"><p role="status">Loading reconciliation…</p></div>
-    } @else if (state() === 'error') {
-      <div class="empty-state">
-        <span class="empty-icon" aria-hidden="true">!</span>
-        @if (reconciliationMissing()) {
-          <h3>No reconciliation yet</h3>
-          <p role="status">
-            Run a reconciliation in the invoice workspace to see its evidence here.
-          </p>
-        } @else {
-          <h3>Evidence unavailable</h3>
-          <p role="alert">
-            We couldn't load this reconciliation. Try again or return to the invoice.
-          </p>
-        }
-        <div class="empty-actions">
-          <a class="btn btn-primary" [routerLink]="['/invoices', invoiceId()]"
-            >Open invoice workspace <span aria-hidden="true">→</span></a
-          >
-          <button class="btn" type="button" (click)="load()">Retry</button>
-        </div>
-      </div>
-    } @else if (result(); as record) {
-      <section id="reconciliation" aria-label="Reconciliation result" class="record">
-        <div class="record-heading">
-          <div>
-            <h3>Revision {{ record.revision }}</h3>
-            <p>{{ record.algorithmVersion }}</p>
-          </div>
-          <span class="status">{{
-            record.isCurrent ? 'Current snapshot' : 'Historical snapshot'
-          }}</span>
-        </div>
-        @if (selectedRevision()) {
-          <a [routerLink]="['/invoices', invoiceId(), 'investigation']"
-            >View latest reconciliation</a
-          >
-        }
-        <dl class="totals">
-          <div>
-            <dt>Invoice total</dt>
-            <dd>{{ amount(record.result.invoiceTotals.gross, record.result.inputs.currency) }}</dd>
-          </div>
-          <div>
-            <dt>PO total</dt>
-            <dd>{{ amount(record.result.poTotals.gross, record.result.inputs.currency) }}</dd>
-          </div>
-          <div class="difference">
-            <dt>Gross difference</dt>
-            <dd>{{ amount(record.result.difference.gross, record.result.inputs.currency) }}</dd>
-          </div>
-        </dl>
-        <p>
-          Difference: {{ amount(record.result.difference.net, record.result.inputs.currency) }} net
-          · {{ amount(record.result.difference.vat, record.result.inputs.currency) }} VAT
-        </p>
-        <div class="record-details">
-          <p>Purchase order: {{ record.result.inputs.purchaseOrder }}</p>
-          <p>Receipt: {{ record.result.inputs.deliveryReceiptId || 'Unavailable' }}</p>
-        </div>
-        <h3>Line differences</h3>
-        <ul class="lines">
-          @for (line of record.result.lines; track line.position) {
-            <li [id]="'line-' + line.position" tabindex="-1">
-              <span>Line {{ line.position }} · {{ line.name }}</span
-              ><strong>{{ amount(line.differenceNet, record.result.inputs.currency) }} net</strong>
-            </li>
-          }
-        </ul>
-        <details>
-          <summary>Recorded evidence ({{ record.evidenceRefs.length }})</summary>
-          <ul>
-            @for (evidence of record.evidenceRefs; track evidence.evidenceId) {
-              <li>{{ evidence.label }} · {{ evidence.evidenceId }}</li>
-            }
-          </ul>
-        </details>
-        <p class="footnote">
-          Results describe the captured snapshot. A changed PO must be linked again before comparing
-          its latest version.
-        </p>
-      </section>
-    }
-  </app-panel>
+  <app-reconciliation-evidence-card
+    [invoiceId]="session.invoiceId()"
+    [state]="session.state()"
+    [reconciliationMissing]="session.reconciliationMissing()"
+    [result]="session.result()"
+    [selectedRevision]="session.selectedRevision()"
+    (retry)="session.load()"
+  />
   <app-copilot-panel
-    [answer]="answer()"
-    [sources]="sources()"
-    [state]="answerState()"
-    [error]="answerError()"
-    [historical]="selectedRevision() || (!!result() && !result()?.isCurrent)"
-    [evidenceLoading]="state() === 'loading'"
-    [lastQuestion]="lastQuestion()"
-    (submitted)="ask($event)"
-    (retry)="retryAnswer()"
+    [answer]="session.answer()"
+    [sources]="session.sources()"
+    [state]="session.answerState()"
+    [error]="session.answerError()"
+    [historical]="
+      session.selectedRevision() || (!!session.result() && !session.result()?.isCurrent)
+    "
+    [evidenceLoading]="session.state() === 'loading'"
+    [lastQuestion]="session.lastQuestion()"
+    (submitted)="session.ask($event)"
+    (retry)="session.retryAnswer()"
   />
 </div>

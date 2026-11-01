@@ -7,10 +7,11 @@ import {
   computed,
   inject,
   Injector,
+  signal,
 } from '@angular/core';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { catchError, combineLatest, forkJoin, map, of, throwError } from 'rxjs';
 import { InvoiceApi } from '../data-access/invoice-api';
 import { detailView, formatInvoiceAmount, statusLabels } from '../data-access/invoice-adapter';
 import { InvoiceDocument } from '../invoice-document/invoice-document';
@@ -39,6 +40,9 @@ export class InvoiceWorkspacePage {
   private readonly injector = inject(Injector);
   private readonly document = inject(DOCUMENT);
   private readonly routeParams = toSignal(this.route.paramMap);
+  protected readonly section = signal<'purchase-order' | 'invoice' | 'comparison'>(
+    this.route.snapshot?.fragment?.startsWith('comparison') ? 'comparison' : 'purchase-order',
+  );
   protected readonly workspace = rxResource({
     params: () => this.routeParams()?.get('id') ?? '',
     stream: ({ params: invoiceId }) =>
@@ -57,6 +61,9 @@ export class InvoiceWorkspacePage {
         map(({ invoice, comparison }) => {
           const fragment = this.route.snapshot?.fragment;
           const line = this.route.snapshot?.queryParamMap.get('line');
+          if (comparison && fragment?.startsWith('comparison')) {
+            this.section.set('comparison');
+          }
           if (comparison && fragment === 'comparison') {
             afterNextRender(() => this.document.getElementById('comparison')?.scrollIntoView(), {
               injector: this.injector,
@@ -96,6 +103,32 @@ export class InvoiceWorkspacePage {
   protected readonly view = computed(() => this.workspaceData()?.view ?? null);
   protected readonly gross = computed(() => this.workspaceData()?.gross ?? '');
   protected readonly statusLabels = statusLabels;
+
+  constructor() {
+    if (!this.route.fragment || !this.route.queryParamMap) return;
+    combineLatest([this.route.fragment, this.route.queryParamMap])
+      .pipe(takeUntilDestroyed())
+      .subscribe(([fragment, query]) => {
+        const comparison = this.view();
+        if (!comparison || !fragment?.startsWith('comparison')) return;
+        this.section.set('comparison');
+        const line = query.get('line');
+        if (
+          line &&
+          /^[1-9]\d*$/.test(line) &&
+          fragment === `comparison-line-${line}` &&
+          comparison.items.some((item) => item.position === Number(line))
+        ) {
+          afterNextRender(() => this.document.getElementById(fragment)?.focus(), {
+            injector: this.injector,
+          });
+        } else if (fragment === 'comparison') {
+          afterNextRender(() => this.document.getElementById('comparison')?.scrollIntoView(), {
+            injector: this.injector,
+          });
+        }
+      });
+  }
 
   protected load(): void {
     this.workspace.reload();

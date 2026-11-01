@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { CopilotAnswerView } from '../copilot-answer/copilot-answer';
 import type { CopilotAnswer } from '../../../core/api/schema';
 import type { EvidenceDestination } from '../data-access/evidence-resolver';
 
 @Component({
   selector: 'app-copilot-panel',
-  imports: [RouterLink],
+  imports: [CopilotAnswerView],
   templateUrl: './copilot-panel.html',
   styleUrl: './copilot-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

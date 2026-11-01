@@ -23,7 +23,7 @@ h2 {
 .document {
   display: block;
   width: 100%;
-  height: 700px;
+  height: clamp(330px, calc(100vh - 390px), 700px);
   margin: 20px 0 12px;
   border: 1px solid var(--border);
   background: var(--surface);

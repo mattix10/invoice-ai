@@ -105,6 +105,16 @@ describe('InvoiceWorkspacePage', () => {
     await fixture.whenStable();
 
     // Assert
+    const element = fixture.nativeElement as HTMLElement;
+    const sectionButtons = Array.from(
+      element.querySelectorAll<HTMLButtonElement>('.section-switcher button'),
+    );
+    expect(sectionButtons[0].getAttribute('aria-pressed')).toBe('true');
+    sectionButtons[2].click();
+    fixture.detectChanges();
+    expect(sectionButtons[2].getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('[hidden] app-purchase-order-link')).not.toBeNull();
+    expect(element.textContent).not.toContain('Synthetic sample data. Human review is required.');
     expect(fixture.nativeElement.textContent).toContain('PLN100,000,000,000,000.01');
     http.verify();
   });
@@ -161,13 +171,15 @@ describe('InvoiceWorkspacePage', () => {
 
   it('should display canonical amounts from the API after retrying an outage', async () => {
     const params = new BehaviorSubject(convertToParamMap({ id: 'INV-2026-1042' }));
+    const fragment = new BehaviorSubject<string | null>(null);
+    const queryParamMap = new BehaviorSubject(convertToParamMap({}));
     TestBed.configureTestingModule({
       imports: [InvoiceWorkspacePage],
       providers: [
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: ActivatedRoute, useValue: { paramMap: params } },
+        { provide: ActivatedRoute, useValue: { paramMap: params, fragment, queryParamMap } },
       ],
     });
     const fixture = TestBed.createComponent(InvoiceWorkspacePage);
@@ -219,6 +231,14 @@ describe('InvoiceWorkspacePage', () => {
     expect(fixture.nativeElement.textContent).toContain('5.0%');
     expect(fixture.nativeElement.textContent).toContain('VAT 23%');
     expect(fixture.nativeElement.querySelector('app-invoice-document')).toBeTruthy();
+    fragment.next('comparison-line-1');
+    fixture.detectChanges();
+    const comparisonButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.section-switcher button',
+      ),
+    ).find((button) => button.textContent?.includes('Comparison'));
+    expect(comparisonButton?.getAttribute('aria-pressed')).toBe('true');
     http.verify({ ignoreCancelled: true });
   });
 });

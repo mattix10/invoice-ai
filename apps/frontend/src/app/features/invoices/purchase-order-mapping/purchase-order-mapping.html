@@ -1,0 +1,33 @@
+<div class="step">
+  <div class="step-number" aria-hidden="true">2</div>
+  <div class="step-content">
+    <h3>Match invoice lines</h3>
+    <p>Choose the corresponding PO line for each invoice line.</p>
+    @for (item of invoice().items; track item.position) {
+      <label
+        >Invoice {{ item.position }} · {{ item.name }}
+        <select
+          [ngModel]="mappings()[item.position] ?? null"
+          (ngModelChange)="selectLine(item.position, $event)"
+          [disabled]="busy()"
+        >
+          <option [ngValue]="null">Select PO line</option>
+          @for (line of order().items; track line.position) {
+            <option [ngValue]="line.position">
+              {{ line.position }} · {{ line.description }} · {{ line.quantity }} ×
+              {{ line.unitNet }}
+            </option>
+          }
+        </select>
+      </label>
+    }
+    <button
+      class="btn btn-primary"
+      type="button"
+      (click)="linkRequested.emit()"
+      [disabled]="busy() || invoice().items.length === 0"
+    >
+      Link PO
+    </button>
+  </div>
+</div>
