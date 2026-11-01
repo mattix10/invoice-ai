@@ -80,7 +80,7 @@ def parse_invoice_layout(page, extraction_version):
     item = re.search(
         r"(?im)^Description\r?\nQty\r?\nUnit price\r?\nTax\r?\nAmount\r?\n"
         r"([^\r\n]+)\r?\n([1-9]\d*)\r?\n(\d+\.\d{2})\r?\n"
-        r"(\d+(?:\.\d+)?)%\r?\n(\d+\.\d{2})$",
+        r"(\d+(?:\.\d+)?)%\r?\n(\d+\.\d{2})$(?=\r?\nSubtotal\r?$)",
         text,
     )
     if item:
@@ -185,3 +185,4 @@ def parse_suggestions(pages, extraction_version: int) -> list[FieldProposal]:
                 except ValidationError:
                     pass
     return proposals
+
