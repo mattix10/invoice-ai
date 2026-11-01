@@ -9,7 +9,12 @@
     </thead>
     <tbody>
       @for (row of rows(); track $index) {
-        <tr>
+        <tr
+          [attr.id]="
+            positions()[$index] !== undefined ? 'comparison-line-' + positions()[$index] : null
+          "
+          [attr.tabindex]="positions()[$index] !== undefined ? -1 : null"
+        >
           @for (cell of row; track $index) {
             <td>{{ cell }}</td>
           }

@@ -11,6 +11,8 @@ import type {
   PoRead as PurchaseOrder,
   ReconciliationRead,
   ReconciliationResult,
+  CopilotAnswer,
+  CopilotQuery,
   operations,
 } from '../../../core/api/schema';
 
@@ -99,6 +101,16 @@ export class InvoiceApi {
     return this.http.get<ReconciliationRead>(
       `/api/v1/invoices/${encodeURIComponent(id)}/reconciliations/latest`,
     );
+  }
+
+  reconciliationRevision(id: string, revision: number): Observable<ReconciliationRead> {
+    return this.http.get<ReconciliationRead>(
+      `/api/v1/invoices/${encodeURIComponent(id)}/reconciliations/${revision}`,
+    );
+  }
+
+  queryCopilot(query: CopilotQuery): Observable<CopilotAnswer> {
+    return this.http.post<CopilotAnswer>('/api/v1/copilot/queries', query);
   }
 
   comparison(id: string): Observable<InvoiceComparisonDto> {

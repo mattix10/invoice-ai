@@ -44,6 +44,8 @@ export class InvoiceComparison {
     ]),
   );
 
+  protected readonly itemPositions = computed(() => this.data().items.map((item) => item.position));
+
   protected readonly totalRows = computed(() => {
     const data = this.data();
 

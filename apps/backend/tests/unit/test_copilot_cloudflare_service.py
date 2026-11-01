@@ -63,10 +63,13 @@ class Provider:
         self.calls = calls or [{"name": "search_invoices", "arguments": {}}]
         self.count = 0
         self.messages = None
+        self.initial_messages = None
 
     def complete(self, messages, tools=None, **kwargs):
         assert not self.session.active
         self.count += 1
+        if self.count == 1:
+            self.initial_messages = list(messages)
         self.messages = messages
         return {"tool_calls": self.calls} if self.count == 1 else self.response
 
@@ -196,9 +199,33 @@ def test_explicit_historical_revision_is_labeled_and_rechecked():
         ],
     )
     result = CopilotService(tools, repository, "cloudflare", provider).investigate(invoice.id, 1)
+    assert (
+        "Call get_reconciliation_evidence for the selected invoice with revision 1."
+        in (provider.initial_messages[1]["content"])
+    )
     assert "historical reconciliation revision 1" in result.answer
     assert result.findings[0].description == "Historical reconciliation difference"
     assert result.findings[0].gross == "2.46"
+
+
+def test_investigation_rejects_a_different_revision_from_provider():
+    service, provider = make_service(
+        calls=[
+            {
+                "name": "get_reconciliation_evidence",
+                "arguments": {"invoice_id": "INV-2026-1042", "revision": 2},
+            }
+        ]
+    )
+
+    with pytest.raises(CopilotUnavailable, match="invalid_ai_response"):
+        service.investigate("INV-2026-1042", 1)
+
+    assert (
+        "Call get_reconciliation_evidence for the selected invoice with revision 1."
+        in (provider.initial_messages[1]["content"])
+    )
+    assert provider.count == 1
 
 
 def test_search_answer_does_not_present_status_as_current():

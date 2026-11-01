@@ -1,0 +1,139 @@
+<section class="chat" aria-labelledby="copilot-title">
+  <header class="chat-header">
+    <span class="chat-icon" aria-hidden="true">✦</span>
+    <div>
+      <h2 id="copilot-title">Invoice Copilot</h2>
+      <p>Evidence for your investigation</p>
+    </div>
+  </header>
+  <div class="conversation" aria-live="polite">
+    <div class="assistant-message">
+      <span class="avatar" aria-hidden="true">✦</span>
+      <div class="bubble assistant">
+        <strong>How can I help?</strong>
+        <p>
+          Ask about this invoice and its reconciliation. Please review the evidence before taking
+          action.
+        </p>
+      </div>
+    </div>
+    @if (lastQuestion()) {
+      <div class="bubble user">{{ lastQuestion() }}</div>
+    }
+    @if (state() === 'loading') {
+      <div class="assistant-message">
+        <span class="avatar" aria-hidden="true">✦</span>
+        <p class="bubble assistant" role="status">Investigating…</p>
+      </div>
+    }
+    @if (state() === 'error') {
+      <div class="assistant-message">
+        <span class="avatar" aria-hidden="true">✦</span>
+        <div class="bubble assistant">
+          <p role="alert">{{ error() }}</p>
+          <button class="retry" type="button" (click)="retry.emit()">Retry</button>
+        </div>
+      </div>
+    }
+    @if (answer(); as response) {
+      <div class="assistant-message">
+        <span class="avatar" aria-hidden="true">✦</span>
+        <div class="bubble assistant">
+          <span class="mode">{{
+            response.generationMode === 'demo'
+              ? 'Demo'
+              : response.generationMode === 'live'
+                ? 'Live'
+                : 'Unavailable'
+          }}</span>
+          <p>{{ response.answer || 'No answer was returned.' }}</p>
+          @if (response.unavailableReason) {
+            <p>{{ response.unavailableReason }}</p>
+          }
+          @if (response.incompleteContext) {
+            <p>Evidence coverage is incomplete.</p>
+          }
+          <h3>Sources</h3>
+          @if (sources().length === 0) {
+            <p>No sources were supplied.</p>
+          }
+          <ul>
+            @for (source of sources(); track $index) {
+              <li>
+                @if (source.commands; as commands) {
+                  <a
+                    [routerLink]="commands"
+                    [queryParams]="source.queryParams"
+                    [fragment]="source.fragment"
+                    >{{ source.reference.label }}</a
+                  >
+                } @else {
+                  <span>{{ source.reference.label }} (link unavailable)</span>
+                }
+                @if (source.historical) {
+                  <span> · Historical</span>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+      @for (suggestion of response.suggestedQuestions; track $index) {
+        <button
+          class="suggestion"
+          type="button"
+          [disabled]="historical() || evidenceLoading() || state() === 'loading'"
+          (click)="suggest(suggestion)"
+        >
+          {{ suggestion }}
+        </button>
+      }
+    }
+    @if (historical()) {
+      <p class="notice">
+        Questions use current evidence and are unavailable while viewing a selected or historical
+        revision. Return to the latest current reconciliation to ask a question.
+      </p>
+    }
+    <div class="suggestions" aria-label="Suggested questions">
+      <button
+        class="suggestion"
+        type="button"
+        [disabled]="historical() || evidenceLoading() || state() === 'loading'"
+        (click)="suggest('Explain this discrepancy')"
+      >
+        Explain this discrepancy
+      </button>
+      <button class="suggestion" type="button" disabled title="Unavailable for a selected invoice">
+        Which invoices need review?
+      </button>
+      <button
+        class="suggestion"
+        type="button"
+        [disabled]="historical() || evidenceLoading() || state() === 'loading'"
+        (click)="suggest('What evidence supports this difference?')"
+      >
+        What evidence supports this difference?
+      </button>
+    </div>
+  </div>
+  <form class="composer" (submit)="send(); $event.preventDefault()">
+    <label class="sr-only" for="question">Question</label>
+    <textarea
+      id="question"
+      maxlength="500"
+      rows="2"
+      placeholder="Ask about this invoice…"
+      [disabled]="historical() || evidenceLoading()"
+      [value]="question()"
+      (input)="question.set($any($event.target).value)"
+    ></textarea>
+    <button
+      class="send"
+      type="submit"
+      [disabled]="historical() || evidenceLoading() || state() === 'loading' || !question().trim()"
+    >
+      Send <span aria-hidden="true">➜</span>
+    </button>
+  </form>
+</section>

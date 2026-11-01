@@ -10,4 +10,5 @@ export class InvoiceComparisonTable {
   readonly label = input.required<string>();
   readonly headers = input.required<readonly string[]>();
   readonly rows = input.required<readonly (readonly string[])[]>();
+  readonly positions = input<readonly number[]>([]);
 }
