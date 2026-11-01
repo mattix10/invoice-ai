@@ -12,8 +12,8 @@
 .open-document {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-2);
@@ -24,8 +24,8 @@
   color: var(--primary);
 }
 .open-document svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 h2 {
   margin: 0;
