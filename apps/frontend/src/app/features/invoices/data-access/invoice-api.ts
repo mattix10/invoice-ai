@@ -13,6 +13,8 @@ import type {
   ReconciliationResult,
   CopilotAnswer,
   CopilotQuery,
+  SupplierInquiryRequest,
+  SupplierInquiryDraft,
   operations,
 } from '../../../core/api/schema';
 
@@ -111,6 +113,16 @@ export class InvoiceApi {
 
   queryCopilot(query: CopilotQuery): Observable<CopilotAnswer> {
     return this.http.post<CopilotAnswer>('/api/v1/copilot/queries', query);
+  }
+
+  draftSupplierInquiry(
+    id: string,
+    request: SupplierInquiryRequest,
+  ): Observable<SupplierInquiryDraft> {
+    return this.http.post<SupplierInquiryDraft>(
+      `/api/v1/invoices/${encodeURIComponent(id)}/supplier-inquiry-drafts`,
+      request,
+    );
   }
 
   comparison(id: string): Observable<InvoiceComparisonDto> {

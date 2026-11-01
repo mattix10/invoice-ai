@@ -1,0 +1,38 @@
+<section class="inquiry" aria-labelledby="inquiry-title">
+  <h2 id="inquiry-title">Supplier clarification</h2>
+  <p>Draft only — not sent. Review and edit before copying.</p>
+  <button type="button" (click)="generate()" [disabled]="!record()?.isCurrent || draft.isLoading()">
+    Create draft
+  </button>
+  @if (draft.isLoading()) {
+    <p role="status">Preparing draft…</p>
+  }
+  @if (draft.error()) {
+    <p role="alert">The draft is unavailable. Check the current reconciliation and try again.</p>
+  }
+  @if (draftValue(); as result) {
+    <label for="inquiry-subject">Subject</label>
+    <input
+      id="inquiry-subject"
+      maxlength="200"
+      [value]="subject()"
+      (input)="subject.set($any($event.target).value)"
+    />
+    <label for="inquiry-body">Message</label>
+    <textarea
+      id="inquiry-body"
+      rows="10"
+      maxlength="4000"
+      [value]="body()"
+      (input)="body.set($any($event.target).value)"
+    ></textarea>
+    <button type="button" (click)="copy()">Copy</button>
+    @if (copyState() === 'copied') {
+      <span role="status">Copied</span>
+    }
+    @if (copyState() === 'error') {
+      <p role="alert">Copy failed. Please select and copy the subject and message manually.</p>
+    }
+    <p>{{ result.generationMode }} · Human review required · Not sent</p>
+  }
+</section>
