@@ -36,7 +36,7 @@ export class InvoiceComparison {
     this.data().items.map((item) => [
       item.name,
       String(item.quantity),
-      String(item.poQuantity),
+      item.poQuantity === null ? 'Unavailable' : String(item.poQuantity),
       this.money(item.invoiceUnitNet),
       this.money(item.poUnitNet),
       this.money(item.invoiceNet),

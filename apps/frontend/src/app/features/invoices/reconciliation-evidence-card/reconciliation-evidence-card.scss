@@ -142,3 +142,10 @@ summary {
     grid-template-columns: 1fr;
   }
 }
+:host {
+  display: block;
+  height: 100%;
+}
+.evidence-card {
+  height: 100%;
+}

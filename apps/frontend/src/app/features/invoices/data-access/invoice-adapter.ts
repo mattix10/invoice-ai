@@ -71,7 +71,7 @@ export function detailView(
       position: item.position,
       name: item.name,
       quantity: item.quantity,
-      poQuantity: item.poQuantity,
+      poQuantity: item.poQuantity ?? null,
       invoiceUnitNet: amount(item.invoiceUnitNet),
       poUnitNet: amount(item.poUnitNet),
       invoiceNet: amount(item.invoiceNet),
@@ -105,7 +105,7 @@ export interface InvoiceWorkspaceView {
     position: number;
     name: string;
     quantity: number;
-    poQuantity: number;
+    poQuantity: number | null;
     invoiceUnitNet: number;
     poUnitNet: number;
     invoiceNet: number;

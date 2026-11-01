@@ -7,10 +7,6 @@ h2 {
   margin: 0;
   font-size: 16px;
 }
-.panel-heading p {
-  color: var(--muted);
-  margin: 6px 0 0;
-}
 .sample {
   align-self: flex-start;
   border-radius: 20px;
@@ -23,8 +19,8 @@ h2 {
 .document {
   display: block;
   width: 100%;
-  height: clamp(330px, calc(100vh - 390px), 700px);
-  margin: 20px 0 12px;
+  height: clamp(330px, calc(100vh - 312px), 1000px);
+  margin: 12px 0 8px;
   border: 1px solid var(--border);
   background: var(--surface);
 }

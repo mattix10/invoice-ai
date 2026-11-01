@@ -1,6 +1,6 @@
 :host {
   display: block;
-  margin-top: -16px;
+  margin-top: -20px;
 }
 .workspace-error {
   margin-top: 16px;
@@ -8,28 +8,30 @@
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 .page-header > div {
   min-width: 0;
 }
 .eyebrow {
   display: block;
-  font-size: 14px;
+  font-size: 11px;
   color: var(--muted);
   font-weight: 650;
-  margin: 0 0 8px;
+  margin: 0 0 2px;
 }
 h1 {
+  font-size: 22px;
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 .status {
   display: inline-block;
   border-radius: 20px;
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 3px 8px;
+  font-size: 11px;
   font-weight: 700;
   vertical-align: middle;
   background: var(--warning-bg);
@@ -37,7 +39,8 @@ h1 {
 }
 .subtitle {
   color: var(--muted);
-  margin: 6px 0 0;
+  font-size: 12px;
+  margin: 3px 0 0;
   overflow-wrap: anywhere;
 }
 .workspace {
@@ -94,7 +97,7 @@ h1 {
 }
 @media (min-width: 1000px) and (min-height: 650px) {
   .section-content {
-    max-height: calc(100vh - 292px);
+    max-height: calc(100vh - 255px);
     overflow: auto;
   }
 }
@@ -105,6 +108,7 @@ h1 {
 }
 @media (max-width: 580px) {
   .page-header {
+    align-items: start;
     flex-direction: column;
   }
 }
