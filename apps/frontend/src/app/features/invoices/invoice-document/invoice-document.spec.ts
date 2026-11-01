@@ -17,6 +17,8 @@ describe('InvoiceDocument', () => {
     expect(view.textContent).not.toContain('Illustrative sample invoice');
     expect(frame?.getAttribute('title')).toContain('INV-2026-1042');
     expect(link?.getAttribute('href')).toBe('invoices/INV-2026-1042.pdf');
-    expect(link?.textContent).toContain('Open sample invoice PDF');
+    expect(link?.getAttribute('aria-label')).toBe('Open sample invoice PDF in a new tab');
+    expect(link?.getAttribute('target')).toBe('_blank');
+    expect(view.textContent).not.toContain('Open sample invoice PDF');
   });
 });

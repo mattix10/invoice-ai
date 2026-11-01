@@ -1,7 +1,31 @@
 .panel-heading {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
+}
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.open-document {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.open-document:hover {
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+.open-document svg {
+  width: 18px;
+  height: 18px;
 }
 h2 {
   margin: 0;
@@ -19,13 +43,10 @@ h2 {
 .document {
   display: block;
   width: 100%;
-  height: clamp(330px, calc(100vh - 312px), 1000px);
-  margin: 12px 0 8px;
+  height: clamp(330px, calc(100vh - 291px), 1000px);
+  margin: 12px 0 0;
   border: 1px solid var(--border);
   background: var(--surface);
-}
-a {
-  color: var(--primary);
 }
 @media (max-width: 580px) {
   .document {
