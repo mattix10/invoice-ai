@@ -27,8 +27,11 @@
       (input)="body.set($any($event.target).value)"
     ></textarea>
     <button type="button" (click)="copy()">Copy</button>
-    @if (copied()) {
+    @if (copyState() === 'copied') {
       <span role="status">Copied</span>
+    }
+    @if (copyState() === 'error') {
+      <p role="alert">Copy failed. Please select and copy the subject and message manually.</p>
     }
     <p>{{ result.generationMode }} · Human review required · Not sent</p>
   }

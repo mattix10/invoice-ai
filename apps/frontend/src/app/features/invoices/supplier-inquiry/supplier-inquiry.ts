@@ -54,12 +54,12 @@ export class SupplierInquiry {
   );
   protected readonly subject = linkedSignal(() => this.draftValue()?.subject ?? '');
   protected readonly body = linkedSignal(() => this.draftValue()?.body ?? '');
-  protected readonly copied = signal(false);
+  protected readonly copyState = signal<'idle' | 'copied' | 'error'>('idle');
 
   protected generate(): void {
     const record = this.record();
     if (!record?.isCurrent || this.draft.isLoading()) return;
-    this.copied.set(false);
+    this.copyState.set('idle');
     this.request.set({
       id: this.invoiceId(),
       revision: record.revision,
@@ -68,11 +68,12 @@ export class SupplierInquiry {
   }
 
   protected async copy(): Promise<void> {
+    this.copyState.set('idle');
     try {
       await navigator.clipboard.writeText(`${this.subject()}\n\n${this.body()}`);
-      this.copied.set(true);
+      this.copyState.set('copied');
     } catch {
-      this.copied.set(false);
+      this.copyState.set('error');
     }
   }
 }

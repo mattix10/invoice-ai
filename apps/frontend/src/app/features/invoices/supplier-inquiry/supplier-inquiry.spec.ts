@@ -82,6 +82,43 @@ describe('SupplierInquiry', () => {
     expect(button.disabled).toBe(false);
   });
 
+  it.each([
+    {
+      name: 'clipboard access is denied',
+      clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
+    },
+    { name: 'clipboard is unavailable', clipboard: undefined },
+  ])('offers manual copying when $name', async ({ clipboard }) => {
+    // Arrange
+    vi.stubGlobal('navigator', { clipboard });
+    element.querySelector('button')!.click();
+    TestBed.tick();
+    http.expectOne('/api/v1/invoices/INV-2026-1042/supplier-inquiry-drafts').flush({
+      subject: 'Question',
+      body: 'Please clarify',
+      generationMode: 'demo',
+      draftOnly: true,
+      requiresHumanReview: true,
+      evidenceRefs: [],
+      provider: 'demo',
+      promptVersion: 'v1',
+    });
+    await fixture.whenStable();
+
+    // Act
+    [...element.querySelectorAll('button')]
+      .find((button) => button.textContent?.includes('Copy'))!
+      .click();
+    await fixture.whenStable();
+
+    // Assert
+    expect(element.querySelector('[role="alert"]')?.textContent).toContain(
+      'copy the subject and message manually',
+    );
+    expect(element.textContent).not.toContain('Copied');
+    expect(element.querySelector('textarea')?.value).toBe('Please clarify');
+  });
+
   it('cancels the old request when the invoice changes', async () => {
     // Arrange
     element.querySelector('button')!.click();
