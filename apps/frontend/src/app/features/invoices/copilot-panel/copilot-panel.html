@@ -84,12 +84,13 @@
     <label class="sr-only" for="question">Question</label>
     <textarea
       id="question"
+      #questionInput
       maxlength="500"
       rows="2"
       placeholder="Ask about this invoice…"
       [disabled]="historical() || evidenceLoading()"
       [value]="question()"
-      (input)="question.set($any($event.target).value)"
+      (input)="question.set(questionInput.value)"
     ></textarea>
     <button
       class="send"

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { formatWorkspaceAmount, type InvoiceWorkspaceView } from '../data-access/invoice-adapter';
+import { formatInvoiceAmount, type InvoiceWorkspaceView } from '../data-access/invoice-adapter';
 
 @Component({
   selector: 'app-invoice-difference',
@@ -10,5 +10,5 @@ import { formatWorkspaceAmount, type InvoiceWorkspaceView } from '../data-access
 })
 export class InvoiceDifference {
   readonly data = input.required<InvoiceWorkspaceView>();
-  protected readonly amount = formatWorkspaceAmount;
+  protected readonly amount = formatInvoiceAmount;
 }

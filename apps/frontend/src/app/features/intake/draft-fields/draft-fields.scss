@@ -1,0 +1,83 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) {
+  display: none;
+}
+h2 {
+  margin: 0;
+  font-size: 18px;
+}
+h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 8px;
+  font-size: 14px;
+}
+.intro {
+  margin: 2px 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fields {
+  display: grid;
+  gap: 8px;
+}
+.field-row {
+  padding: 10px 12px;
+  border: 1px solid #edf0f5;
+  border-radius: 6px;
+  background: #f9fafc;
+}
+.field-row > label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+.field-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field-control input {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 10px;
+  border-color: #dbe2ec;
+  border-radius: 5px;
+  background: var(--surface);
+}
+.review-action {
+  flex: none;
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  font-size: 12px;
+}
+.review-action:hover:not(:disabled) {
+  background: #e0e7ff;
+}
+.suggestions-details {
+  margin: 12px 0;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.suggestions-details summary {
+  width: fit-content;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+.suggestions-details app-suggestions-panel {
+  display: block;
+  margin-top: 10px;
+}

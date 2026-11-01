@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import type { SuggestionsResponse } from '../data-access/intake-api';
 import { SuggestionsPanel } from './suggestions-panel';
 
 describe('SuggestionsPanel', () => {
@@ -42,7 +43,7 @@ describe('SuggestionsPanel', () => {
             start: 0,
             end: 7,
             excerpt: 'Example',
-            extractionMethod: 'text',
+            extractionMethod: 'pdf_text',
             extractionVersion: 1,
           },
           warnings: [],
@@ -61,7 +62,7 @@ describe('SuggestionsPanel', () => {
           warnings: [],
         },
       ],
-    });
+    } satisfies SuggestionsResponse);
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Page 1');
     expect(fixture.nativeElement.textContent).toContain('Current: Manual');

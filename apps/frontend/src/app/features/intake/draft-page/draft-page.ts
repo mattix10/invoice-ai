@@ -7,6 +7,7 @@ import {
   inject,
   Injector,
   linkedSignal,
+  viewChild,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -51,6 +52,12 @@ export class DraftPage {
   );
   protected readonly extractionBusy = linkedSignal(() => this.resetForVisit(false));
   protected readonly extractionError = linkedSignal(() => this.resetForVisit(''));
+
+  private readonly review = viewChild(DraftReview);
+
+  hasPendingChanges(): boolean {
+    return this.review()?.hasPendingChanges() ?? false;
+  }
 
   protected changeStep(step: number): void {
     this.step.set(step);

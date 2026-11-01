@@ -8,12 +8,18 @@ import {
   inject,
   Injector,
   signal,
+  viewChild,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, combineLatest, forkJoin, map, of, throwError } from 'rxjs';
 import { InvoiceApi } from '../data-access/invoice-api';
-import { detailView, formatInvoiceAmount, statusLabels } from '../data-access/invoice-adapter';
+import {
+  detailView,
+  invoiceFieldsView,
+  formatInvoiceAmount,
+  statusLabels,
+} from '../data-access/invoice-adapter';
 import { InvoiceDocument } from '../invoice-document/invoice-document';
 import { InvoiceFields } from '../invoice-fields/invoice-fields';
 import { InvoiceComparison } from '../invoice-comparison/invoice-comparison';
@@ -90,6 +96,16 @@ export class InvoiceWorkspacePage {
   protected readonly view = computed(() => this.workspaceData()?.view ?? null);
   protected readonly gross = computed(() => this.workspaceData()?.gross ?? '');
   protected readonly statusLabels = statusLabels;
+  protected readonly fields = computed(() => {
+    const invoice = this.invoice();
+
+    return invoice ? invoiceFieldsView(invoice) : null;
+  });
+  private readonly purchaseOrder = viewChild(PurchaseOrderLinkComponent);
+
+  hasPendingChanges(): boolean {
+    return this.purchaseOrder()?.hasPendingChanges() ?? false;
+  }
 
   constructor() {
     if (!this.route.fragment || !this.route.queryParamMap) return;

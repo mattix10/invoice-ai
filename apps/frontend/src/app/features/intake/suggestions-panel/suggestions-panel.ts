@@ -139,7 +139,10 @@ export class SuggestionsPanel {
     const proposals = this.suggestions()?.proposals ?? [];
     const chosen = this.selected()
       .map((index) => proposals[index])
-      .filter((proposal) => proposal && this.available(proposal));
+      .filter(
+        (proposal): proposal is SuggestionProposal =>
+          proposal !== undefined && this.available(proposal),
+      );
     this.apply.emit(chosen);
     this.recordDecision(chosen, 'applied');
     this.selected.set([]);
@@ -149,7 +152,10 @@ export class SuggestionsPanel {
     const proposals = this.suggestions()?.proposals ?? [];
     const chosen = this.selected()
       .map((index) => proposals[index])
-      .filter((proposal) => proposal && this.available(proposal));
+      .filter(
+        (proposal): proposal is SuggestionProposal =>
+          proposal !== undefined && this.available(proposal),
+      );
     this.recordDecision(chosen, 'rejected');
     this.selected.set([]);
   }

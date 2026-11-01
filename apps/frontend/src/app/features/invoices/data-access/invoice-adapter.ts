@@ -13,7 +13,9 @@ export function minorUnits(value: string): number {
 export function formatInvoiceAmount(value: string, currency: string): string {
   const match = /^(-?)(\d+)\.(\d{2})$/.exec(value);
   if (!match) throw new Error('Invalid monetary amount');
-  const [, sign, integer, fraction] = match;
+  const sign = match[1] ?? '';
+  const integer = match[2] ?? '0';
+  const fraction = match[3] ?? '00';
   const groupedInteger = BigInt(integer)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
@@ -21,12 +23,6 @@ export function formatInvoiceAmount(value: string, currency: string): string {
   const symbol = symbols[currency] ?? currency;
 
   return `${sign}${groupedInteger},${fraction}\u00a0${symbol}`;
-}
-
-export function formatWorkspaceAmount(value: number, currency: string): string {
-  if (!Number.isFinite(value)) throw new Error('Invalid monetary amount');
-
-  return formatInvoiceAmount(value.toFixed(2), currency);
 }
 
 export function formatMinorAmount(value: number, currency: string): string {
@@ -55,7 +51,7 @@ export function summaryView(invoice: InvoiceSummaryDto): {
   currency: string;
   status: (typeof statusLabels)[keyof typeof statusLabels];
 } {
-  const [year, month, day] = invoice.due.split('-').map(Number);
+  const due = new Date(`${invoice.due}T00:00:00Z`);
 
   return {
     id: invoice.id,
@@ -65,7 +61,7 @@ export function summaryView(invoice: InvoiceSummaryDto): {
       month: 'short',
       year: 'numeric',
       timeZone: 'UTC',
-    }).format(new Date(Date.UTC(year, month - 1, day))),
+    }).format(due),
     amount: formatInvoiceAmount(invoice.grossAmount, invoice.currency),
     currency: invoice.currency,
     status: statusLabels[invoice.status],
@@ -76,7 +72,11 @@ export function detailView(
   invoice: InvoiceDetailDto,
   comparison: InvoiceComparisonDto,
 ): InvoiceWorkspaceView {
-  const amount = (value: string): number => minorUnits(value) / 100;
+  const amount = (value: string): string => {
+    formatInvoiceAmount(value, invoice.currency);
+
+    return value;
+  };
 
   return {
     invoice: {
@@ -128,19 +128,47 @@ export interface InvoiceWorkspaceView {
     name: string;
     quantity: number;
     poQuantity: number | null;
-    invoiceUnitNet: number;
-    poUnitNet: number;
-    invoiceNet: number;
-    poNet: number;
+    invoiceUnitNet: string;
+    poUnitNet: string;
+    invoiceNet: string;
+    poNet: string;
   }[];
-  invoiceNet: number;
-  invoiceVat: number;
-  invoiceGross: number;
-  poNet: number;
-  poVat: number;
-  poGross: number;
-  differenceNet: number;
-  differenceVat: number;
-  differenceGross: number;
+  invoiceNet: string;
+  invoiceVat: string;
+  invoiceGross: string;
+  poNet: string;
+  poVat: string;
+  poGross: string;
+  differenceNet: string;
+  differenceVat: string;
+  differenceGross: string;
   differencePercent: string | null;
+}
+
+export interface InvoiceFieldsView {
+  invoice: {
+    id: string;
+    vendor: string;
+    purchaseOrder: string | null;
+    issued: string;
+    due: string;
+    currency: string;
+  };
+  invoiceGross: string;
+  items: readonly { position: number; name: string; quantity: number }[];
+}
+
+export function invoiceFieldsView(invoice: InvoiceDetailDto): InvoiceFieldsView {
+  return {
+    invoice: {
+      id: invoice.id,
+      vendor: invoice.vendor,
+      purchaseOrder: invoice.purchaseOrder,
+      issued: invoice.issued ?? 'Unavailable',
+      due: invoice.due,
+      currency: invoice.currency,
+    },
+    invoiceGross: invoice.grossAmount,
+    items: invoice.items,
+  };
 }

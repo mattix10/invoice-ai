@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+:host([hidden]) {
+  display: none;
+}
+h2 {
+  margin: 0;
+  font-size: 18px;
+}
+h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 8px;
+  font-size: 14px;
+}
+.intro {
+  margin: 2px 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.ready-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 16px;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--success-bg);
+  color: var(--success);
+}
+.ready-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--success);
+  color: white;
+  font-weight: 700;
+}
+.ready-notice strong,
+.ready-notice small {
+  display: block;
+}
+.ready-notice small {
+  font-size: 11px;
+}
+.edit-link {
+  min-height: 28px;
+  padding: 2px 6px;
+  border: 0;
+  color: var(--primary);
+  font-size: 12px;
+}
+.summary {
+  margin: 0;
+}
+.summary div {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 12px;
+}
+.summary dt {
+  color: var(--text-2);
+}
+.summary dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.summary-table {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 9px 8px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.notice {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--primary-bg);
+  color: #3730a3;
+  font-size: 12px;
+}
+
+table {
+  width: 100%;
+  min-width: 400px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+th,
+td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: var(--canvas);
+}
+th:last-child,
+td:last-child {
+  text-align: right;
+}
+
+.edit-link:hover:not(:disabled) {
+  background: var(--primary-bg);
+}

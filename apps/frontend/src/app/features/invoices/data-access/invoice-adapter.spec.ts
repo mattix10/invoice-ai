@@ -104,8 +104,8 @@ describe('invoice adapter', () => {
 
     // Assert
     expect(result.invoice.vatRate).toBe(23);
-    expect(result.invoiceGross).toBe(12915);
-    expect(result.differenceGross).toBe(615);
+    expect(result.invoiceGross).toBe('12915.00');
+    expect(result.differenceGross).toBe('615.00');
     expect(result.differencePercent).toBe('5.0');
   });
 

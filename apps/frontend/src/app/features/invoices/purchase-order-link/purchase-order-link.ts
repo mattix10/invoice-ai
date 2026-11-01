@@ -6,6 +6,7 @@ import {
   inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InvoiceDetailDto } from '../data-access/invoice-api';
@@ -26,6 +27,12 @@ export class PurchaseOrderLinkComponent implements OnChanges {
   readonly comparisonAvailable = input(false);
   readonly linked = output<void>();
   protected readonly workflow = inject(PurchaseOrderWorkflow);
+
+  private readonly orderEditor = viewChild(PurchaseOrderEditorComponent);
+
+  hasPendingChanges(): boolean {
+    return this.workflow.busy() || (this.orderEditor()?.hasPendingChanges() ?? false);
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['invoice']) this.workflow.openInvoice(this.invoice());

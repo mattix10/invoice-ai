@@ -10,7 +10,7 @@ export function lineNet(item: DraftItem): string {
   ) {
     return '—';
   }
-  const [whole, fraction = ''] = item.unitNet.split('.');
+  const [whole = '0', fraction = ''] = item.unitNet.split('.');
   const minorUnits =
     (BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0'))) * BigInt(item.quantity);
 
@@ -20,7 +20,7 @@ export function lineNet(item: DraftItem): string {
 export function formatVatRate(value: string | null): string {
   if (!value || !/^(?:0|1)(?:\.\d{1,4})?$/.test(value)) return '—';
 
-  const [whole, fraction = ''] = value.split('.');
+  const [whole = '0', fraction = ''] = value.split('.');
   const basisPoints = BigInt(whole) * 10000n + BigInt(fraction.padEnd(4, '0'));
   if (basisPoints > 10000n) return '—';
 
@@ -29,4 +29,14 @@ export function formatVatRate(value: string | null): string {
     .replace(/0+$/, '');
 
   return `${basisPoints / 100n}${decimals ? `.${decimals}` : ''}%`;
+}
+
+export function canonicalAmount(value: string | null): string | null {
+  if (value === null || !value.trim()) return null;
+  const trimmed = value.trim();
+  if (!/^\d{1,16}(?:\.\d{1,2})?$/.test(trimmed))
+    throw new Error('Enter amounts with at most two decimal places.');
+  const [whole = '0', fraction = ''] = trimmed.split('.');
+
+  return `${whole}.${fraction.padEnd(2, '0')}`;
 }

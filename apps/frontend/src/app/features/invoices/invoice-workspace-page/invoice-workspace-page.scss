@@ -132,95 +132,6 @@ h1 {
   display: grid;
   gap: 16px;
 }
-.fallback-fields {
-  padding: 24px;
-}
-.card-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.section-eyebrow {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-}
-.card-heading h2,
-.comparison-empty h2 {
-  margin: 4px 0 0;
-  font-size: 18px;
-}
-.field-count {
-  flex-shrink: 0;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: var(--canvas);
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 650;
-}
-.card-description,
-.comparison-empty p,
-.preview-unavailable p,
-.muted {
-  color: var(--text-2);
-}
-.card-description {
-  margin: 8px 0 20px;
-  font-size: 13px;
-}
-.field-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 22px;
-  margin: 0;
-  border-top: 1px solid var(--border);
-}
-.field-grid > div {
-  min-width: 0;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-.field-grid dt {
-  color: var(--muted);
-  font-size: 12px;
-}
-.field-grid dd {
-  margin: 4px 0 0;
-  font-weight: 650;
-  overflow-wrap: anywhere;
-}
-.field-grid .amount {
-  font-variant-numeric: tabular-nums;
-}
-.line-item-section {
-  margin-top: 22px;
-}
-.line-item-section h3 {
-  margin: 0 0 10px;
-  font-size: 14px;
-}
-.item-list {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-.item-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  border-top: 1px solid var(--border);
-  overflow-wrap: anywhere;
-}
-.item-quantity {
-  flex-shrink: 0;
-  color: var(--muted);
-  font-size: 12px;
-}
 .comparison-empty,
 .preview-unavailable {
   display: flex;
@@ -261,13 +172,9 @@ h1 {
     align-items: start;
     flex-direction: column;
   }
-  .fallback-fields,
   .comparison-empty,
   .preview-unavailable {
     padding: 18px;
-  }
-  .field-grid {
-    grid-template-columns: 1fr;
   }
 }
 

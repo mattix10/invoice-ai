@@ -1,0 +1,84 @@
+<section aria-labelledby="summary-heading">
+  <h2 id="summary-heading" tabindex="-1">Review summary</h2>
+  <p class="intro">Check the details against the document before confirming.</p>
+  @if (validation().complete) {
+    <div class="ready-notice">
+      <span class="ready-icon" aria-hidden="true">✓</span
+      ><span
+        ><strong>Saved draft passed validation</strong
+        ><small>Check current edits against the document before confirming.</small></span
+      >
+    </div>
+  }
+  <h3>
+    Invoice details
+    <button type="button" class="edit-link" (click)="stepChange.emit(2)">✎ Edit</button>
+  </h3>
+  <dl class="summary">
+    <div>
+      <dt>Vendor</dt>
+      <dd>{{ draft().vendor || 'Not provided' }}</dd>
+    </div>
+    <div>
+      <dt>Invoice number</dt>
+      <dd>{{ draft().supplierInvoiceNumber || 'Not provided' }}</dd>
+    </div>
+    <div>
+      <dt>Issue date</dt>
+      <dd>{{ draft().issued || 'Not provided' }}</dd>
+    </div>
+    <div>
+      <dt>Due date</dt>
+      <dd>{{ draft().due || 'Not provided' }}</dd>
+    </div>
+    <div>
+      <dt>Currency</dt>
+      <dd>{{ draft().currency || 'Not provided' }}</dd>
+    </div>
+    <div>
+      <dt>VAT rate</dt>
+      <dd>{{ draft().vatRate ? formatVatRate(draft().vatRate) : 'Not provided' }}</dd>
+    </div>
+  </dl>
+  <h3>
+    Line items ({{ draft().items.length }})
+    <button type="button" class="edit-link" (click)="stepChange.emit(3)">✎ Edit</button>
+  </h3>
+  <div class="summary-table">
+    <table aria-label="Invoice line items summary">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Description</th>
+          <th scope="col">Qty</th>
+          <th scope="col">Unit net</th>
+          <th scope="col">Net amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of draft().items; track $index) {
+          <tr>
+            <td>{{ item.position }}</td>
+            <td>{{ item.name || 'Unnamed item' }}</td>
+            <td>{{ item.quantity || '—' }}</td>
+            <td>{{ item.unitNet || '—' }}</td>
+            <td>{{ lineNet(item) }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">No line items added.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (draft().declaredTotals; as totals) {
+    <p class="summary-total">
+      Total ({{ draft().currency }}) <strong>{{ totals.gross || 'Not provided' }}</strong>
+    </p>
+  }
+  <p class="notice">
+    Human verification required. Check that details and line items match the invoice. Confirming
+    creates an invoice for review; it does not approve a payment.
+  </p>
+</section>

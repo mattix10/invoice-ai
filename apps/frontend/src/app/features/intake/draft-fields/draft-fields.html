@@ -1,0 +1,148 @@
+<section aria-labelledby="fields-heading">
+  <h2 id="fields-heading" tabindex="-1">Extracted invoice data</h2>
+  <p class="intro">Review and edit the details below before continuing.</p>
+  <div class="fields">
+    <div class="field-row">
+      <label for="vendor">Vendor</label>
+      <div class="field-control">
+        <input
+          id="vendor"
+          name="vendor"
+          [ngModel]="draft().vendor"
+          (ngModelChange)="changed.emit({ vendor: $event })"
+        />
+        @if (documentId()) {
+          <button
+            type="button"
+            class="review-action"
+            aria-label="Review vendor suggestion"
+            (click)="openSuggestions('vendor')"
+          >
+            Review
+          </button>
+        }
+      </div>
+    </div>
+    <div class="field-row">
+      <label for="supplier-number">Invoice number</label>
+      <div class="field-control">
+        <input
+          id="supplier-number"
+          name="supplier_invoice_number"
+          [ngModel]="draft().supplierInvoiceNumber"
+          (ngModelChange)="changed.emit({ supplierInvoiceNumber: $event })"
+        />
+        @if (documentId()) {
+          <button
+            type="button"
+            class="review-action"
+            aria-label="Review invoice number suggestion"
+            (click)="openSuggestions('supplierInvoiceNumber')"
+          >
+            Review
+          </button>
+        }
+      </div>
+    </div>
+    <div class="field-row">
+      <label for="issued">Issue date</label>
+      <div class="field-control">
+        <input
+          id="issued"
+          type="date"
+          name="issued"
+          [ngModel]="draft().issued"
+          (ngModelChange)="changed.emit({ issued: $event })"
+        />
+        @if (documentId()) {
+          <button
+            type="button"
+            class="review-action"
+            aria-label="Review issue date suggestion"
+            (click)="openSuggestions('issued')"
+          >
+            Review
+          </button>
+        }
+      </div>
+    </div>
+    <div class="field-row">
+      <label for="due">Due date</label>
+      <div class="field-control">
+        <input
+          id="due"
+          type="date"
+          name="due"
+          [ngModel]="draft().due"
+          (ngModelChange)="changed.emit({ due: $event })"
+        />
+        @if (documentId()) {
+          <button
+            type="button"
+            class="review-action"
+            aria-label="Review due date suggestion"
+            (click)="openSuggestions('due')"
+          >
+            Review
+          </button>
+        }
+      </div>
+    </div>
+    <div class="field-row">
+      <label for="currency">Currency</label>
+      <div class="field-control">
+        <input
+          id="currency"
+          name="currency"
+          maxlength="3"
+          [ngModel]="draft().currency"
+          (ngModelChange)="changed.emit({ currency: $event })"
+        />
+        @if (documentId()) {
+          <button
+            type="button"
+            class="review-action"
+            aria-label="Review currency suggestion"
+            (click)="openSuggestions('currency')"
+          >
+            Review
+          </button>
+        }
+      </div>
+    </div>
+    <div class="field-row">
+      <label for="vat-rate">VAT rate (decimal, e.g. 0.23)</label>
+      <div class="field-control">
+        <input
+          id="vat-rate"
+          name="vat_rate"
+          inputmode="decimal"
+          [ngModel]="draft().vatRate"
+          (ngModelChange)="changed.emit({ vatRate: $event })"
+        />
+        @if (documentId()) {
+          <button
+            type="button"
+            class="review-action"
+            aria-label="Review VAT rate suggestion"
+            (click)="openSuggestions('vatRate')"
+          >
+            Review
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+  @if (documentId()) {
+    <details class="suggestions-details" #suggestionsDetails>
+      <summary>Review extraction suggestions</summary>
+      <app-suggestions-panel
+        [documentId]="documentId()"
+        [draft]="draft()"
+        [disabled]="busy()"
+        (apply)="apply.emit($event)"
+        (decide)="decide.emit($event)"
+      />
+    </details>
+  }
+</section>

@@ -62,7 +62,9 @@ describe('InvoiceComparison', () => {
     const fixture = TestBed.createComponent(InvoiceComparison);
     fixture.componentRef.setInput('data', {
       ...INVOICE_WORKSPACE_DATA,
-      items: [{ ...INVOICE_WORKSPACE_DATA.items[0], quantity: 10, poQuantity: 5, poNet: 4100 }],
+      items: [
+        { ...INVOICE_WORKSPACE_DATA.items[0], quantity: 10, poQuantity: 5, poNet: '4100.00' },
+      ],
     });
 
     // Act
