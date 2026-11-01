@@ -309,4 +309,3 @@ def test_invoice_layout_does_not_propose_partial_multi_item_table():
 
     assert not {item.field for item in proposals} & {"items", "vatRate"}
     assert next(item.value.gross for item in proposals if item.field == "declaredTotals") == "28.70"
-

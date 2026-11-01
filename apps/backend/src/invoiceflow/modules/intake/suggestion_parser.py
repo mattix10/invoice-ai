@@ -185,4 +185,3 @@ def parse_suggestions(pages, extraction_version: int) -> list[FieldProposal]:
                 except ValidationError:
                     pass
     return proposals
-
