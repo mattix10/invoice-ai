@@ -3,11 +3,12 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { IntakeApi } from '../data-access/intake-api';
+import { IntakeStepper } from '../intake-stepper/intake-stepper';
 import { UploadForm } from '../upload-form/upload-form';
 
 @Component({
   selector: 'app-upload-page',
-  imports: [UploadForm],
+  imports: [UploadForm, IntakeStepper],
   templateUrl: './upload-page.html',
   styleUrl: './upload-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,7 +32,7 @@ export class UploadPage {
       .subscribe({
         next: (document) => {
           this.busy.set(false);
-          void this.router.navigate(['/intake', document.documentId]);
+          void this.router.navigate(['/overview/intake', document.documentId]);
         },
         error: (error: unknown) => {
           this.busy.set(false);

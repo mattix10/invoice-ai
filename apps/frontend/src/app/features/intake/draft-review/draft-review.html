@@ -26,6 +26,8 @@
 }
 <app-draft-editor
   [documentId]="documentId()"
+  [step]="step()"
+  (stepChange)="stepChange.emit($event)"
   [draft]="document().draft"
   [validation]="document().validation"
   [busy]="busy() || conflict() || pendingConfirmation() !== null"

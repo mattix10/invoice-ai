@@ -125,14 +125,21 @@ describe('InvoiceWorkspacePage', () => {
     expect(preview?.getAttribute('src')).toBe('/api/v1/intake/documents/by-invoice/large/preview');
     preview?.dispatchEvent(new Event('error'));
     fixture.detectChanges();
-    expect(element.textContent).toContain('Document preview unavailable for this invoice.');
+    expect(element.textContent).toContain('Preview unavailable');
     expect(purchaseOrderButton.getAttribute('aria-pressed')).toBe('true');
     comparisonButton.click();
     fixture.detectChanges();
     expect(comparisonButton.getAttribute('aria-pressed')).toBe('true');
     expect(element.querySelector('[hidden] app-purchase-order-link')).not.toBeNull();
+    const emptyComparison = element.querySelector<HTMLElement>('.comparison-empty');
+    expect(emptyComparison?.textContent).toContain('Link a purchase order');
+    emptyComparison?.querySelector('button')?.click();
+    fixture.detectChanges();
+    expect(purchaseOrderButton.getAttribute('aria-pressed')).toBe('true');
     expect(element.textContent).not.toContain('Synthetic sample data. Human review is required.');
-    expect(fixture.nativeElement.textContent).toContain('PLN100,000,000,000,000.01');
+    expect(fixture.nativeElement.textContent).toContain(
+      '100\u00a0000\u00a0000\u00a0000\u00a0000,01\u00a0zł',
+    );
     http.verify();
   });
 
@@ -169,6 +176,15 @@ describe('InvoiceWorkspacePage', () => {
     // Assert
     expect(fixture.nativeElement.textContent).toContain('Comparison unavailable');
     expect(fixture.nativeElement.textContent).toContain('Line items unavailable');
+    const element = fixture.nativeElement as HTMLElement;
+    sectionButton(element, 'Invoice details').click();
+    fixture.detectChanges();
+    expect(element.querySelector('.fallback-fields .field-grid')?.textContent).toContain(
+      '3\u00a0444,00\u00a0zł',
+    );
+    expect(element.querySelector('.fallback-fields .field-grid')?.textContent).toContain(
+      'Not linked',
+    );
     expect(fixture.nativeElement.querySelector('app-invoice-document')).toBeNull();
 
     // Act
@@ -239,8 +255,8 @@ describe('InvoiceWorkspacePage', () => {
     await loadEmptyPurchaseOrders(fixture, http, 'INV-2026-1042');
 
     // Assert
-    expect(fixture.nativeElement.textContent).toContain('PLN12,915.00');
-    expect(fixture.nativeElement.textContent).toContain('PLN615.00');
+    expect(fixture.nativeElement.textContent).toContain('12\u00a0915,00\u00a0zł');
+    expect(fixture.nativeElement.textContent).toContain('615,00\u00a0zł');
     expect(fixture.nativeElement.textContent).toContain('5.0%');
     expect(fixture.nativeElement.textContent).toContain('VAT 23%');
     expect(fixture.nativeElement.querySelector('app-invoice-document')).toBeTruthy();

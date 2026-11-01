@@ -1,4 +1,9 @@
-<h1>Manual invoice draft</h1>
+@if (step() === 4) {
+  <h1>Invoice intake</h1>
+  <p class="subtitle">Review the extracted data and confirm before adding to your records.</p>
+} @else {
+  <h1 class="visually-hidden">Invoice intake</h1>
+}
 @if (document.isLoading()) {
   <p role="status">Loading draft…</p>
 } @else if (document.error()) {
@@ -13,9 +18,17 @@
         <a [routerLink]="['/invoices', doc.invoiceId]">Open invoice</a>
       }
     } @else {
-      <div class="layout">
-        <div>
-          <a [href]="originalFileUrl()" target="_blank" rel="noopener">Open original document</a>
+      <app-intake-stepper [step]="step()" />
+      <div class="layout" [class.confirm-step]="step() === 4">
+        <section class="panel document-panel" aria-label="Document preview">
+          <div class="preview-heading">
+            <h2>Document preview</h2>
+            <div class="preview-actions">
+              <button type="button" [disabled]="extractionBusy()" (click)="extractText()">
+                Extract text</button
+              ><a [href]="originalFileUrl()" target="_blank" rel="noopener">Open original</a>
+            </div>
+          </div>
           @if (file.isLoading()) {
             <p role="status">Loading preview…</p>
           } @else if (file.error()) {
@@ -30,16 +43,19 @@
             [extraction]="extraction()"
             [busy]="extractionBusy()"
             [error]="extractionError()"
-            (extract)="extractText()"
             (loadLatest)="loadLatestText()"
           />
-        </div>
-        <app-draft-review
-          [visit]="routeVisit()"
-          [document]="doc"
-          (saved)="saveDraft($event)"
-          (reload)="document.reload()"
-        />
+        </section>
+        <section class="panel review-panel" aria-label="Invoice review">
+          <app-draft-review
+            [visit]="routeVisit()"
+            [document]="doc"
+            [step]="step()"
+            (stepChange)="changeStep($event)"
+            (saved)="saveDraft($event)"
+            (reload)="document.reload()"
+          />
+        </section>
       </div>
     }
   }

@@ -14,9 +14,31 @@ export function formatInvoiceAmount(value: string, currency: string): string {
   const match = /^(-?)(\d+)\.(\d{2})$/.exec(value);
   if (!match) throw new Error('Invalid monetary amount');
   const [, sign, integer, fraction] = match;
-  const groupedInteger = new Intl.NumberFormat('en-US').format(BigInt(integer));
+  const groupedInteger = BigInt(integer)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+  const symbols: Record<string, string> = { PLN: 'zł', EUR: '€', USD: '$' };
+  const symbol = symbols[currency] ?? currency;
 
-  return `${sign}${currency}${groupedInteger}.${fraction}`;
+  return `${sign}${groupedInteger},${fraction}\u00a0${symbol}`;
+}
+
+export function formatWorkspaceAmount(value: number, currency: string): string {
+  if (!Number.isFinite(value)) throw new Error('Invalid monetary amount');
+
+  return formatInvoiceAmount(value.toFixed(2), currency);
+}
+
+export function formatMinorAmount(value: number, currency: string): string {
+  if (!Number.isSafeInteger(value)) throw new Error('Invalid monetary amount');
+
+  const minor = BigInt(value);
+  const absolute = minor < 0n ? -minor : minor;
+
+  return formatInvoiceAmount(
+    `${minor < 0n ? '-' : ''}${absolute / 100n}.${String(absolute % 100n).padStart(2, '0')}`,
+    currency,
+  );
 }
 
 export const statusLabels = {

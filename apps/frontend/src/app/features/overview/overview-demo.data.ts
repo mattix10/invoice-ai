@@ -1,4 +1,5 @@
 import { DEMO_INVOICE } from '../invoices/invoice-demo.data';
+import { formatInvoiceAmount } from '../invoices/data-access/invoice-adapter';
 
 export interface OverviewKpi {
   readonly label: string;
@@ -40,28 +41,28 @@ const recentInvoices: readonly RecentInvoice[] = [
     id: DEMO_INVOICE.id,
     vendor: DEMO_INVOICE.vendor,
     due: '21 Nov 2026',
-    amount: 'PLN12,915.00',
+    amount: formatInvoiceAmount('12915.00', 'PLN'),
     status: DEMO_INVOICE.status,
   },
   {
     id: 'INV-2026-1041',
     vendor: 'Riverton Cloud Ltd.',
     due: '19 Nov 2026',
-    amount: 'PLN3,444.00',
+    amount: formatInvoiceAmount('3444.00', 'PLN'),
     status: 'Approved',
   },
   {
     id: 'INV-2026-1040',
     vendor: 'Baltic Logistics Sp. z o.o.',
     due: '18 Nov 2026',
-    amount: 'PLN1,845.00',
+    amount: formatInvoiceAmount('1845.00', 'PLN'),
     status: 'Processing',
   },
   {
     id: 'INV-2026-1039',
     vendor: 'Fieldstone Services',
     due: '16 Nov 2026',
-    amount: 'PLN5,166.00',
+    amount: formatInvoiceAmount('5166.00', 'PLN'),
     status: 'Needs review',
   },
 ];
@@ -87,7 +88,11 @@ export const OVERVIEW_DEMO_DATA = {
     { label: 'Awaiting review', value: String(awaitingReview), detail: 'Invoices awaiting review' },
     { label: 'Approved this month', value: '96', detail: 'October · demo data' },
     { label: 'Processed this month', value: String(processed), detail: 'October · demo data' },
-    { label: 'Invoice value · Oct', value: 'PLN 318,740.00', detail: 'October · demo data' },
+    {
+      label: 'Invoice value · Oct',
+      value: formatInvoiceAmount('318740.00', 'PLN'),
+      detail: 'October · demo data',
+    },
   ] satisfies readonly OverviewKpi[],
   recentInvoices,
   processingVolume: volume.map(({ month, value }) => ({

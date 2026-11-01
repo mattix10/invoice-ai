@@ -1,7 +1,6 @@
 import { Panel } from '../../../shared/ui/panel/panel';
-import { formatCurrency } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { InvoiceWorkspaceView } from '../data-access/invoice-adapter';
+import { formatWorkspaceAmount, InvoiceWorkspaceView } from '../data-access/invoice-adapter';
 import { InvoiceComparisonTable } from '../invoice-comparison-table/invoice-comparison-table';
 
 @Component({
@@ -29,7 +28,7 @@ export class InvoiceComparison {
   private money(value: number): string {
     const currency = this.data().invoice.currency;
 
-    return formatCurrency(value, 'en-US', currency, currency);
+    return formatWorkspaceAmount(value, currency);
   }
 
   protected readonly itemRows = computed(() =>

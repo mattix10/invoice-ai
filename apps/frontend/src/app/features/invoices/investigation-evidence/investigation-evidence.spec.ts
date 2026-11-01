@@ -4,8 +4,8 @@ import { InvestigationEvidence } from './investigation-evidence';
 
 describe('InvestigationEvidence', () => {
   it.each([
-    ['Invoice \u00b7 INV-2026-1042', 'PLN820.00', 'PLN12,915.00'],
-    ['Purchase order \u00b7 PO-2026-0871', 'PLN770.00', 'PLN12,300.00'],
+    ['Invoice \u00b7 INV-2026-1042', '820,00 zł', '12 915,00 zł'],
+    ['Purchase order \u00b7 PO-2026-0871', '770,00 zł', '12 300,00 zł'],
     ['Delivery receipt \u00b7 DR-2026-1042', '10 monitors delivered', 'Quantities match'],
   ])('should show the figures belonging to evidence %s', async (source, first, second) => {
     // Arrange

@@ -24,7 +24,7 @@
       <p class="proposal-warning">{{ warning }}</p>
     }
     @for (proposal of result.proposals; track $index; let i = $index) {
-      <div class="proposal">
+      <div class="proposal" [attr.data-field]="proposal.field">
         <label class="proposal-label"
           ><input
             type="checkbox"
@@ -32,12 +32,14 @@
             [checked]="selected().includes(i)"
             (change)="toggle(i, $any($event.target).checked)"
           />
-          {{ proposal.field }}</label
+          {{ fieldLabel(proposal.field) }}</label
         >
         <p class="proposal-value"><span>Current:</span> {{ display(draft()[proposal.field]) }}</p>
         <p class="proposal-value"><span>Suggested:</span> {{ display(proposal.value) }}</p>
         @if (proposal.source; as source) {
-          <p>Page {{ source.pageNumber }} · {{ source.extractionMethod }}: {{ source.excerpt }}</p>
+          <p class="proposal-source">
+            Page {{ source.pageNumber }} · {{ source.extractionMethod }}: {{ source.excerpt }}
+          </p>
         }
         @if (!available(proposal)) {
           <p class="proposal-warning">Unavailable: source evidence is missing or invalid.</p>

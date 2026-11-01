@@ -1,10 +1,17 @@
 <section>
-  <h2>Document text</h2>
-  <p>Text is provided for review and does not change the draft.</p>
-  <div class="button-group">
-    <button type="button" [disabled]="busy()" (click)="extract.emit()">Extract text</button>
-    <button type="button" [disabled]="busy()" (click)="loadLatest.emit()">Load latest text</button>
+  <div class="heading-row">
+    <h2>Text extraction</h2>
+    <span class="document-state">Source document</span>
   </div>
+  <details class="text-actions" [open]="!extraction()">
+    <summary>Text extraction</summary>
+    <p>Extract text before requesting suggestions. This does not change the draft.</p>
+    <div class="button-group">
+      <button type="button" [disabled]="busy()" (click)="loadLatest.emit()">
+        Load latest text
+      </button>
+    </div>
+  </details>
   @if (busy()) {
     <p role="status">Processing document…</p>
   }
@@ -12,16 +19,19 @@
     <p role="alert">{{ error() }}</p>
   }
   @if (extraction(); as result) {
-    @for (page of result.pages; track page.pageNumber) {
-      <h3>
-        Page {{ page.pageNumber }} · {{ page.extractionMethod }} · version
-        {{ page.extractionVersion }}
-      </h3>
-      @if (page.text) {
-        <pre>{{ page.text }}</pre>
-      } @else {
-        <p>No text found.</p>
+    <details>
+      <summary>View extracted text</summary>
+      @for (page of result.pages; track page.pageNumber) {
+        <h3>
+          Page {{ page.pageNumber }} · {{ page.extractionMethod }} · version
+          {{ page.extractionVersion }}
+        </h3>
+        @if (page.text) {
+          <pre>{{ page.text }}</pre>
+        } @else {
+          <p>No text found.</p>
+        }
       }
-    }
+    </details>
   }
 </section>

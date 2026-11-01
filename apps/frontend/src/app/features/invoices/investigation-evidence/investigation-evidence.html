@@ -6,28 +6,26 @@
     </p>
     <p>
       The invoice charges {{ data().items[0].quantity }} monitors at
-      {{ data().items[0].invoiceUnitNet | currency: 'PLN' : 'code' }} each, while purchase order
-      {{ data().invoice.purchaseOrder }} lists
-      {{ data().items[0].poUnitNet | currency: 'PLN' : 'code' }} each. This accounts for
-      {{ data().differenceNet | currency: 'PLN' : 'code' }} net and
-      {{ data().differenceVat | currency: 'PLN' : 'code' }} VAT. Quantities match across the sample
-      records.
+      {{ amount(data().items[0].invoiceUnitNet, 'PLN') }} each, while purchase order
+      {{ data().invoice.purchaseOrder }} lists {{ amount(data().items[0].poUnitNet, 'PLN') }} each.
+      This accounts for {{ amount(data().differenceNet, 'PLN') }} net and
+      {{ amount(data().differenceVat, 'PLN') }} VAT. Quantities match across the sample records.
     </p>
     <h3>Evidence</h3>
     <article>
       <h4>Invoice · {{ data().invoice.id }}</h4>
       <p>
         {{ data().items[0].quantity }} monitors at
-        {{ data().items[0].invoiceUnitNet | currency: 'PLN' : 'code' }} net each; invoice total
-        {{ data().invoiceGross | currency: 'PLN' : 'code' }} gross.
+        {{ amount(data().items[0].invoiceUnitNet, 'PLN') }} net each; invoice total
+        {{ amount(data().invoiceGross, 'PLN') }} gross.
       </p>
     </article>
     <article>
       <h4>Purchase order · {{ data().invoice.purchaseOrder }}</h4>
       <p>
         {{ data().items[0].quantity }} monitors at
-        {{ data().items[0].poUnitNet | currency: 'PLN' : 'code' }} net each; PO total
-        {{ data().poGross | currency: 'PLN' : 'code' }} gross.
+        {{ amount(data().items[0].poUnitNet, 'PLN') }} net each; PO total
+        {{ amount(data().poGross, 'PLN') }} gross.
       </p>
     </article>
     <article>

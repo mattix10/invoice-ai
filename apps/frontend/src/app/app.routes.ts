@@ -13,6 +13,8 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'overview' },
       { path: 'overview', component: OverviewPage },
+      { path: 'overview/intake/new', component: UploadPage },
+      { path: 'overview/intake/:documentId', component: DraftPage },
       { path: 'invoices/new', component: UploadPage },
       { path: 'intake/:documentId', component: DraftPage },
       {

@@ -1,14 +1,14 @@
-import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import type { InvoiceWorkspaceView } from '../data-access/invoice-adapter';
+import { formatWorkspaceAmount, type InvoiceWorkspaceView } from '../data-access/invoice-adapter';
 
 @Component({
   selector: 'app-invoice-difference',
-  imports: [CurrencyPipe],
+  imports: [],
   templateUrl: './invoice-difference.html',
   styleUrl: './invoice-difference.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoiceDifference {
   readonly data = input.required<InvoiceWorkspaceView>();
+  protected readonly amount = formatWorkspaceAmount;
 }

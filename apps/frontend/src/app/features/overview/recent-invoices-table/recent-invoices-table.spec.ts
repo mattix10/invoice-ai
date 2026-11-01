@@ -21,7 +21,7 @@ describe('RecentInvoicesTable', () => {
     expect(view.querySelectorAll<HTMLTableRowElement>('tbody tr')).toHaveLength(4);
     const rows = Array.from(view.querySelectorAll<HTMLTableRowElement>('tbody tr'));
     const featured = rows.find((row) => row.cells[0]?.textContent?.trim() === 'INV-2026-1042');
-    expect(featured?.cells[3]?.textContent?.trim()).toBe('PLN12,915.00');
+    expect(featured?.cells[3]?.textContent?.trim()).toBe('12\u00a0915,00\u00a0zł');
     expect(featured?.querySelector('a')?.getAttribute('href')).toBe('/invoices/INV-2026-1042');
     expect(
       rows.every(
