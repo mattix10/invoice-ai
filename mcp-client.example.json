@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "invoiceflow": {
+      "command": "C:/path/to/invoice-ai/apps/backend/.venv/Scripts/python.exe",
+      "args": ["-m", "invoiceflow.mcp_server"],
+      "env": {
+        "DATABASE_URL": "postgresql+psycopg://LOCAL_USER:LOCAL_PASSWORD@127.0.0.1:5432/LOCAL_DATABASE",
+        "SYSTEMROOT": "C:/Windows"
+      }
+    }
+  }
+}
