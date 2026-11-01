@@ -6,6 +6,144 @@ import { BehaviorSubject } from 'rxjs';
 import { InvestigationPage } from './investigation-page';
 
 describe('InvestigationPage', () => {
+  it('sends a typed question and renders its verified citation as an internal link', async () => {
+    TestBed.configureTestingModule({
+      imports: [InvestigationPage],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: new BehaviorSubject(convertToParamMap({ id: 'INV-2026-1042' })),
+            queryParamMap: new BehaviorSubject(convertToParamMap({})),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(InvestigationPage);
+    const http = TestBed.inject(HttpTestingController);
+    const reference = {
+      kind: 'reconciliation',
+      invoiceId: 'INV-2026-1042',
+      reconciliationRevision: 1,
+      linePosition: null,
+      evidenceId: 'invoice:INV-2026-1042:reconciliation:1',
+      label: 'Reconciliation revision 1',
+    };
+    fixture.detectChanges();
+    http.expectOne('/api/v1/invoices/INV-2026-1042/reconciliations/latest').flush({
+      revision: 1,
+      isCurrent: true,
+      algorithmVersion: 'deterministic-v2',
+      evidenceRefs: [reference],
+      result: {
+        invoiceId: 'INV-2026-1042',
+        lines: [],
+        inputs: { purchaseOrder: 'PO-1', currency: 'PLN', deliveryReceiptId: null },
+        invoiceTotals: { gross: '123.00' },
+        poTotals: { gross: '110.70' },
+        difference: { net: '10.00', vat: '2.30', gross: '12.30' },
+      },
+    });
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const question = element.querySelector('textarea')!;
+    const send = element.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    expect(send.disabled).toBe(true);
+    question.value = '  Why is there a difference?  ';
+    question.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(send.disabled).toBe(false);
+    element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    const request = http.expectOne('/api/v1/copilot/queries');
+    expect(request.request.body).toEqual({
+      question: 'Why is there a difference?',
+      invoiceId: 'INV-2026-1042',
+    });
+    request.flush({
+      answer: 'The difference is PLN 12.30 gross.',
+      citations: [reference],
+      findings: [],
+      suggestedQuestions: [],
+      generationMode: 'demo',
+      provider: 'demo',
+      model: null,
+      promptVersion: 'demo-v1',
+      incompleteContext: false,
+      humanReviewRequired: true,
+      unavailableReason: null,
+    });
+    fixture.detectChanges();
+    const source = Array.from(element.querySelectorAll('a')).find(
+      (link) => link.textContent?.trim() === 'Reconciliation revision 1',
+    );
+    expect(source?.getAttribute('href')).toBe(
+      '/invoices/INV-2026-1042/investigation?revision=1#reconciliation',
+    );
+    expect(element.textContent).toContain('The difference is PLN 12.30 gross.');
+    http.expectNone(
+      (pending) => pending.method === 'POST' && pending.url.includes('/reconciliation'),
+    );
+    http.verify();
+    await fixture.whenStable();
+  });
+
+  it('renders the answer and clears it when a different invoice is selected', async () => {
+    const params = new BehaviorSubject(convertToParamMap({ id: 'INV-2026-1042' }));
+    TestBed.configureTestingModule({
+      imports: [InvestigationPage],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: params, queryParamMap: new BehaviorSubject(convertToParamMap({})) },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(InvestigationPage);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http
+      .expectOne('/api/v1/invoices/INV-2026-1042/reconciliations/latest')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    Array.from(element.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('Explain this discrepancy'))
+      ?.click();
+    const request = http.expectOne('/api/v1/copilot/queries');
+    expect(request.request.method).toBe('POST');
+    request.flush({
+      answer: 'Answer for the first invoice',
+      citations: [],
+      findings: [],
+      suggestedQuestions: [],
+      generationMode: 'demo',
+      provider: 'demo',
+      model: null,
+      promptVersion: 'demo-v1',
+      incompleteContext: false,
+      humanReviewRequired: true,
+      unavailableReason: null,
+    });
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Answer for the first invoice');
+    expect(element.textContent).toContain('Demo');
+
+    params.next(convertToParamMap({ id: 'INV-2026-9999' }));
+    http
+      .expectOne('/api/v1/invoices/INV-2026-9999/reconciliations/latest')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    fixture.detectChanges();
+    expect(element.textContent).not.toContain('Answer for the first invoice');
+    http.verify();
+    await fixture.whenStable();
+  });
+
   it('does not fetch the latest reconciliation when the selected revision is empty', () => {
     TestBed.configureTestingModule({
       imports: [InvestigationPage],
