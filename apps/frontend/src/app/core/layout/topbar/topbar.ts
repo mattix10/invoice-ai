@@ -18,12 +18,10 @@ export class Topbar {
   );
 
   protected readonly title = computed(() => {
-    const url = this.navigation()?.urlAfterRedirects ?? this.router.url;
+    this.navigation();
+    let route = this.router.routerState.snapshot.root;
+    while (route.firstChild) route = route.firstChild;
 
-    return url.includes('/investigation')
-      ? 'AI investigation'
-      : url.startsWith('/invoices/')
-        ? 'Invoice workspace'
-        : 'Overview';
+    return route.data['breadcrumb'] ?? route.title ?? 'Overview';
   });
 }

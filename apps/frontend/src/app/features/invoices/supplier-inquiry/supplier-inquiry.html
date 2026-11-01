@@ -14,17 +14,19 @@
     <label for="inquiry-subject">Subject</label>
     <input
       id="inquiry-subject"
+      #subjectInput
       maxlength="200"
       [value]="subject()"
-      (input)="subject.set($any($event.target).value)"
+      (input)="subject.set(subjectInput.value)"
     />
     <label for="inquiry-body">Message</label>
     <textarea
       id="inquiry-body"
+      #bodyInput
       rows="10"
       maxlength="4000"
       [value]="body()"
-      (input)="body.set($any($event.target).value)"
+      (input)="body.set(bodyInput.value)"
     ></textarea>
     <button type="button" (click)="copy()">Copy</button>
     @if (copyState() === 'copied') {

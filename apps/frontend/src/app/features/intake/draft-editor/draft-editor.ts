@@ -1,12 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  input,
-  linkedSignal,
-  output,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, linkedSignal, output } from '@angular/core';
+import { protectPendingChanges } from '../../../core/navigation/pending-changes';
+import { DraftFields } from '../draft-fields/draft-fields';
+import { DraftItemsEditor } from '../draft-items-editor/draft-items-editor';
+import { DraftSummary } from '../draft-summary/draft-summary';
 import { FormsModule } from '@angular/forms';
 import {
   Draft,
@@ -14,13 +10,11 @@ import {
   SuggestionProposal,
   Validation,
 } from '../data-access/intake-api';
-import { SuggestionsPanel } from '../suggestions-panel/suggestions-panel';
-import { formatVatRate, lineNet } from '../data-access/intake-money';
 import { DraftValidation } from '../draft-validation/draft-validation';
 
 @Component({
   selector: 'app-draft-editor',
-  imports: [FormsModule, SuggestionsPanel, DraftValidation],
+  imports: [FormsModule, DraftFields, DraftItemsEditor, DraftSummary, DraftValidation],
   templateUrl: './draft-editor.html',
   styleUrl: './draft-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,20 +30,23 @@ export class DraftEditor {
   readonly confirm = output<Draft>();
   readonly decide = output<SuggestionDecisionBatch>();
   protected readonly form = linkedSignal(() => structuredClone(this.draft()));
-  protected readonly suggestionsDetails =
-    viewChild<ElementRef<HTMLDetailsElement>>('suggestionsDetails');
-  protected readonly lineNet = lineNet;
-  protected readonly formatVatRate = formatVatRate;
+  private readonly savedSnapshot = linkedSignal(() => JSON.stringify(this.draft()));
 
-  protected openSuggestions(field: SuggestionProposal['field']): void {
-    const details = this.suggestionsDetails()?.nativeElement;
-    if (!details) return;
-    details.open = true;
-    details.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    const target = details.querySelector<HTMLInputElement>(
-      `[data-field="${field}"] input[type="checkbox"]`,
-    );
-    (target ?? details.querySelector<HTMLElement>('summary'))?.focus();
+  constructor() {
+    protectPendingChanges(() => this.hasPendingChanges());
+  }
+
+  hasPendingChanges(): boolean {
+    return this.busy() || JSON.stringify(this.form()) !== this.savedSnapshot();
+  }
+
+  markSaved(draft: Draft): void {
+    this.form.set(structuredClone(draft));
+    this.savedSnapshot.set(JSON.stringify(draft));
+  }
+
+  protected patchDraft(patch: Partial<Draft>): void {
+    this.form.update((draft) => ({ ...draft, ...patch }));
   }
 
   protected applySuggestions(proposals: SuggestionProposal[]): void {
@@ -61,35 +58,5 @@ export class DraftEditor {
 
       return updated;
     });
-  }
-
-  protected addTotals(): void {
-    this.form.update((draft) => ({
-      ...draft,
-      declaredTotals: { net: null, vat: null, gross: null },
-    }));
-  }
-
-  protected removeTotals(): void {
-    this.form.update((draft) => ({ ...draft, declaredTotals: null }));
-  }
-
-  protected addItem(): void {
-    this.form.update((draft) => ({
-      ...draft,
-      items: [
-        ...draft.items,
-        { position: draft.items.length + 1, name: null, quantity: null, unitNet: null },
-      ],
-    }));
-  }
-
-  protected removeItem(index: number): void {
-    this.form.update((draft) => ({
-      ...draft,
-      items: draft.items
-        .filter((_, itemIndex) => itemIndex !== index)
-        .map((item, itemIndex) => ({ ...item, position: itemIndex + 1 })),
-    }));
   }
 }

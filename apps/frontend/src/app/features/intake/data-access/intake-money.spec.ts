@@ -1,4 +1,4 @@
-import { formatVatRate, lineNet } from './intake-money';
+import { canonicalAmount, formatVatRate, lineNet } from './intake-money';
 
 describe('lineNet', () => {
   it('calculates invoice line net without floating point rounding', () => {
@@ -22,4 +22,24 @@ describe('formatVatRate', () => {
     expect(formatVatRate(null)).toBe('—');
     expect(formatVatRate('1.2')).toBe('—');
   });
+});
+
+describe('canonicalAmount', () => {
+  it.each([
+    ['10', '10.00'],
+    ['10.5', '10.50'],
+    ['0.01', '0.01'],
+    ['9999999999999999.99', '9999999999999999.99'],
+    [' ', null],
+    [null, null],
+  ])('should canonicalize %s without losing precision', (value, expected) => {
+    expect(canonicalAmount(value)).toBe(expected);
+  });
+
+  it.each(['1.234', '-1.00', '1e3', '10000000000000000.00'])(
+    'should reject invalid input %s',
+    (value) => {
+      expect(() => canonicalAmount(value)).toThrow();
+    },
+  );
 });

@@ -9,11 +9,13 @@ import {
   input,
   linkedSignal,
   output,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import type { DocumentResponse, SuggestionDecisions } from '../../../core/api/schema';
 import { Draft, IntakeApi, SavedDraft, SuggestionDecisionBatch } from '../data-access/intake-api';
+import { canonicalAmount } from '../data-access/intake-money';
 import { DraftEditor } from '../draft-editor/draft-editor';
 
 export interface DraftVisit {
@@ -42,6 +44,16 @@ export class DraftReview {
   private readonly api = inject(IntakeApi);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly editor = viewChild(DraftEditor);
+
+  hasPendingChanges(): boolean {
+    return (
+      this.busy() ||
+      this.pendingConfirmation() !== null ||
+      (this.editor()?.hasPendingChanges() ?? false)
+    );
+  }
+
   protected readonly documentId = computed(() => this.visit().documentId);
   protected readonly busy = linkedSignal(() => this.resetForVisit(false));
   protected readonly message = linkedSignal(() => this.resetForVisit(''));
@@ -111,7 +123,15 @@ export class DraftReview {
     const visit = this.visit();
     this.busy.set(true);
     this.message.set('');
-    const normalizedDraft = this.normalizeDraft(draft);
+    let normalizedDraft: Draft;
+    try {
+      normalizedDraft = this.normalizeDraft(draft);
+    } catch {
+      this.busy.set(false);
+      this.message.set('Enter amounts with at most two decimal places.');
+
+      return;
+    }
     const batches = this.decisionBatchesFor(normalizedDraft);
 
     this.api
@@ -120,6 +140,7 @@ export class DraftReview {
       .subscribe({
         next: (savedDraft) => {
           if (this.visit() !== visit) return;
+          this.editor()?.markSaved(savedDraft.draft);
           this.saved.emit(savedDraft);
           this.decisions.set([]);
           afterSave(savedDraft);
@@ -163,12 +184,12 @@ export class DraftReview {
       due: draft.due || null,
       currency: draft.currency || null,
       vatRate: draft.vatRate || null,
-      items: draft.items.map((item) => ({ ...item, unitNet: item.unitNet || null })),
+      items: draft.items.map((item) => ({ ...item, unitNet: canonicalAmount(item.unitNet) })),
       declaredTotals: draft.declaredTotals
         ? {
-            net: draft.declaredTotals.net || null,
-            vat: draft.declaredTotals.vat || null,
-            gross: draft.declaredTotals.gross || null,
+            net: canonicalAmount(draft.declaredTotals.net),
+            vat: canonicalAmount(draft.declaredTotals.vat),
+            gross: canonicalAmount(draft.declaredTotals.gross),
           }
         : null,
     };

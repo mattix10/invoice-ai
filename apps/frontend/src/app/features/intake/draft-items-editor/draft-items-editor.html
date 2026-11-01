@@ -1,0 +1,107 @@
+<section aria-labelledby="items-heading">
+  <h2 id="items-heading" tabindex="-1">Line items</h2>
+  <p class="intro">
+    Edit the extracted line items. Make sure all items, quantities and amounts are correct.
+  </p>
+  <div class="line-items">
+    <div class="line-heading">
+      <span>Description *</span><span>Qty *</span><span>Unit net *</span><span>Tax</span
+      ><span>Net amount</span><span></span>
+    </div>
+    @for (item of draft().items; track $index; let i = $index) {
+      <fieldset class="item">
+        <legend>Item {{ i + 1 }}</legend>
+        <label
+          ><span>Description</span
+          ><input
+            [name]="'name' + i"
+            [ngModel]="item.name"
+            (ngModelChange)="changeItem(i, { name: $event })"
+        /></label>
+        <label
+          ><span>Quantity</span
+          ><input
+            type="number"
+            min="1"
+            step="1"
+            [name]="'quantity' + i"
+            [ngModel]="item.quantity"
+            (ngModelChange)="changeItem(i, { quantity: $event })"
+        /></label>
+        <label
+          ><span>Unit net</span
+          ><input
+            inputmode="decimal"
+            pattern="[0-9]{1,16}(\.[0-9]{1,2})?"
+            #unitPrice="ngModel"
+            [attr.aria-invalid]="unitPrice.invalid && unitPrice.touched ? 'true' : null"
+            [name]="'unit_net' + i"
+            [ngModel]="item.unitNet"
+            (ngModelChange)="changeItem(i, { unitNet: $event })"
+          />
+          @if (unitPrice.invalid && unitPrice.touched) {
+            <small class="amount-error">Use at most two decimal places.</small>
+          }
+        </label>
+        <span class="tax-value">{{ formatVatRate(draft().vatRate) }}</span>
+        <output class="line-amount">{{ lineNet(item) }}</output>
+        <button
+          type="button"
+          class="remove-item"
+          [attr.aria-label]="'Remove item ' + (i + 1)"
+          (click)="removeItem(i)"
+        >
+          ×
+        </button>
+      </fieldset>
+    }
+  </div>
+  <button
+    type="button"
+    class="add-item"
+    (click)="addItem()"
+    [disabled]="draft().items.length >= 1000"
+  >
+    + Add line item
+  </button>
+  <div class="declared-totals">
+    <h3>Declared totals</h3>
+    @if (draft().declaredTotals; as totals) {
+      <div class="totals">
+        <label
+          >Net
+          <input
+            name="declared_net"
+            pattern="[0-9]{1,16}(\.[0-9]{1,2})?"
+            inputmode="decimal"
+            [ngModel]="totals.net"
+            (ngModelChange)="changeTotals('net', $event)" /></label
+        ><label
+          >VAT
+          <input
+            name="declared_vat"
+            pattern="[0-9]{1,16}(\.[0-9]{1,2})?"
+            inputmode="decimal"
+            [ngModel]="totals.vat"
+            (ngModelChange)="changeTotals('vat', $event)" /></label
+        ><label
+          >Gross
+          <input
+            name="declared_gross"
+            pattern="[0-9]{1,16}(\.[0-9]{1,2})?"
+            inputmode="decimal"
+            [ngModel]="totals.gross"
+            (ngModelChange)="changeTotals('gross', $event)"
+        /></label>
+      </div>
+      <button type="button" class="totals-action" (click)="removeTotals()">
+        Remove declared totals
+      </button>
+    } @else {
+      <button type="button" class="totals-action" (click)="addTotals()">Add declared totals</button>
+    }
+  </div>
+  <p class="notice">
+    Line items must match the invoice. Check descriptions, quantity, unit price and tax.
+  </p>
+</section>

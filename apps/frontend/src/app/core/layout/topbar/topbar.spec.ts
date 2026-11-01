@@ -7,7 +7,11 @@ describe('Topbar', () => {
     // Arrange
     await TestBed.configureTestingModule({
       imports: [Topbar],
-      providers: [provideRouter([{ path: 'invoices/:id/investigation', component: Topbar }])],
+      providers: [
+        provideRouter([
+          { path: 'invoices/:id/investigation', component: Topbar, title: 'AI investigation' },
+        ]),
+      ],
     }).compileComponents();
     const router = TestBed.inject(Router);
     const fixture = TestBed.createComponent(Topbar);

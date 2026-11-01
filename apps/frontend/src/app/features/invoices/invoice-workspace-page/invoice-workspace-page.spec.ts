@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
+import type { InvoiceDetailDto, InvoiceComparisonDto } from '../data-access/invoice-api';
 import { InvoiceWorkspacePage } from './invoice-workspace-page';
 
 function createWorkspace(route: Partial<ActivatedRoute>): {
@@ -179,12 +180,10 @@ describe('InvoiceWorkspacePage', () => {
     const element = fixture.nativeElement as HTMLElement;
     sectionButton(element, 'Invoice details').click();
     fixture.detectChanges();
-    expect(element.querySelector('.fallback-fields .field-grid')?.textContent).toContain(
+    expect(element.querySelector('app-invoice-fields dl')?.textContent).toContain(
       '3\u00a0444,00\u00a0zł',
     );
-    expect(element.querySelector('.fallback-fields .field-grid')?.textContent).toContain(
-      'Not linked',
-    );
+    expect(element.querySelector('app-invoice-fields dl')?.textContent).toContain('Not linked');
     expect(fixture.nativeElement.querySelector('app-invoice-document')).toBeNull();
 
     // Act
@@ -283,3 +282,62 @@ describe('InvoiceWorkspacePage', () => {
     http.verify({ ignoreCancelled: true });
   });
 });
+
+it.each([
+  ['70368744177664.01', '70\u00a0368\u00a0744\u00a0177\u00a0664,01\u00a0zł'],
+  ['100000000000000.01', '100\u00a0000\u00a0000\u00a0000\u00a0000,01\u00a0zł'],
+  ['9999999999999999.99', '9\u00a0999\u00a0999\u00a0999\u00a0999\u00a0999,99\u00a0zł'],
+])(
+  'should preserve all digits of %s across workspace fields and comparison',
+  async (amount, expected) => {
+    const id = 'INV-2026-9999';
+    const { fixture, http } = createWorkspace({ paramMap: invoiceRoute(id) });
+    const totals = { net: amount, vat: '0.00', gross: amount };
+    const invoice = {
+      id,
+      vendor: 'Example',
+      due: '2026-11-21',
+      issued: null,
+      currency: 'PLN',
+      status: 'needs_review',
+      grossAmount: amount,
+      purchaseOrder: 'PO-1',
+      vatRate: '0',
+      items: [{ position: 1, name: 'Item', quantity: 1, unitNet: amount, net: amount }],
+      totals,
+    } satisfies InvoiceDetailDto;
+    const comparison = {
+      invoiceId: id,
+      purchaseOrder: 'PO-1',
+      deliveryReceiptId: null,
+      currency: 'PLN',
+      vatRate: '0',
+      items: [
+        {
+          position: 1,
+          name: 'Item',
+          quantity: 1,
+          poQuantity: 1,
+          invoiceUnitNet: amount,
+          poUnitNet: amount,
+          invoiceNet: amount,
+          poNet: amount,
+        },
+      ],
+      invoiceTotals: totals,
+      poTotals: totals,
+      difference: { net: '-0.01', vat: '0.00', gross: '-0.01' },
+      differencePercent: '0.0',
+    } satisfies InvoiceComparisonDto;
+    fixture.detectChanges();
+    http.expectOne(`/api/v1/invoices/${id}`).flush(invoice);
+    http.expectOne(`/api/v1/invoices/${id}/comparison`).flush(comparison);
+    await loadEmptyPurchaseOrders(fixture, http, id);
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('app-invoice-fields')?.textContent).toContain(expected);
+    expect(element.querySelector('app-invoice-comparison')?.textContent).toContain(expected);
+    expect(element.querySelector('app-invoice-difference')?.textContent).toContain('-0,01\u00a0zł');
+    expect(element.textContent).not.toContain('Invoice could not be loaded');
+    http.verify();
+  },
+);

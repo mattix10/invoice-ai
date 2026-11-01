@@ -1,3 +1,5 @@
+import { type InvoiceWorkspaceView } from './data-access/invoice-adapter';
+
 export interface DemoInvoice {
   readonly id: string;
   readonly vendor: string;
@@ -53,28 +55,32 @@ export const DEMO_INVOICE: DemoInvoice = {
   differenceGrossGrosz: 61500,
 };
 
+function demoAmount(minor: number): string {
+  const units = BigInt(minor);
+
+  return `${units / 100n}.${String(units % 100n).padStart(2, '0')}`;
+}
+
 export const INVOICE_WORKSPACE_DATA = {
   invoice: DEMO_INVOICE,
   deliveryReceiptId: 'DR-2026-1042',
-  differencePercent: (DEMO_INVOICE.differenceGrossGrosz / DEMO_INVOICE.poGrossGrosz) * 100,
+  differencePercent: String((DEMO_INVOICE.differenceGrossGrosz / DEMO_INVOICE.poGrossGrosz) * 100),
   items: DEMO_INVOICE.items.map((item, index) => ({
     ...item,
     position: index + 1,
     poQuantity: item.quantity,
-    invoiceUnitNet: item.invoiceUnitNetGrosz / 100,
-    poUnitNet: item.poUnitNetGrosz / 100,
-    invoiceNet: (item.quantity * item.invoiceUnitNetGrosz) / 100,
-    poNet: (item.quantity * item.poUnitNetGrosz) / 100,
+    invoiceUnitNet: demoAmount(item.invoiceUnitNetGrosz),
+    poUnitNet: demoAmount(item.poUnitNetGrosz),
+    invoiceNet: demoAmount(item.quantity * item.invoiceUnitNetGrosz),
+    poNet: demoAmount(item.quantity * item.poUnitNetGrosz),
   })),
-  invoiceNet: DEMO_INVOICE.invoiceNetGrosz / 100,
-  invoiceVat: DEMO_INVOICE.invoiceVatGrosz / 100,
-  invoiceGross: DEMO_INVOICE.invoiceGrossGrosz / 100,
-  poNet: DEMO_INVOICE.poNetGrosz / 100,
-  poVat: DEMO_INVOICE.poVatGrosz / 100,
-  poGross: DEMO_INVOICE.poGrossGrosz / 100,
-  differenceNet: DEMO_INVOICE.differenceNetGrosz / 100,
-  differenceVat: DEMO_INVOICE.differenceVatGrosz / 100,
-  differenceGross: DEMO_INVOICE.differenceGrossGrosz / 100,
-  monitorUnitDifference:
-    (DEMO_INVOICE.items[0].invoiceUnitNetGrosz - DEMO_INVOICE.items[0].poUnitNetGrosz) / 100,
-};
+  invoiceNet: demoAmount(DEMO_INVOICE.invoiceNetGrosz),
+  invoiceVat: demoAmount(DEMO_INVOICE.invoiceVatGrosz),
+  invoiceGross: demoAmount(DEMO_INVOICE.invoiceGrossGrosz),
+  poNet: demoAmount(DEMO_INVOICE.poNetGrosz),
+  poVat: demoAmount(DEMO_INVOICE.poVatGrosz),
+  poGross: demoAmount(DEMO_INVOICE.poGrossGrosz),
+  differenceNet: demoAmount(DEMO_INVOICE.differenceNetGrosz),
+  differenceVat: demoAmount(DEMO_INVOICE.differenceVatGrosz),
+  differenceGross: demoAmount(DEMO_INVOICE.differenceGrossGrosz),
+} satisfies InvoiceWorkspaceView & { deliveryReceiptId: string };

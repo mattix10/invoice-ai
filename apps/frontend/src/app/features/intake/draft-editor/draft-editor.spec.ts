@@ -122,3 +122,34 @@ describe('DraftEditor', () => {
     );
   });
 });
+
+it('should protect dirty edits from browser closure and remove the listener on destroy', async () => {
+  TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient()] });
+  const fixture = TestBed.createComponent(DraftEditor);
+  fixture.componentRef.setInput('draft', {
+    vendor: 'Original',
+    supplierInvoiceNumber: null,
+    issued: null,
+    due: null,
+    currency: null,
+    vatRate: null,
+    items: [],
+    declaredTotals: null,
+  });
+  fixture.componentRef.setInput('validation', { complete: false, errors: [] });
+  await fixture.whenStable();
+  const clean = new Event('beforeunload', { cancelable: true });
+  window.dispatchEvent(clean);
+  expect(clean.defaultPrevented).toBe(false);
+  const vendor = fixture.nativeElement.querySelector('[name="vendor"]') as HTMLInputElement;
+  vendor.value = 'Unsaved';
+  vendor.dispatchEvent(new Event('input'));
+  await fixture.whenStable();
+  const dirty = new Event('beforeunload', { cancelable: true });
+  window.dispatchEvent(dirty);
+  expect(dirty.defaultPrevented).toBe(true);
+  fixture.destroy();
+  const destroyed = new Event('beforeunload', { cancelable: true });
+  window.dispatchEvent(destroyed);
+  expect(destroyed.defaultPrevented).toBe(false);
+});

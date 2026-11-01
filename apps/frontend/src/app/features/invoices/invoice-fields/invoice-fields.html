@@ -13,7 +13,7 @@
       </div>
       <div>
         <dt>Purchase order</dt>
-        <dd>{{ data().invoice.purchaseOrder }}</dd>
+        <dd>{{ data().invoice.purchaseOrder || 'Not linked' }}</dd>
       </div>
       <div>
         <dt>Issued</dt>
@@ -28,5 +28,15 @@
         <dd>{{ amount(data().invoiceGross, data().invoice.currency) }}</dd>
       </div>
     </dl>
+    @if (data().items.length) {
+      <h3>Line items</h3>
+      <ul>
+        @for (item of data().items; track item.position) {
+          <li>{{ item.name }} · Qty {{ item.quantity }}</li>
+        }
+      </ul>
+    } @else {
+      <p>Line items unavailable.</p>
+    }
   </section></app-panel
 >

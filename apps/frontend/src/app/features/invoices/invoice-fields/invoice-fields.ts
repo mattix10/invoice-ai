@@ -1,6 +1,6 @@
 import { Panel } from '../../../shared/ui/panel/panel';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { formatWorkspaceAmount, InvoiceWorkspaceView } from '../data-access/invoice-adapter';
+import { formatInvoiceAmount, InvoiceFieldsView } from '../data-access/invoice-adapter';
 
 @Component({
   selector: 'app-invoice-fields',
@@ -10,6 +10,6 @@ import { formatWorkspaceAmount, InvoiceWorkspaceView } from '../data-access/invo
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoiceFields {
-  readonly data = input.required<InvoiceWorkspaceView>();
-  protected readonly amount = formatWorkspaceAmount;
+  readonly data = input.required<InvoiceFieldsView>();
+  protected readonly amount = formatInvoiceAmount;
 }

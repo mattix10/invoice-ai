@@ -10,7 +10,7 @@
     "test": "ng test",
     "lint": "ng lint && node scripts/check-angular-architecture.mjs && prettier --check \"src/**/*.{ts,html,scss}\"",
     "arch:test": "node --test scripts/check-angular-architecture.spec.mjs",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
   },
   "private": true,
   "packageManager": "npm@11.12.1",

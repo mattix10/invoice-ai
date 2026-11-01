@@ -28,9 +28,10 @@
         <label class="proposal-label"
           ><input
             type="checkbox"
+            #proposalCheckbox
             [disabled]="disabled() || busy() || !available(proposal)"
             [checked]="selected().includes(i)"
-            (change)="toggle(i, $any($event.target).checked)"
+            (change)="toggle(i, proposalCheckbox.checked)"
           />
           {{ fieldLabel(proposal.field) }}</label
         >
