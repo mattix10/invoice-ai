@@ -1,3 +1,7 @@
+app-panel {
+  border-radius: 0 0 12px 12px;
+  border-top: 0;
+}
 .panel-heading {
   display: flex;
   justify-content: space-between;
@@ -43,13 +47,9 @@ h2 {
 .document {
   display: block;
   width: 100%;
-  height: var(--invoice-document-height, clamp(330px, calc(100vh - 291px), 1000px));
+  height: auto;
+  aspect-ratio: 210 / 270;
   margin: 12px 0 0;
   border: 1px solid var(--border);
   background: var(--surface);
-}
-@media (max-width: 580px) {
-  .document {
-    height: 500px;
-  }
 }

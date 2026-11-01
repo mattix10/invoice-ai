@@ -4,7 +4,8 @@
 .purchase-order {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 0 0 12px 12px;
+  border-top: 0;
   padding: 18px;
 }
 .heading {

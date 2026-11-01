@@ -45,20 +45,14 @@ h1 {
 }
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
   align-items: start;
-}
-.workspace {
-  --invoice-document-height: clamp(280px, calc(100vh - 351px), 1000px);
-}
-.workspace.has-comparison {
-  --invoice-document-height: clamp(240px, calc(100vh - 405px), 1000px);
 }
 .document-pane {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 .document-content {
   min-width: 0;
@@ -69,7 +63,7 @@ h1 {
 .details {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
   min-width: 0;
 }
 .document-pane,
@@ -78,18 +72,19 @@ h1 {
 }
 .section-switcher {
   display: flex;
-  gap: 4px;
-  padding: 4px;
+  gap: 12px;
+  padding: 0 16px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 10px 10px 0 0;
   background: var(--surface);
 }
 .section-switcher button {
   flex: 1 1 0;
   min-width: 0;
-  padding: 10px 8px;
+  padding: 12px 6px 10px;
   border: 0;
-  border-radius: 7px;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   background: transparent;
   color: var(--text-2);
   font: inherit;
@@ -98,7 +93,7 @@ h1 {
   cursor: pointer;
 }
 .section-switcher button[aria-pressed='true'] {
-  background: var(--primary-bg);
+  border-bottom-color: var(--primary);
   color: var(--primary);
 }
 .section-switcher button:focus-visible {
@@ -111,17 +106,6 @@ h1 {
 .section-content {
   display: grid;
   gap: 16px;
-}
-@media (min-width: 1000px) and (min-height: 650px) {
-  .section-content,
-  .document-content {
-    max-height: calc(100vh - 255px);
-    overflow: auto;
-  }
-  .has-comparison .section-content,
-  .has-comparison .document-content {
-    max-height: calc(100vh - 309px);
-  }
 }
 @media (max-width: 999px) {
   .workspace {

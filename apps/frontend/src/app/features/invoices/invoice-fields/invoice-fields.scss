@@ -29,3 +29,7 @@ dd {
     grid-template-columns: 1fr;
   }
 }
+app-panel {
+  border-radius: 0 0 12px 12px;
+  border-top: 0;
+}

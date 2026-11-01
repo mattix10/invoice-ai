@@ -28,7 +28,7 @@
   @if (view(); as comparison) {
     <app-invoice-difference [data]="comparison" />
   }
-  <div class="workspace" [class.has-comparison]="!!view()">
+  <div class="workspace">
     <div class="document-pane">
       <div class="section-switcher" role="group" aria-label="Invoice section">
         <button
