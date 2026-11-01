@@ -9,9 +9,21 @@ InvoiceAI is an Angular UI prototype with a FastAPI/PostgreSQL backend foundatio
 - **AI investigation:** a prepared explanation, three evidence records, an illustrative application-event trail and a recommendation to request supplier confirmation.
 - **Shared interface:** responsive navigation and reusable panels across the application.
 
-The investigation is prepared demonstration content, not a live AI response. The prototype does not perform OCR, contact suppliers, approve invoices or make payments. The backend currently exposes health/readiness only; Angular still uses its existing fixtures. Invoice APIs and frontend integration are future tasks.
+The application uses fictional data and does not contact suppliers, approve invoices or make payments. See [project progress](docs/PROGRESS.md) for the current implementation and verification status.
 
 Backend architecture, setup, tests and safe database lifecycle commands are in [local development](docs/architecture/local-development.md). See [project progress](docs/PROGRESS.md) for actual verification results and [backend architecture](docs/architecture/backend.md) for task boundaries.
+
+## MCP server demonstration
+
+https://github.com/user-attachments/assets/bce5e541-705d-49a3-bccf-ba92f4f6eee0
+
+The demonstration uses MCP Inspector and a synthetic local PostgreSQL dataset to exercise all three tools:
+
+- **`search_invoices`** — filters invoices and returns a paginated result, including the total and an `incomplete` flag.
+- **`get_invoice`** — retrieves invoice details, including line items and gross amount. The example reads `INV-2026-1042` for PLN 12,915.00.
+- **`get_reconciliation_evidence`** — retrieves a previously completed reconciliation and its revision, calculated differences and evidence references. The optional `require_current` parameter rejects stale evidence.
+
+The server runs locally over **stdio** and uses read-only database transactions. It does not run reconciliation or AI inference, and it has no network listener or authentication. Use synthetic data. For configuration and limitations, see the [MCP server documentation](docs/architecture/mcp-server.md) and [example client configuration](mcp-client.example.json).
 
 ## Run locally
 
