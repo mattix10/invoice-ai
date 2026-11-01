@@ -15,7 +15,7 @@ Backend architecture, setup, tests and safe database lifecycle commands are in [
 
 ## MCP server demonstration
 
-<video controls width="960" src="docs/media/mcp-inspector-demo.webm"></video>
+https://github.com/user-attachments/assets/bce5e541-705d-49a3-bccf-ba92f4f6eee0
 
 The demonstration uses MCP Inspector and a synthetic local PostgreSQL dataset to exercise all three tools:
 
