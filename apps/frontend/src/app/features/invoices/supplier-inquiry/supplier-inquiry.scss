@@ -1,0 +1,16 @@
+.inquiry {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+label,
+input,
+textarea {
+  display: block;
+  width: 100%;
+}
+label {
+  margin-top: 1rem;
+}

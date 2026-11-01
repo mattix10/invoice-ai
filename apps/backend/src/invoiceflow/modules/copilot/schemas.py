@@ -22,6 +22,23 @@ class InvestigationRequest(ApiSchema):
     reconciliation_revision: int | None = Field(default=None, gt=0)
 
 
+class SupplierInquiryRequest(ApiSchema):
+    model_config = ConfigDict(extra="forbid")
+    reconciliation_revision: int = Field(gt=0, strict=True)
+    style: Literal["neutral", "concise"] = "neutral"
+
+
+class SupplierInquiryDraft(ApiSchema):
+    subject: str = Field(min_length=1, max_length=200)
+    body: str = Field(min_length=1, max_length=4000)
+    evidence_refs: list[EvidenceReference] = Field(min_length=1, max_length=100)
+    draft_only: Literal[True] = True
+    requires_human_review: Literal[True] = True
+    generation_mode: Literal["demo", "live"]
+    provider: str
+    prompt_version: str
+
+
 class Finding(ApiSchema):
     description: str = Field(max_length=500)
     currency: str = Field(pattern=r"^[A-Z]{3}$")

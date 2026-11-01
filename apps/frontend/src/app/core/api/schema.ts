@@ -174,6 +174,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/invoices/{invoice_id}/supplier-inquiry-drafts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Draft Supplier Inquiry */
+    post: operations['draftSupplierInquiry'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/intake/documents': {
     parameters: {
       query?: never;
@@ -1104,6 +1121,47 @@ export interface components {
       /** Warnings */
       warnings: string[];
     };
+    /** SupplierInquiryDraft */
+    SupplierInquiryDraft: {
+      /** Subject */
+      subject: string;
+      /** Body */
+      body: string;
+      /** Evidencerefs */
+      evidenceRefs: components['schemas']['EvidenceReference'][];
+      /**
+       * Draftonly
+       * @default true
+       * @constant
+       */
+      draftOnly: true;
+      /**
+       * Requireshumanreview
+       * @default true
+       * @constant
+       */
+      requiresHumanReview: true;
+      /**
+       * Generationmode
+       * @enum {string}
+       */
+      generationMode: 'demo' | 'live';
+      /** Provider */
+      provider: string;
+      /** Promptversion */
+      promptVersion: string;
+    };
+    /** SupplierInquiryRequest */
+    SupplierInquiryRequest: {
+      /** Reconciliationrevision */
+      reconciliationRevision: number;
+      /**
+       * Style
+       * @default neutral
+       * @enum {string}
+       */
+      style: 'neutral' | 'concise';
+    };
     /** TextExtractionResponse */
     TextExtractionResponse: {
       /** Documentid */
@@ -1214,6 +1272,8 @@ export type SuggestionDecision = components['schemas']['SuggestionDecision'];
 export type SuggestionDecisions = components['schemas']['SuggestionDecisions'];
 export type SuggestionSource = components['schemas']['SuggestionSource'];
 export type SuggestionsResponse = components['schemas']['SuggestionsResponse'];
+export type SupplierInquiryDraft = components['schemas']['SupplierInquiryDraft'];
+export type SupplierInquiryRequest = components['schemas']['SupplierInquiryRequest'];
 export type TextExtractionResponse = components['schemas']['TextExtractionResponse'];
 export type UploadResponse = components['schemas']['UploadResponse'];
 export type Validation = components['schemas']['Validation'];
@@ -1645,6 +1705,68 @@ export interface operations {
         headers: Record<string, unknown>;
         content: {
           'application/json': components['schemas']['CopilotAnswer'];
+        };
+      };
+      /** @description Invoice or comparison not found */
+      404: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Current reconciliation required */
+      409: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+      /** @description Internal error */
+      500: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+      /** @description Database unavailable */
+      503: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['ApiError'];
+        };
+      };
+    };
+  };
+  draftSupplierInquiry: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Required only for local Cloudflare inference */
+        'X-InvoiceFlow-Local-Secret'?: string | null;
+      };
+      path: {
+        invoice_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SupplierInquiryRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: Record<string, unknown>;
+        content: {
+          'application/json': components['schemas']['SupplierInquiryDraft'];
         };
       };
       /** @description Invoice or comparison not found */

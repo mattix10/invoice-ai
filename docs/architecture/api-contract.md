@@ -98,5 +98,17 @@ Unknown invoices and POs return 404; incompatible currency, tax or mappings retu
 
 `POST /api/v1/copilot/queries` accepts a trimmed `question` (1–500 characters) and optional `invoiceId`. `POST /api/v1/invoices/{invoice_id}/investigations` accepts an optional positive `reconciliationRevision`. Both return `CopilotAnswer` with server-issued citations, structured findings, provenance (`generationMode=demo`, `provider=demo`, `model=null`, `promptVersion=demo-v1`) and human review required. The demo recognizes discrepancy questions with a selected or uniquely mentioned invoice ID and English requests for invoices needing review; other questions explicitly report unavailable interpretation. Search returns at most 20 invoices and indicates truncated context. No inference is performed. Missing reconciliation gives 409 `reconciliation_required`, stale evidence 409 `reconciliation_stale`, unverifiable inputs 409 `reconciliation_unavailable`; disabled provider gives 503 `ai_disabled`, and unsupported provider gives 503 `ai_unavailable`. Invoice not found, validation and database errors retain the existing shapes. The selected reconciliation is checked again under the invoice lock and its stored facts compared to the deterministic calculation before answering. A linked PO source version is checked under its lock; an edited source makes the evidence stale. No reconciliation is created by these endpoints.
 
+## Supplier inquiry draft
+
+`POST /api/v1/invoices/{invoice_id}/supplier-inquiry-drafts` requires a positive
+`reconciliationRevision` and accepts `style` (`neutral` or `concise`). It returns a subject,
+body, validated evidence references, generation provenance, `draftOnly: true` and
+`requiresHumanReview: true`. A current verified reconciliation containing a discrepancy is
+required; missing, stale, inconsistent or unsupported evidence fails closed. It never sends
+email, assigns a recipient, or changes an invoice. The demo uses a deterministic template;
+Cloudflare may select only among bounded opening phrases and must return the supplied evidence
+IDs, while the server renders all facts and rechecks the revision after inference. See
+[AI evaluation](ai-evaluation.md) for the mocked evaluator and optional live-smoke limits.
+
 
 Cloudflare inference is an explicitly enabled local-only mode. Set `AI_PROVIDER=cloudflare`, `CLOUDFLARE_LOCAL_ENABLED=true`, the account and provider credentials, and an independent `CLOUDFLARE_LOCAL_SECRET` generated with `python -c "import secrets; print(secrets.token_hex(32))"`. Both Copilot POST endpoints require this secret in `X-InvoiceFlow-Local-Secret`; invalid or missing configuration or header fails closed. Never reuse the Cloudflare API token as the local secret. Bind the server to `127.0.0.1`, do not publish the port or place a reverse proxy in front of it, and do not commit secrets. Forwarded headers and client IP are not proof of local origin. This temporary secret is not a production authentication system. Demo mode does not require the header.

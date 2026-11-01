@@ -7,7 +7,13 @@ from fastapi.responses import JSONResponse
 
 from invoiceflow.core.database import DatabaseSession
 from invoiceflow.modules.copilot.cloudflare import CloudflareProvider
-from invoiceflow.modules.copilot.schemas import CopilotAnswer, CopilotQuery, InvestigationRequest
+from invoiceflow.modules.copilot.schemas import (
+    CopilotAnswer,
+    CopilotQuery,
+    InvestigationRequest,
+    SupplierInquiryDraft,
+    SupplierInquiryRequest,
+)
 from invoiceflow.modules.copilot.service import CopilotService, CopilotUnavailable
 from invoiceflow.modules.copilot.tools import ReadOnlyTools
 from invoiceflow.modules.invoices.reconciliation import ReconciliationService
@@ -85,6 +91,23 @@ def investigate_invoice(
     local_secret: LocalSecretHeader = None,
 ) -> CopilotAnswer:
     return service(request, session).investigate(invoice_id, body.reconciliation_revision)
+
+
+@router.post(
+    "/invoices/{invoice_id}/supplier-inquiry-drafts",
+    operation_id="draftSupplierInquiry",
+    responses=responses,
+)
+def draft_supplier_inquiry(
+    invoice_id: Id,
+    body: SupplierInquiryRequest,
+    request: Request,
+    session: DatabaseSession,
+    local_secret: LocalSecretHeader = None,
+) -> SupplierInquiryDraft:
+    return service(request, session).draft_supplier_inquiry(
+        invoice_id, body.reconciliation_revision, body.style
+    )
 
 
 def register_copilot_handlers(app):
