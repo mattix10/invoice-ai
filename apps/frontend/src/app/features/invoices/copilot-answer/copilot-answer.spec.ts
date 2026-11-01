@@ -4,6 +4,7 @@ import { CopilotAnswerView } from './copilot-answer';
 
 describe('CopilotAnswerView', () => {
   it('shows an answer and makes missing sources explicit', () => {
+    // Arrange
     TestBed.configureTestingModule({
       imports: [CopilotAnswerView],
       providers: [provideRouter([])],
@@ -15,7 +16,11 @@ describe('CopilotAnswerView', () => {
       incompleteContext: false,
       unavailableReason: null,
     });
+
+    // Act
     fixture.detectChanges();
+
+    // Assert
     expect(fixture.nativeElement.textContent).toContain('Review this difference');
     expect(fixture.nativeElement.textContent).toContain('No sources were supplied');
   });

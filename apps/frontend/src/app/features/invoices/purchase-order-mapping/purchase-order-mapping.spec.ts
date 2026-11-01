@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { PurchaseOrderMappingComponent } from './purchase-order-mapping';
 
 it('emits the selected PO line for an invoice line', async () => {
+  // Arrange
   const fixture = TestBed.createComponent(PurchaseOrderMappingComponent);
   fixture.componentRef.setInput('invoice', { items: [{ position: 1, name: 'Monitor' }] });
   fixture.componentRef.setInput('order', {
@@ -9,6 +10,8 @@ it('emits the selected PO line for an invoice line', async () => {
   });
   fixture.componentRef.setInput('mappings', {});
   const changes: Record<number, number | null>[] = [];
+
+  // Act
   fixture.componentInstance.mappingsChanged.subscribe((mapping) => changes.push(mapping));
   await fixture.whenStable();
 
@@ -16,5 +19,6 @@ it('emits the selected PO line for an invoice line', async () => {
   select.selectedIndex = 1;
   select.dispatchEvent(new Event('change'));
 
+  // Assert
   expect(changes).toEqual([{ 1: 5 }]);
 });

@@ -13,6 +13,7 @@ describe('invoice adapter', () => {
   });
 
   it('preserves exact minor units and rejects unsafe or malformed values', () => {
+    // Act and Assert
     expect(minorUnits('12915.00')).toBe(1291500);
     expect(minorUnits('-615.00')).toBe(-61500);
     expect(() => minorUnits('90071992547409.92')).toThrow();
@@ -31,6 +32,7 @@ describe('invoice adapter', () => {
     };
 
     // Act
+    // Act
     const view = summaryView(invoice);
 
     // Assert
@@ -38,6 +40,7 @@ describe('invoice adapter', () => {
   });
 
   it('maps status, ISO date and currency', () => {
+    // Act and Assert
     expect(
       summaryView({
         id: 'INV-2026-1042',
@@ -58,6 +61,7 @@ describe('invoice adapter', () => {
   });
 
   it('maps canonical totals and the fractional VAT rate', () => {
+    // Arrange
     const summary = {
       id: 'INV-2026-1042',
       vendor: 'Vendor',
@@ -88,6 +92,8 @@ describe('invoice adapter', () => {
       differencePercent: '5.0',
     };
     const result = detailView(detail, comparison);
+
+    // Assert
     expect(result.invoice.vatRate).toBe(23);
     expect(result.invoiceGross).toBe(12915);
     expect(result.differenceGross).toBe(615);
@@ -95,7 +101,10 @@ describe('invoice adapter', () => {
   });
 
   it('preserves both quantities from a linked comparison', () => {
+    // Arrange
     const totals = { net: '8200.00', vat: '1886.00', gross: '10086.00' };
+
+    // Act
     const view = detailView(
       {
         id: 'INV-2026-1042',
@@ -135,6 +144,7 @@ describe('invoice adapter', () => {
       },
     );
 
+    // Assert
     expect(view.items[0]).toEqual(expect.objectContaining({ quantity: 10, poQuantity: 5 }));
   });
 });

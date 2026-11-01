@@ -40,6 +40,7 @@ describe('UploadForm', () => {
     ['invoice.jpg', 'image/jpeg'],
     ['invoice.png', 'image/png'],
   ])('should emit a supported image %s', async (name, type) => {
+    // Arrange
     const fixture = TestBed.createComponent(UploadForm);
     const file = new File(['image'], name, { type });
     const emit = vi.fn();
@@ -48,8 +49,10 @@ describe('UploadForm', () => {
     const input = fixture.nativeElement.querySelector('input');
     Object.defineProperty(input, 'files', { value: [file] });
 
+    // Act
     input.dispatchEvent(new Event('change'));
 
+    // Assert
     expect(emit).toHaveBeenCalledWith(file);
   });
 

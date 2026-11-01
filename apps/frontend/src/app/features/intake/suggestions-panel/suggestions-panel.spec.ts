@@ -5,6 +5,7 @@ import { SuggestionsPanel } from './suggestions-panel';
 
 describe('SuggestionsPanel', () => {
   it('shows source evidence and applies only checked suggestions', async () => {
+    // Arrange
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
@@ -68,12 +69,16 @@ describe('SuggestionsPanel', () => {
       'input[type="checkbox"]',
     ) as NodeListOf<HTMLInputElement>;
     expect(checkboxes[1].disabled).toBe(true);
+
+    // Act
     checkboxes[0].click();
     await fixture.whenStable();
     const buttons = fixture.nativeElement.querySelectorAll(
       'button',
     ) as NodeListOf<HTMLButtonElement>;
     buttons[2].click();
+
+    // Assert
     expect(applied).toHaveBeenCalledOnce();
     expect(applied.mock.calls[0][0]).toEqual([
       expect.objectContaining({ field: 'vendor', value: 'Example' }),

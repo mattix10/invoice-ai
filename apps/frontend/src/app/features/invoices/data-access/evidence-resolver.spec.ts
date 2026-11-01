@@ -18,6 +18,7 @@ describe('resolveEvidence', () => {
   } as ReconciliationRead;
 
   it('links verified lines to their revision and line', () => {
+    // Act and Assert
     expect(resolveEvidence(ref, record)).toMatchObject({
       commands: ['/invoices', 'INV-2026-1042', 'investigation'],
       queryParams: { revision: 2, line: 1 },
@@ -27,6 +28,7 @@ describe('resolveEvidence', () => {
   });
 
   it('does not link forged references or missing records', () => {
+    // Act and Assert
     expect(
       resolveEvidence({ ...ref, evidenceId: 'https://example.com' }, record).commands,
     ).toBeNull();
@@ -35,10 +37,12 @@ describe('resolveEvidence', () => {
   });
 
   it('marks verified historical evidence', () => {
+    // Act and Assert
     expect(resolveEvidence(ref, { ...record, isCurrent: false }).historical).toBe(true);
   });
 
   it('links a canonical selected invoice citation without a reconciliation', () => {
+    // Arrange
     const invoice: EvidenceReference = {
       ...ref,
       kind: 'invoice',
@@ -46,6 +50,8 @@ describe('resolveEvidence', () => {
       linePosition: null,
       evidenceId: 'invoice:INV-2026-1042',
     };
+
+    // Act and Assert
     expect(resolveEvidence(invoice, null, 'INV-2026-1042').commands).toEqual([
       '/invoices',
       'INV-2026-1042',
@@ -58,12 +64,15 @@ describe('resolveEvidence', () => {
   });
 
   it('links a verified current PO line but not a historical snapshot to current comparison', () => {
+    // Arrange
     const po: EvidenceReference = {
       ...ref,
       kind: 'po_line',
       evidenceId: 'invoice:INV-2026-1042:po-snapshot:legacy:line:1',
     };
     const poRecord = { ...record, evidenceRefs: [po] };
+
+    // Act and Assert
     expect(resolveEvidence(po, poRecord)).toMatchObject({
       queryParams: { line: 1 },
       fragment: 'comparison-line-1',
