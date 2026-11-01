@@ -73,7 +73,7 @@ export class SuggestionsPanel {
         this.error.set(
           error instanceof HttpErrorResponse && error.status === 404
             ? 'No suggestions are available yet.'
-            : 'Suggestions are unavailable. You can continue editing manually.',
+            : 'Suggestions are unavailable. Extract document text first, or continue editing manually.',
         );
       },
     });

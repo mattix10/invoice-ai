@@ -42,6 +42,7 @@ export class InvoiceWorkspacePage {
   private readonly injector = inject(Injector);
   private readonly document = inject(DOCUMENT);
   private readonly routeParams = toSignal(this.route.paramMap);
+  protected readonly previewFailed = signal<string | null>(null);
   protected readonly documentSection = signal<'document' | 'invoice'>('document');
   protected readonly section = signal<'purchase-order' | 'comparison'>(
     this.route.snapshot?.fragment?.startsWith('comparison') ? 'comparison' : 'purchase-order',
@@ -62,28 +63,11 @@ export class InvoiceWorkspacePage {
           ),
       }).pipe(
         map(({ invoice, comparison }) => {
-          const fragment = this.route.snapshot?.fragment;
-          const line = this.route.snapshot?.queryParamMap.get('line');
-          if (comparison && fragment?.startsWith('comparison')) {
-            this.section.set('comparison');
-          }
-          if (comparison && fragment === 'comparison') {
-            afterNextRender(() => this.document.getElementById('comparison')?.scrollIntoView(), {
-              injector: this.injector,
-            });
-          }
-          if (
-            comparison &&
-            line &&
-            /^[1-9]\d*$/.test(line) &&
-            comparison.items.some((item) => item.position === Number(line)) &&
-            fragment === `comparison-line-${line}`
-          ) {
-            afterNextRender(
-              () => this.document.getElementById(`comparison-line-${line}`)?.focus(),
-              { injector: this.injector },
-            );
-          }
+          this.navigateToComparison(
+            comparison,
+            this.route.snapshot?.fragment,
+            this.route.snapshot?.queryParamMap.get('line'),
+          );
 
           return {
             invoice,
@@ -112,25 +96,36 @@ export class InvoiceWorkspacePage {
     combineLatest([this.route.fragment, this.route.queryParamMap])
       .pipe(takeUntilDestroyed())
       .subscribe(([fragment, query]) => {
-        const comparison = this.view();
-        if (!comparison || !fragment?.startsWith('comparison')) return;
-        this.section.set('comparison');
-        const line = query.get('line');
-        if (
-          line &&
-          /^[1-9]\d*$/.test(line) &&
-          fragment === `comparison-line-${line}` &&
-          comparison.items.some((item) => item.position === Number(line))
-        ) {
-          afterNextRender(() => this.document.getElementById(fragment)?.focus(), {
-            injector: this.injector,
-          });
-        } else if (fragment === 'comparison') {
-          afterNextRender(() => this.document.getElementById('comparison')?.scrollIntoView(), {
-            injector: this.injector,
-          });
-        }
+        this.navigateToComparison(this.view(), fragment, query.get('line'));
       });
+  }
+
+  private navigateToComparison(
+    comparison: { items: readonly { position: number }[] } | null,
+    fragment: string | null | undefined,
+    line: string | null | undefined,
+  ): void {
+    if (!comparison || !fragment?.startsWith('comparison')) return;
+
+    this.section.set('comparison');
+    if (fragment === 'comparison') {
+      afterNextRender(() => this.document.getElementById(fragment)?.scrollIntoView(), {
+        injector: this.injector,
+      });
+
+      return;
+    }
+
+    if (
+      line &&
+      /^[1-9]\d*$/.test(line) &&
+      fragment === `comparison-line-${line}` &&
+      comparison.items.some((item) => item.position === Number(line))
+    ) {
+      afterNextRender(() => this.document.getElementById(fragment)?.focus(), {
+        injector: this.injector,
+      });
+    }
   }
 
   protected load(): void {

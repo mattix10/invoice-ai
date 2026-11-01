@@ -78,3 +78,52 @@ h1 {
     font-size: 25px;
   }
 }
+
+:where(button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+:where(button, .btn):hover:not(:disabled) {
+  border-color: var(--primary);
+  background-color: var(--primary-bg);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: #3730a3;
+  color: white;
+}
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+:where(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea) {
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #98a2b3;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+:where(input, select, textarea):hover:not(:disabled) {
+  border-color: var(--primary);
+}
+:where(input, select, textarea)[aria-invalid='true'],
+:where(input, select, textarea).ng-invalid.ng-touched {
+  border-color: var(--danger);
+}
+:where(input[type='checkbox'], input[type='radio']) {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}

@@ -67,6 +67,16 @@ def upload_document(
     }
 
 
+@router.get("/by-invoice/{invoice_id}/preview", response_class=Response, responses=errors)
+def get_invoice_document_preview(invoice_id: str, service: Service):
+    doc = service.get_by_invoice(invoice_id)
+    return Response(
+        service.preview(doc),
+        media_type="image/jpeg",
+        headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"},
+    )
+
+
 @router.get("/{document_id}", response_model=DocumentResponse, responses=errors)
 def get_document(document_id: UUID, service: Service):
     return document_response(service.get(str(document_id)))

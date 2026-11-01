@@ -50,6 +50,12 @@
         <div [hidden]="documentSection() !== 'document'">
           @if (invoice.id === 'INV-2026-1042') {
             <app-invoice-document />
+          } @else if (previewFailed() !== invoice.id) {
+            <img
+              [src]="'/api/v1/intake/documents/by-invoice/' + invoice.id + '/preview'"
+              alt="Uploaded invoice document preview"
+              (error)="previewFailed.set(invoice.id)"
+            />
           } @else {
             <p>Document preview unavailable for this invoice.</p>
           }

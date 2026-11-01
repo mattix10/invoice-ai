@@ -635,3 +635,22 @@ def test_suggestion_decisions_and_draft_are_audited_atomically(client, session, 
         {"field": "vendor", "decision": "applied"},
         {"field": "currency", "decision": "rejected"},
     ]
+
+
+def test_confirmed_invoice_preview_resolves_to_its_uploaded_document(client):
+    from PIL import Image
+
+    image = BytesIO()
+    Image.new("RGB", (10, 10), "white").save(image, format="PNG")
+    document = upload(client, image.getvalue(), "invoice.png", "image/png").json()
+    url = "/api/v1/intake/documents/" + document["documentId"]
+    client.put(url + "/draft", json={"expectedRevision": 0, "draft": draft()})
+    invoice_id = client.post(url + "/confirm", json={"expectedRevision": 1}).json()["invoiceId"]
+
+    response = client.get(f"/api/v1/intake/documents/by-invoice/{invoice_id}/preview")
+    missing = client.get("/api/v1/intake/documents/by-invoice/INV-2026-9999/preview")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    assert response.content == client.get(url + "/preview").content
+    assert missing.status_code == 404

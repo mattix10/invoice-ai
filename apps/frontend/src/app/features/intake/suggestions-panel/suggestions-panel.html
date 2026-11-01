@@ -1,11 +1,14 @@
 <section aria-labelledby="suggestions-heading">
   <h2 id="suggestions-heading">Extraction suggestions</h2>
-  <p>Suggestions are applied only when selected. Review them before saving.</p>
+  <p>
+    First extract document text, then run suggestions. Select and review each suggestion before
+    saving.
+  </p>
   <button type="button" [disabled]="busy() || disabled()" (click)="load(false)">
     Load latest suggestions
   </button>
   <button type="button" [disabled]="busy() || disabled()" (click)="load(true)">
-    Run extraction
+    Run suggestions
   </button>
   @if (busy()) {
     <p role="status">Loading suggestions…</p>

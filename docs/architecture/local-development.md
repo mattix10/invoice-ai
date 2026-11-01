@@ -17,6 +17,8 @@ Invoke-RestMethod http://localhost:8000/health
 Invoke-RestMethod http://localhost:8000/health/ready
 ```
 
+The repair migration for early `0008_purchase_orders` schemas preserves existing data. If legacy purchase orders exist without recorded provenance, it stops without guessing their source; resolve their provenance with a reviewed migration before retrying. It does not reset the database.
+
 Both health endpoints return `{"status":"ok"}` when PostgreSQL is available. `/health` is process liveness; `/health/ready` checks PostgreSQL and returns 503 when unavailable. Readiness does not assert schema version; apply migrations explicitly before using business APIs. Open `http://localhost:8000/docs` or `/openapi.json` for the invoice and reconciliation routes. The container runs as a non-root user; only the backend and PostgreSQL development ports are exposed on loopback.
 
 Document intake is for local development only until Task 09 adds authorization. Compose stores uploaded PDFs in the private `intake-data` volume; it survives container restarts. Local non-container runs use `.invoiceflow-storage` in the backend working directory by default; `INTAKE_STORAGE_DIR` overrides it. Keep this directory private and outside static hosting. Do not commit documents or expose the unauthenticated application publicly.
@@ -25,7 +27,7 @@ The upload accepts PDF files up to 10 MiB and 20 pages, and JPEG or PNG files up
 
 ## Local field suggestions
 
-`AI_PROVIDER=disabled` is the default. Suggestion reruns then return 503 (`suggestions_unavailable`), while manual editing remains available. Set `AI_PROVIDER=demo` in `apps/backend/.env` and recreate the backend container to enable the offline deterministic parser:
+`AI_PROVIDER=demo` enables the offline deterministic parser by default in a new local environment. Set `AI_PROVIDER=disabled` to turn suggestions off; manual editing remains available. If your existing `.env` uses `disabled`, change it to `demo` and recreate the backend container:
 
 ```powershell
 docker compose --env-file apps/backend/.env up -d --force-recreate backend
@@ -48,7 +50,7 @@ VAT: 5.52
 Gross: 29.52
 ```
 
-Each item line contains position, name, integer quantity and decimal-string unit net price; consecutive item lines form one block. Totals must appear in the shown order. Dates use ISO format, currency uses three uppercase letters, and VAT is a decimal rate between 0 and 1. The parser intentionally recognizes only this demo format; OCR may alter labels or values, so inspect the extracted text and source spans. Suggestions do not update the draft automatically. Select fields, review and save; mismatched totals produce warnings, and confirmation uses the existing validated draft flow.
+Each item line contains position, name, integer quantity and decimal-string unit net price; consecutive item lines form one block. Totals must appear in the shown order. Dates use ISO format, currency uses three uppercase letters, and VAT is a decimal rate between 0 and 1. The parser recognizes this demo format and a limited English single-line-item invoice text layout; OCR may alter labels or values, so inspect the extracted text and source spans. Suggestions do not update the draft automatically. Select fields, review and save; mismatched totals produce warnings, and confirmation uses the existing validated draft flow.
 
 ## Offline document worker (Windows / VS Code)
 
