@@ -27,6 +27,7 @@ Reviewing an invoice often means switching between the source document, extracte
 - [Repository structure](#repository-structure)
 - [Run locally](#run-locally)
 - [Verify and test](#verify-and-test)
+- [Coming soon](#coming-soon)
 - [Scope and limitations](#scope-and-limitations)
 - [Further documentation](#further-documentation)
 
@@ -64,23 +65,37 @@ The Overview combines a review queue with a highlighted exception. Use **Upload 
 
 ### 2. Upload and review a document
 
-The guided intake accepts a local PDF, JPEG or PNG within the documented limits. After upload, the reviewer can extract text, request supported field suggestions, selectively apply them, correct the draft and confirm it. Digital PDF text extraction and OCR are distinct processing paths; extraction does not guarantee correct values.
+Start with **Upload invoice** and choose a fictional PDF, JPEG or PNG (up to 10 MiB). The application validates the upload and opens a persistent draft. Its four-step indicator makes the workflow visible without replacing human review.
 
-![Guided invoice upload with the four intake steps](docs/media/readme/intake.png)
+![Guided invoice upload with four intake steps](docs/media/readme/intake.png)
 
-*The upload screen explains the sequence: upload, review fields, review line items and confirm. Suggestions require human inspection before confirmation.*
+**Review fields.** Use **Extract text** to read the document. Open **Review extraction suggestions** and run the local suggestion parser; inspect the proposed value and source, then apply or reject selected suggestions. Edit the supplier, invoice number, dates, currency and VAT rate directly. **Save draft** stores the current edits; **Continue** moves to the line items. The preview can be zoomed, and **Open original** opens the uploaded document separately.
+
+![Review fields alongside the document preview](docs/media/readme/review-fields.png)
+
+**Review line items.** Check the description, quantity, unit net, tax and calculated net amount for each row. Add or remove rows, edit declared net/VAT/gross totals and return to the previous step if necessary. The line items and declared totals must be checked against the source document.
+
+![Line item editor and declared totals](docs/media/readme/review-items.png)
+
+**Confirm.** The review summary brings invoice details, line items, totals and draft validation together. **Edit** returns to the relevant section; **Save draft** retains changes; **Confirm invoice** creates an invoice for review. Confirmation is a human action and does not approve a payment. The screenshot below shows the review screen before confirmation.
+
+![Review summary with invoice details, line items and confirmation action](docs/media/readme/confirm.png)
+
+Digital PDF text extraction and OCR are distinct processing paths. Suggestions are assistive and can be wrong or incomplete. The screenshots use a fictional local invoice and the deterministic demo parser.
 
 ### 3. Review invoice and purchase order
 
-The workspace brings the source preview, invoice details and purchase-order workflow together. A reviewer can select or create a fictional PO, map its lines, run reconciliation and open the comparison. A missing PO remains an explicit state rather than a fabricated match.
+The invoice workspace keeps the source document, recorded fields and comparison in one place. The sample PDF appears as a **single full page** inside the preview. Use the magnifying-glass action to open the original in a separate tab, **Invoice details** to inspect recorded fields, and **Investigate** to open the evidence and Copilot view.
 
-![Invoice workspace with source document preview and purchase-order controls](docs/media/readme/workspace.png)
+![Invoice workspace with a single-page PDF preview and purchase-order controls](docs/media/readme/workspace.png)
 
-*The sample invoice has a historical comparison; the PO panel also shows that an independent purchase order can be linked for subsequent reconciliation.*
+![Recorded invoice fields alongside the expanded purchase-order comparison](docs/media/readme/invoice-fields.png)
 
-![Invoice and purchase-order line comparison](docs/media/readme/comparison.png)
+**Purchase order.** Select an existing order or create a fictional one, map its lines to invoice lines and explicitly run reconciliation. A missing independent PO remains an **Awaiting PO** state; the sample can also have an earlier recorded comparison. Historical snapshots remain available as evidence.
 
-*The comparison shows quantities and unit prices for each line. For the sample, the invoice gross is PLN 12,915.00 versus a PO gross of PLN 12,300.00: a PLN 615.00 difference.*
+**Comparison.** Select **Comparison** to review line quantities, unit prices and net amounts side by side. Expand **Invoice and purchase order totals** to reveal the net, VAT and gross table; the summary strip shows the corresponding differences. For `INV-2026-1042`, invoice gross is PLN 12,915.00 and PO gross is PLN 12,300.00, a difference of PLN 615.00.
+
+![Line comparison and expanded invoice versus purchase-order totals table](docs/media/readme/comparison.png)
 
 ### 4. Investigate and prepare a response
 
@@ -257,6 +272,29 @@ uv run pytest tests/unit
 ```
 
 PostgreSQL integration tests require the **separate disposable database** ending in `_test`; follow the commands in [local development](docs/architecture/local-development.md#backend-tests-and-migration-checks). Tests do not require a live model call. API types can be regenerated from the running backend's OpenAPI schema with `npm run api:generate` in `apps/frontend`.
+
+## Coming soon
+
+These items are **planned or awaiting verification**. They are not a claim that a public deployment or live AI demonstration is currently available.
+
+| Area | Next step | Current status |
+| --- | --- | --- |
+| Identity and tenant isolation | Add authentication, authorization and tenant-scoped data access before public exposure. | Planned in [Task 09](tasks/backend/09-auth-and-authorization.md). |
+| Azure architecture | Prepare reviewable infrastructure as code, network and secrets design, migration runbook and cost estimates. | Planned in [Task 06](tasks/backend/06-azure-deployment.md); no resources are provisioned by this README. |
+| Cloudflare Workers AI | Verify a bounded, explicitly enabled local live-provider scenario with fictional data and document its outcome. | The provider adapter exists; the recorded walkthrough uses demo mode and the optional live smoke was not performed in the documented evaluation. |
+| AI client + MCP | Demonstrate a real compatible assistant discovering and invoking the local MCP tools, then checking its answer against returned evidence. | Planned; the Inspector walkthrough demonstrates tools without a live AI client. |
+| Remote MCP and deployment | Evaluate authenticated network transport and deployment after identity, tenant and security requirements are met. | Local stdio is the current integration. |
+
+A proposed Azure direction is shown below for discussion, not as deployed infrastructure. The final topology, identity provider, network rules and costs require review.
+
+```mermaid
+flowchart LR
+    User[Reviewer] --> UI[Azure static frontend - proposed]
+    UI --> API[Container-hosted FastAPI - proposed]
+    API --> DB[(Managed PostgreSQL - proposed)]
+    API -. optional inference .-> AI[Cloudflare Workers AI]
+    Identity[Identity and tenant authorization - prerequisite] -. protects .-> API
+```
 
 ## Scope and limitations
 
