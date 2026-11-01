@@ -15,15 +15,12 @@
     (retry)="session.load()"
   />
   <app-copilot-panel
-    [answer]="session.answer()"
-    [sources]="session.sources()"
+    [turns]="session.turns()"
     [state]="session.answerState()"
-    [error]="session.answerError()"
     [historical]="
       session.selectedRevision() || (!!session.result() && !session.result()?.isCurrent)
     "
     [evidenceLoading]="session.state() === 'loading'"
-    [lastQuestion]="session.lastQuestion()"
     (submitted)="session.ask($event)"
     (retry)="session.retryAnswer()"
   />

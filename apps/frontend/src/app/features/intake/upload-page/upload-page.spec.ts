@@ -26,7 +26,7 @@ describe('UploadPage', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body.get('file')).toBe(file);
     request.flush({ documentId: 'doc-1' });
-    expect(navigate).toHaveBeenCalledWith(['/intake', 'doc-1']);
+    expect(navigate).toHaveBeenCalledWith(['/overview/intake', 'doc-1']);
     http.verify();
   });
 

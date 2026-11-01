@@ -1,0 +1,12 @@
+<div role="status" class="validation">
+  <span class="validation-icon" aria-hidden="true">!</span>
+  <div>
+    <p><strong>Complete the draft before confirming</strong></p>
+    <p class="validation-hint">The last saved version is missing these details:</p>
+    <ul aria-label="Missing invoice details">
+      @for (error of errors(); track $index) {
+        <li>{{ labels[error] || error }}</li>
+      }
+    </ul>
+  </div>
+</div>

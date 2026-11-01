@@ -34,6 +34,8 @@ interface PendingConfirmation {
 export class DraftReview {
   readonly visit = input.required<DraftVisit>();
   readonly document = input.required<DocumentResponse>();
+  readonly step = input(2);
+  readonly stepChange = output<number>();
   readonly saved = output<SavedDraft>();
   readonly reload = output<void>();
 

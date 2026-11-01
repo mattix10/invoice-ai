@@ -2,12 +2,16 @@
   ><section class="panel" aria-labelledby="comparison-title">
     <h2 id="comparison-title">Line items and PO comparison</h2>
     <p class="section-note">Net amounts · {{ data().invoice.purchaseOrder }}</p>
-    <app-invoice-comparison-table
-      label="Line items and purchase order comparison"
-      [headers]="itemHeaders"
-      [rows]="itemRows()"
-      [positions]="itemPositions()"
-    />
+    @if (itemRows().length) {
+      <app-invoice-comparison-table
+        label="Line items and purchase order comparison"
+        [headers]="itemHeaders"
+        [rows]="itemRows()"
+        [positions]="itemPositions()"
+      />
+    } @else {
+      <p class="empty-items">No invoice line items are available to compare.</p>
+    }
     <details class="comparison-totals">
       <summary>Invoice and purchase order totals</summary>
       <app-invoice-comparison-table

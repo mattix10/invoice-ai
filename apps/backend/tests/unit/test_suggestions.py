@@ -255,3 +255,57 @@ def test_save_audits_decisions_from_multiple_suggestion_versions():
         "field": "currency",
         "decision": "rejected",
     }
+
+
+def test_invoice_layout_extracts_reviewable_values_with_source_evidence():
+    text = (
+        "Invoice number\nTEST-001\nDate of issue\nSeptember 30, 2026\n"
+        "Date due\nSeptember 30, 2026\nExample Cloud Ltd.\nDublin\nBill to\nBuyer Ltd.\n"
+        "EUR 18.70 due September 30, 2026\n"
+        "Description\nQty\nUnit price\nTax\nAmount\nService\n1\n18.70\n0%\n18.70\n"
+        "Subtotal\n18.70\nTax\n0.00\nTotal due\nEUR 18.70\n"
+    )
+    page = SimpleNamespace(text=text, page_number=1, extraction_method="pdf_text")
+
+    proposals = parse_suggestions([page], 1)
+    values = {item.field: item.value for item in proposals}
+
+    assert values["vendor"] == "Example Cloud Ltd."
+    assert values["supplierInvoiceNumber"] == "TEST-001"
+    assert values["issued"] == values["due"] == "2026-09-30"
+    assert values["currency"] == "EUR"
+    assert values["vatRate"] == "0"
+    assert values["items"][0].unit_net == "18.70"
+    assert values["declaredTotals"].gross == "18.70"
+    for item in proposals:
+        assert text[item.source.start : item.source.end] == item.source.excerpt
+
+
+def test_invoice_layout_does_not_propose_inconsistent_item_amount():
+    page = SimpleNamespace(
+        text=(
+            "Description\nQty\nUnit price\nTax\nAmount\nService\n2\n18.70\n0%\n18.70\n"
+            "Subtotal\n18.70\n"
+        ),
+        page_number=1,
+        extraction_method="pdf_text",
+    )
+    assert not {item.field for item in parse_suggestions([page], 1)} & {"items", "vatRate"}
+
+
+def test_invoice_layout_does_not_propose_partial_multi_item_table():
+    page = SimpleNamespace(
+        text=(
+            "Description\nQty\nUnit price\nTax\nAmount\n"
+            "Service\n1\n18.70\n0%\n18.70\n"
+            "Support\n1\n10.00\n0%\n10.00\n"
+            "Subtotal\n28.70\nTax\n0.00\nTotal due\nEUR 28.70\n"
+        ),
+        page_number=1,
+        extraction_method="pdf_text",
+    )
+
+    proposals = parse_suggestions([page], 1)
+
+    assert not {item.field for item in proposals} & {"items", "vatRate"}
+    assert next(item.value.gross for item in proposals if item.field == "declaredTotals") == "28.70"

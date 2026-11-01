@@ -7,7 +7,7 @@ describe('OverviewKpis', () => {
     ['Awaiting review', '8'],
     ['Approved this month', '96'],
     ['Processed this month', '124'],
-    ['Invoice value', 'PLN 318,740.00'],
+    ['Invoice value', '318\u00a0740,00\u00a0zł'],
   ])('should show the value %s: %s in its metric', async (label, expected) => {
     // Arrange
     const fixture = TestBed.createComponent(OverviewKpis);

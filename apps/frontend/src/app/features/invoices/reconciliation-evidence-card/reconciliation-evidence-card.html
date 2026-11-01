@@ -35,7 +35,6 @@
       <div class="record-heading">
         <div>
           <h3>Revision {{ record.revision }}</h3>
-          <p>{{ record.algorithmVersion }}</p>
         </div>
         <span class="status">{{
           record.isCurrent ? 'Current snapshot' : 'Historical snapshot'
@@ -58,14 +57,26 @@
           <dd>{{ amount(record.result.difference.gross, record.result.inputs.currency) }}</dd>
         </div>
       </dl>
-      <p>
-        Difference: {{ amount(record.result.difference.net, record.result.inputs.currency) }} net ·
-        {{ amount(record.result.difference.vat, record.result.inputs.currency) }} VAT
-      </p>
-      <div class="record-details">
-        <p>Purchase order: {{ record.result.inputs.purchaseOrder }}</p>
-        <p>Receipt: {{ record.result.inputs.deliveryReceiptId || 'Unavailable' }}</p>
-      </div>
+      <dl class="breakdown">
+        <div>
+          <dt>Net difference</dt>
+          <dd>{{ amount(record.result.difference.net, record.result.inputs.currency) }}</dd>
+        </div>
+        <div>
+          <dt>VAT difference</dt>
+          <dd>{{ amount(record.result.difference.vat, record.result.inputs.currency) }}</dd>
+        </div>
+      </dl>
+      <dl class="record-details">
+        <div>
+          <dt>Purchase order</dt>
+          <dd>{{ record.result.inputs.purchaseOrder }}</dd>
+        </div>
+        <div>
+          <dt>Receipt</dt>
+          <dd>{{ record.result.inputs.deliveryReceiptId || 'Unavailable' }}</dd>
+        </div>
+      </dl>
       <h3>Line differences</h3>
       <ul class="lines">
         @for (line of record.result.lines; track line.position) {

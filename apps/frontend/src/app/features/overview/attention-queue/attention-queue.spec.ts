@@ -36,7 +36,7 @@ describe('AttentionQueue', () => {
     // Assert
     const view = fixture.nativeElement as HTMLElement;
     const warning = view.querySelector('section[aria-label="Invoice requiring attention"]');
-    expect(warning?.querySelector('p')?.textContent).toContain('615.00');
+    expect(warning?.querySelector('p')?.textContent).toContain('615,00\u00a0zł');
     expect(warning?.querySelector('p')?.textContent).toContain('5.0%');
     expect(warning?.querySelector('a')?.getAttribute('href')).toBe(
       '/invoices/INV-2026-1042/investigation',
@@ -57,6 +57,6 @@ describe('AttentionQueue', () => {
       entries.some((entry) => entry.textContent?.includes('7 more invoices await review')),
     ).toBe(true);
     const featured = entries.find((entry) => entry.textContent?.includes('INV-2026-1042'));
-    expect(featured?.nextElementSibling?.textContent).toContain('615.00');
+    expect(featured?.nextElementSibling?.textContent).toContain('615,00\u00a0zł');
   });
 });

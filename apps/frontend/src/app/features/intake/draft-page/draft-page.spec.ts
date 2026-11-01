@@ -1,9 +1,19 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { DraftPage } from './draft-page';
+
+async function goToConfirmation(fixture: ComponentFixture<DraftPage>): Promise<void> {
+  for (let step = 0; step < 2; step++) {
+    const button = [...fixture.nativeElement.querySelectorAll('button')].find((element: Element) =>
+      element.textContent?.trim().startsWith('Continue'),
+    ) as HTMLButtonElement;
+    button.click();
+    await fixture.whenStable();
+  }
+}
 
 describe('DraftPage', () => {
   it('should ignore a save from an earlier visit after returning to the same document', async () => {
@@ -47,6 +57,7 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+    await goToConfirmation(fixture);
     const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
       button.textContent?.includes('Confirm invoice'),
     ) as HTMLButtonElement;
@@ -112,6 +123,7 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+    await goToConfirmation(fixture);
     const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
       button.textContent?.includes('Confirm invoice'),
     ) as HTMLButtonElement;
@@ -181,6 +193,7 @@ describe('DraftPage', () => {
       .expectOne('/api/v1/intake/documents/doc-1/preview')
       .flush(new Blob(), { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
+    await goToConfirmation(fixture);
     const confirm = [...fixture.nativeElement.querySelectorAll('button')].find((button: Element) =>
       button.textContent?.includes('Confirm invoice'),
     ) as HTMLButtonElement;
@@ -524,6 +537,7 @@ describe('DraftPage', () => {
     await fixture.whenStable();
 
     // Act
+    await goToConfirmation(fixture);
     const button = [...fixture.nativeElement.querySelectorAll('button')].find((element: Element) =>
       element.textContent.includes('Confirm invoice'),
     ) as HTMLButtonElement;
@@ -582,6 +596,7 @@ describe('DraftPage', () => {
     await fixture.whenStable();
 
     // Act
+    await goToConfirmation(fixture);
     const button = [...fixture.nativeElement.querySelectorAll('button')].find((element: Element) =>
       element.textContent?.includes('Confirm invoice'),
     ) as HTMLButtonElement;

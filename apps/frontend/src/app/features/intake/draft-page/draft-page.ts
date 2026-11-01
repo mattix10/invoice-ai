@@ -1,11 +1,14 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   computed,
   inject,
+  Injector,
   linkedSignal,
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { distinctUntilChanged, map, Observable } from 'rxjs';
@@ -13,17 +16,20 @@ import type { TextExtractionResponse } from '../../../core/api/schema';
 import { IntakeApi, SavedDraft } from '../data-access/intake-api';
 import { DocumentPreview } from '../document-preview/document-preview';
 import { DraftReview } from '../draft-review/draft-review';
+import { IntakeStepper } from '../intake-stepper/intake-stepper';
 import { ExtractedText } from '../extracted-text/extracted-text';
 
 @Component({
   selector: 'app-draft-page',
-  imports: [DocumentPreview, DraftReview, ExtractedText, RouterLink],
+  imports: [DocumentPreview, DraftReview, ExtractedText, RouterLink, IntakeStepper],
   templateUrl: './draft-page.html',
   styleUrl: './draft-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DraftPage {
   private readonly api = inject(IntakeApi);
+  private readonly injector = inject(Injector);
+  private readonly browserDocument = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly routeVisit = toSignal(
@@ -35,6 +41,7 @@ export class DraftPage {
     { initialValue: { documentId: this.route.snapshot.paramMap.get('documentId') ?? '' } },
   );
 
+  protected readonly step = linkedSignal(() => this.resetForVisit(2));
   protected readonly documentId = computed(() => this.routeVisit().documentId);
   protected readonly originalFileUrl = computed(() => this.api.originalFileUrl(this.documentId()));
   protected readonly document = this.api.documentResource(this.documentId);
@@ -44,6 +51,18 @@ export class DraftPage {
   );
   protected readonly extractionBusy = linkedSignal(() => this.resetForVisit(false));
   protected readonly extractionError = linkedSignal(() => this.resetForVisit(''));
+
+  protected changeStep(step: number): void {
+    this.step.set(step);
+    const heading = ['upload-heading', 'fields-heading', 'items-heading', 'summary-heading'][
+      step - 1
+    ];
+    if (heading) {
+      afterNextRender(() => this.browserDocument.getElementById(heading)?.focus(), {
+        injector: this.injector,
+      });
+    }
+  }
 
   protected saveDraft(saved: SavedDraft): void {
     this.document.update((current) =>

@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import {
+  afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CopilotAnswerView } from '../copilot-answer/copilot-answer';
-import type { CopilotAnswer } from '../../../core/api/schema';
-import type { EvidenceDestination } from '../data-access/evidence-resolver';
+import type { ConversationTurn } from '../data-access/conversation-turn';
 
 @Component({
   selector: 'app-copilot-panel',
@@ -11,16 +19,24 @@ import type { EvidenceDestination } from '../data-access/evidence-resolver';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CopilotPanel {
-  readonly answer = input<CopilotAnswer | null>(null);
-  readonly sources = input<readonly EvidenceDestination[]>([]);
+  readonly turns = input<readonly ConversationTurn[]>([]);
   readonly state = input<'idle' | 'loading' | 'error' | 'ready'>('idle');
-  readonly error = input('');
   readonly historical = input(false);
   readonly evidenceLoading = input(false);
-  readonly lastQuestion = input('');
   readonly submitted = output<string>();
   readonly retry = output<void>();
   protected readonly question = signal('');
+  private readonly conversation = viewChild.required<ElementRef<HTMLDivElement>>('conversation');
+
+  constructor() {
+    afterRenderEffect({
+      mixedReadWrite: () => {
+        if (this.turns().length === 0) return;
+        const conversation = this.conversation().nativeElement;
+        conversation.scrollTop = conversation.scrollHeight;
+      },
+    });
+  }
 
   protected send(): void {
     const question = this.question().trim();
@@ -30,8 +46,10 @@ export class CopilotPanel {
       this.state() !== 'loading' &&
       !this.historical() &&
       !this.evidenceLoading()
-    )
+    ) {
       this.submitted.emit(question);
+      this.question.set('');
+    }
   }
 
   protected suggest(question: string): void {

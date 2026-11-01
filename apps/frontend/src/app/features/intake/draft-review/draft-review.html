@@ -17,13 +17,17 @@
   <p role="status">
     The confirmation outcome is unknown. Retry confirmation or reload the document.
   </p>
-  <button type="button" [disabled]="busy()" (click)="retryConfirmation()">
-    Retry confirmation
-  </button>
-  <button type="button" [disabled]="busy()" (click)="reloadDocument()">Reload document</button>
+  <div class="button-group">
+    <button type="button" [disabled]="busy()" (click)="retryConfirmation()">
+      Retry confirmation
+    </button>
+    <button type="button" [disabled]="busy()" (click)="reloadDocument()">Reload document</button>
+  </div>
 }
 <app-draft-editor
   [documentId]="documentId()"
+  [step]="step()"
+  (stepChange)="stepChange.emit($event)"
   [draft]="document().draft"
   [validation]="document().validation"
   [busy]="busy() || conflict() || pendingConfirmation() !== null"

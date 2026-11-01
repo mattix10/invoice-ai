@@ -9,6 +9,10 @@ from invoiceflow.modules.intake.ocr_client import extract_ocr, extract_text_laye
 from invoiceflow.modules.intake.service import IntakeService
 
 
+def normalize_document_text(text: str) -> str:
+    return text.replace("\x00", " ")
+
+
 class ExtractionService:
     def __init__(self, session: Session, directory: str, spool: str | None):
         self.session = session
@@ -26,7 +30,9 @@ class ExtractionService:
                 raise IntakeError(503, "extraction_unavailable", "Document processing unavailable")
             kind = path.suffix.removeprefix(".")
             if kind == "pdf":
-                text_pages = extract_text_layer(path, self.spool)
+                text_pages = [
+                    normalize_document_text(text) for text in extract_text_layer(path, self.spool)
+                ]
                 ocr_pages = (
                     extract_ocr(path, kind, self.spool)
                     if any(not page.strip() for page in text_pages)
@@ -37,11 +43,16 @@ class ExtractionService:
                         503, "extraction_unavailable", "Document processing unavailable"
                     )
                 pages = [
-                    ("pdf_text", text) if text.strip() else ("ocr", ocr_pages[index])
+                    ("pdf_text", text)
+                    if text.strip()
+                    else ("ocr", normalize_document_text(ocr_pages[index]))
                     for index, text in enumerate(text_pages)
                 ]
             else:
-                pages = [("ocr", text) for text in extract_ocr(path, kind, self.spool)]
+                pages = [
+                    ("ocr", normalize_document_text(text))
+                    for text in extract_ocr(path, kind, self.spool)
+                ]
                 if len(pages) != 1:
                     raise IntakeError(
                         503, "extraction_unavailable", "Document processing unavailable"

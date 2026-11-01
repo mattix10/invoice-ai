@@ -5,7 +5,7 @@
 **Primary question:** “Which invoices require my attention?”
 
 Content:
-- Shared shell: 232px neutral dark sidebar + 66px topbar.
+- Shared shell: 192px neutral dark sidebar + 54px topbar.
 - Page title and one primary CTA: “Review next invoice”.
 - Four neutral KPI cards: Awaiting review, Approved this month, Processed this month, Invoice value. Only the first KPI receives a subtle indigo border accent.
 - A restrained warning strip for the golden demo invoice; the explanation and amount must agree with `DEMO-DATA.md`.

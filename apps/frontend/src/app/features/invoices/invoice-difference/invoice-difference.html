@@ -16,15 +16,15 @@
   <dl>
     <div>
       <dt>Net</dt>
-      <dd>{{ data().differenceNet | currency: data().invoice.currency : 'code' }}</dd>
+      <dd>{{ amount(data().differenceNet, data().invoice.currency) }}</dd>
     </div>
     <div>
       <dt>VAT</dt>
-      <dd>{{ data().differenceVat | currency: data().invoice.currency : 'code' }}</dd>
+      <dd>{{ amount(data().differenceVat, data().invoice.currency) }}</dd>
     </div>
     <div class="gross">
       <dt>Gross</dt>
-      <dd>{{ data().differenceGross | currency: data().invoice.currency : 'code' }}</dd>
+      <dd>{{ amount(data().differenceGross, data().invoice.currency) }}</dd>
       @if (data().differencePercent !== null) {
         <span>({{ data().differencePercent }}% of PO gross)</span>
       }

@@ -73,6 +73,28 @@ describe('UploadForm', () => {
     expect(emit).toHaveBeenCalledWith(file);
   });
 
+  it('uploads a supported PDF dropped onto the selection area', async () => {
+    // Arrange
+    const fixture = TestBed.createComponent(UploadForm);
+    const file = new File(['pdf'], 'dropped.pdf', { type: 'application/pdf' });
+    const upload = vi.fn();
+    fixture.componentInstance.upload.subscribe(upload);
+    await fixture.whenStable();
+
+    // Act
+    const drop = new Event('drop', { bubbles: true, cancelable: true });
+    Object.defineProperty(drop, 'dataTransfer', { value: { files: [file] } });
+    fixture.nativeElement.querySelector('.file-selection').dispatchEvent(drop);
+    await fixture.whenStable();
+
+    // Assert
+    expect(drop.defaultPrevented).toBe(true);
+    expect(upload).toHaveBeenCalledWith(file);
+    expect(fixture.nativeElement.querySelector('#selected-file').textContent).toContain(
+      'dropped.pdf',
+    );
+  });
+
   it('should keep the submitted file selected while the upload is pending', async () => {
     // Arrange
     TestBed.configureTestingModule({ providers: [provideRouter([])] });

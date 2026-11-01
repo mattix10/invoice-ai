@@ -4,15 +4,15 @@
     <dl>
       <div>
         <dt>Net difference</dt>
-        <dd>{{ data().differenceNet | currency: 'PLN' : 'code' }}</dd>
+        <dd>{{ amount(data().differenceNet, 'PLN') }}</dd>
       </div>
       <div>
         <dt>VAT difference</dt>
-        <dd>{{ data().differenceVat | currency: 'PLN' : 'code' }}</dd>
+        <dd>{{ amount(data().differenceVat, 'PLN') }}</dd>
       </div>
       <div>
         <dt>Gross difference</dt>
-        <dd>{{ data().differenceGross | currency: 'PLN' : 'code' }}</dd>
+        <dd>{{ amount(data().differenceGross, 'PLN') }}</dd>
       </div>
       <div>
         <dt>Of PO gross total</dt>

@@ -121,7 +121,7 @@ describe('InvestigationSession', () => {
 
     // Assert
     expect(fixture.nativeElement.textContent).not.toContain('Evidence unavailable');
-    expect(fixture.nativeElement.textContent).toContain('PLN12.30');
+    expect(fixture.nativeElement.textContent).toContain('12,30\u00a0zł');
     http.verify();
   });
 });

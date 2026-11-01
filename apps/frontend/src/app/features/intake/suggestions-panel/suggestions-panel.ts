@@ -73,7 +73,7 @@ export class SuggestionsPanel {
         this.error.set(
           error instanceof HttpErrorResponse && error.status === 404
             ? 'No suggestions are available yet.'
-            : 'Suggestions are unavailable. You can continue editing manually.',
+            : 'Suggestions are unavailable. Extract document text first, or continue editing manually.',
         );
       },
     });
@@ -94,7 +94,39 @@ export class SuggestionsPanel {
   }
 
   protected display(value: unknown): string {
-    return typeof value === 'string' ? value : (JSON.stringify(value) ?? '—');
+    if (value === null || value === undefined || value === '') return '—';
+    if (Array.isArray(value)) {
+      return value.length ? value.map((item) => this.display(item)).join('\n') : '—';
+    }
+    if (typeof value === 'object') {
+      return Object.entries(value)
+        .map(([key, entry]) => `${this.fieldLabel(key)}: ${this.display(entry)}`)
+        .join(' · ');
+    }
+
+    return String(value);
+  }
+
+  protected fieldLabel(field: string): string {
+    const labels: Record<string, string> = {
+      vendor: 'Vendor',
+      supplierInvoiceNumber: 'Invoice number',
+      issued: 'Issue date',
+      due: 'Due date',
+      currency: 'Currency',
+      vatRate: 'VAT rate',
+      items: 'Line items',
+      declaredTotals: 'Declared totals',
+      position: 'Position',
+      name: 'Description',
+      quantity: 'Quantity',
+      unitNet: 'Unit net',
+      net: 'Net',
+      vat: 'VAT',
+      gross: 'Gross',
+    };
+
+    return labels[field] ?? field;
   }
 
   protected toggle(index: number, checked: boolean): void {

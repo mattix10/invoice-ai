@@ -635,3 +635,64 @@ def test_suggestion_decisions_and_draft_are_audited_atomically(client, session, 
         {"field": "vendor", "decision": "applied"},
         {"field": "currency", "decision": "rejected"},
     ]
+
+
+def test_confirmed_invoice_preview_resolves_to_its_uploaded_document(client):
+    from PIL import Image
+
+    image = BytesIO()
+    Image.new("RGB", (10, 10), "white").save(image, format="PNG")
+    document = upload(client, image.getvalue(), "invoice.png", "image/png").json()
+    url = "/api/v1/intake/documents/" + document["documentId"]
+    client.put(url + "/draft", json={"expectedRevision": 0, "draft": draft()})
+    invoice_id = client.post(url + "/confirm", json={"expectedRevision": 1}).json()["invoiceId"]
+
+    response = client.get(f"/api/v1/intake/documents/by-invoice/{invoice_id}/preview")
+    missing = client.get("/api/v1/intake/documents/by-invoice/INV-2026-9999/preview")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    assert response.content == client.get(url + "/preview").content
+    assert missing.status_code == 404
+
+
+def test_extraction_replaces_nul_before_persisting_and_preserves_suggestion_offsets(
+    client, monkeypatch
+):
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    client.app.state.settings.ai_provider = "demo"
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: ["Vendor: Example\x00Ltd\nCurrency: EUR"],
+    )
+
+    extraction = client.post(url + "/text-extractions")
+    suggestions = client.post(url + "/suggestions")
+
+    assert extraction.status_code == 200
+    text = extraction.json()["pages"][0]["text"]
+    assert text == "Vendor: Example Ltd\nCurrency: EUR"
+    assert client.get(url + "/text-extractions/latest").json() == extraction.json()
+    assert suggestions.status_code == 200
+    assert {item["field"] for item in suggestions.json()["proposals"]} == {"vendor", "currency"}
+    for proposal in suggestions.json()["proposals"]:
+        source = proposal["source"]
+        assert text[source["start"] : source["end"]] == source["excerpt"]
+
+
+def test_nul_only_text_layer_falls_back_to_ocr(client, monkeypatch):
+    url = "/api/v1/intake/documents/" + upload(client, pdf()).json()["documentId"]
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_text_layer",
+        lambda path, spool: ["\x00"],
+    )
+    monkeypatch.setattr(
+        "invoiceflow.modules.intake.extraction_service.extract_ocr",
+        lambda path, kind, spool: ["OCR\x00text"],
+    )
+
+    response = client.post(url + "/text-extractions")
+
+    assert response.status_code == 200
+    assert response.json()["pages"][0]["extractionMethod"] == "ocr"
+    assert response.json()["pages"][0]["text"] == "OCR text"

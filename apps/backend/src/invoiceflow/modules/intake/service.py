@@ -222,6 +222,14 @@ class IntakeService:
             draft=request.draft, revision=doc.revision, validation=validation(request.draft)
         )
 
+    def get_by_invoice(self, invoice_id):
+        doc = self.session.scalar(
+            select(IntakeDocument).where(IntakeDocument.invoice_id == invoice_id)
+        )
+        if doc is None:
+            raise IntakeError(404, "document_not_found", "Document not found")
+        return doc
+
     def check_revision(self, doc, expected):
         if doc.revision != expected:
             raise IntakeError(

@@ -3,6 +3,17 @@ import { INVOICE_WORKSPACE_DATA } from '../invoice-demo.data';
 import { InvoiceComparison } from './invoice-comparison';
 
 describe('InvoiceComparison', () => {
+  it('explains an empty comparison while keeping totals accessible', async () => {
+    const fixture = TestBed.createComponent(InvoiceComparison);
+    fixture.componentRef.setInput('data', { ...INVOICE_WORKSPACE_DATA, items: [] });
+
+    await fixture.whenStable();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.empty-items')?.textContent).toContain('No invoice line items');
+    expect(element.querySelector('details')).not.toBeNull();
+  });
+
   it('keeps totals available in a disclosure', async () => {
     // Arrange
     const fixture = TestBed.createComponent(InvoiceComparison);
@@ -21,7 +32,7 @@ describe('InvoiceComparison', () => {
 
     // Assert
     expect(totals.open).toBe(true);
-    expect(totals.textContent).toContain('PLN12,915.00');
+    expect(totals.textContent).toContain('12\u00a0915,00\u00a0zł');
   });
 
   it('should display the invoice and purchase order totals for each amount', async () => {
@@ -40,9 +51,9 @@ describe('InvoiceComparison', () => {
       Array.from(row.querySelectorAll('td'), (cell) => cell.textContent?.trim()),
     );
     expect(rows).toEqual([
-      ['Net', 'PLN10,500.00', 'PLN10,000.00'],
-      ['VAT 23%', 'PLN2,415.00', 'PLN2,300.00'],
-      ['Gross', 'PLN12,915.00', 'PLN12,300.00'],
+      ['Net', '10\u00a0500,00\u00a0zł', '10\u00a0000,00\u00a0zł'],
+      ['VAT 23%', '2\u00a0415,00\u00a0zł', '2\u00a0300,00\u00a0zł'],
+      ['Gross', '12\u00a0915,00\u00a0zł', '12\u00a0300,00\u00a0zł'],
     ]);
   });
 
@@ -71,10 +82,10 @@ describe('InvoiceComparison', () => {
       '27-inch monitor',
       '10',
       '5',
-      'PLN820.00',
-      'PLN770.00',
-      'PLN8,200.00',
-      'PLN4,100.00',
+      '820,00\u00a0zł',
+      '770,00\u00a0zł',
+      '8\u00a0200,00\u00a0zł',
+      '4\u00a0100,00\u00a0zł',
     ]);
   });
 

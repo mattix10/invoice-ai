@@ -5,9 +5,8 @@
       <h2>One price discrepancy deserves attention</h2>
       <p>
         {{ invoice().id }}: invoice value exceeds purchase order by
-        {{ invoice().differenceGrossGrosz / 100 | currency: 'PLN' : 'code' : '1.2-2' }} ({{
-          differencePercent()
-        }}%). No payment decision has been made.
+        {{ amount(invoice().differenceGrossGrosz, 'PLN') }} ({{ differencePercent() }}%). No payment
+        decision has been made.
       </p>
     </div>
     <a class="link" [routerLink]="investigationLink()">Investigate →</a>
@@ -24,8 +23,7 @@
         <div>
           <strong>Price variance · {{ invoice().id }}</strong
           ><small
-            >{{ invoice().vendor }} ·
-            {{ invoice().differenceGrossGrosz / 100 | currency: 'PLN' : 'code' : '1.2-2' }} above
+            >{{ invoice().vendor }} · {{ amount(invoice().differenceGrossGrosz, 'PLN') }} above
             PO</small
           >
         </div>

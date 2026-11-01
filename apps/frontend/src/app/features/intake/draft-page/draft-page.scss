@@ -1,5 +1,94 @@
+:host {
+  display: block;
+  margin: -36px -16px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+h1 {
+  font-size: 22px;
+}
+.subtitle {
+  margin: 2px 0 18px;
+  color: var(--text-2);
+}
 .layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  height: max(300px, calc(100dvh - 202px));
+  margin-top: 12px;
+  margin-bottom: 64px;
+}
+.layout.confirm-step {
+  height: max(300px, calc(100dvh - 252px));
+}
+.panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #98a2b3 transparent;
+  scrollbar-width: thin;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 4px 20px rgba(16, 24, 40, 0.035);
+}
+.preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.preview-heading h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.preview-heading a {
+  color: var(--primary);
+  font-size: 12px;
+}
+.preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.preview-actions button {
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+@media (max-width: 850px) {
+  :host {
+    margin: -24px -16px;
+  }
+  .layout,
+  .layout.confirm-step {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .panel {
+    overflow: visible;
+  }
+}
+@media (max-width: 580px) {
+  :host {
+    margin: -20px -16px;
+  }
+  .preview-heading {
+    flex-wrap: wrap;
+  }
+  .preview-heading h2 {
+    white-space: nowrap;
+  }
+  .preview-actions {
+    margin-left: auto;
+  }
 }
